@@ -1,0 +1,20 @@
+[
+  {
+    "id": "cisa",
+    "name": "CISA Cybersecurity Advisories",
+    "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+    "category": "Advisories"
+  },
+  {
+    "id": "bleepingcomputer",
+    "name": "BleepingComputer Security News",
+    "url": "https://www.bleepingcomputer.com/feed/",
+    "category": "News"
+  },
+  {
+    "id": "zdi",
+    "name": "Zero Day Initiative Advisories",
+    "url": "https://www.zerodayinitiative.com/rss/published/",
+    "category": "Vulnerabilities"
+  }
+]

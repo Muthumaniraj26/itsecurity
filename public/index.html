@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SECURITYHELPDESK // Intelligent Security & Compliance Hub</title>
+  <!-- Google Fonts for premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>SECURITYHELPDESK</h1>
+          <p class="subtitle">AI-Powered Threat, Phishing & Scam Intelligence Hub</p>
+        </div>
+      </div>
+      <div class="system-status">
+        <span class="status-pulse"></span>
+        <span class="status-label">SYSTEM ONLINE // SECURE ENVIRONMENT</span>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="app-workspace">
+      
+      <!-- Left Navigation Sidebar -->
+      <aside class="app-sidebar">
+        <div class="sidebar-header-label">WORKSPACES</div>
+        <nav class="nav-menu">
+          <button class="nav-item active" data-tab="threat-digest">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.83a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+            </span>
+            <div class="nav-text">
+              <span class="nav-title">Threat Digest</span>
+              <span class="nav-desc">Security & Compliance Feeds</span>
+            </div>
+          </button>
+
+          <button class="nav-item" data-tab="phishing-sandbox">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </span>
+            <div class="nav-text">
+              <span class="nav-title">Phishing Sandbox</span>
+              <span class="nav-desc">URL Phishing & Threat Analyzer</span>
+            </div>
+          </button>
+
+          <button class="nav-item" data-tab="scam-detector">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <div class="nav-text">
+              <span class="nav-title">Scam Detector</span>
+              <span class="nav-desc">Website Risk & Trust Auditor</span>
+            </div>
+          </button>
+
+          <button class="nav-item" data-tab="sbom-audit">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            </span>
+            <div class="nav-text">
+              <span class="nav-title">SBOM Analyzer</span>
+              <span class="nav-desc">Dependency Vulnerability Audit</span>
+            </div>
+          </button>
+
+          <div class="sidebar-header-label margin-top">CONFIGURATION</div>
+
+          <button class="nav-item" data-tab="pricing-plans">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </span>
+            <div class="nav-text">
+              <span class="nav-title">Pricing Plans</span>
+              <span class="nav-desc">Subscription & Billing</span>
+            </div>
+          </button>
+
+          <button class="nav-item" data-tab="secret-keys">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2m2 4l-4 4-2-2-4 4-3-3 7-7 2 2 2-2z"/><circle cx="7.5" cy="16.5" r="4.5"/></svg>
+            </span>
+            <div class="nav-text">
+              <span class="nav-title">Secret Keys</span>
+              <span class="nav-desc">User API Key Configuration</span>
+            </div>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="agent-mode-badge">
+            <span class="badge-dot" id="sidebar-agent-dot"></span>
+            <span class="mode-text" id="sidebar-agent-text">AI ENGINE: SERVER DEFAULT</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Central Viewport -->
+      <main class="app-viewport">
+        
+        <!-- ===================================== -->
+        <!-- TAB 1: THREAT & COMPLIANCE DIGEST     -->
+        <!-- ===================================== -->
+        <section id="threat-digest" class="tab-content active">
+          
+          <!-- Enterprise Use Case Card -->
+          <div class="usecase-banner-card card">
+            <div class="usecase-header">
+              <div class="usecase-badge">
+                <span class="badge-dot"></span>
+                <span>AUTONOMOUS AI SECURITY ANALYST AGENT // 6-CAPABILITY LIFECYCLE</span>
+              </div>
+              <span class="usecase-tag">HYBRID DETERMINISTIC + LLM ENGINE</span>
+            </div>
+            <h3>Autonomous Threat Ingestion, Zero-Day Correlation &amp; Contextual Risk Reasoning</h3>
+            <p>
+              Rather than passive text summarization, the AI Agent executes a conditional 6-phase investigation workflow: ingesting live bulletins, extracting CVE/IOC entities via regex/NLP, querying CISA KEV catalogs, mapping MITRE ATT&CK TTPs, matching internal company asset exposure, and calculating contextual priority before generating actionable remediation steps.
+            </p>
+            <!-- 6 Agent Capability Steps Diagram -->
+            <div class="agent-lifecycle-stepper">
+              <div class="step-chip active"><span class="step-num">1</span><div class="step-text"><strong class="step-name">Observe</strong><small>Ingest Feed</small></div></div>
+              <div class="stepper-arrow">➔</div>
+              <div class="step-chip active"><span class="step-num">2</span><div class="step-text"><strong class="step-name">Understand</strong><small>Extract CVE/IOC</small></div></div>
+              <div class="stepper-arrow">➔</div>
+              <div class="step-chip active"><span class="step-num">3</span><div class="step-text"><strong class="step-name">Investigate</strong><small>CISA KEV Lookup</small></div></div>
+              <div class="stepper-arrow">➔</div>
+              <div class="step-chip active"><span class="step-num">4</span><div class="step-text"><strong class="step-name">Correlate</strong><small>MITRE ATT&CK Map</small></div></div>
+              <div class="stepper-arrow">➔</div>
+              <div class="step-chip active"><span class="step-num">5</span><div class="step-text"><strong class="step-name">Decide</strong><small>Asset Risk Audit</small></div></div>
+              <div class="stepper-arrow">➔</div>
+              <div class="step-chip active"><span class="step-num">6</span><div class="step-text"><strong class="step-name">Act</strong><small>Action Plan</small></div></div>
+            </div>
+          </div>
+
+          <div class="view-header">
+            <div class="title-area">
+              <h2>Threat &amp; Compliance Ingestion Feed</h2>
+              <p>Aggregated real-time alerts from official databases, zero-day outlets, and security bulletins.</p>
+            </div>
+            <button id="refresh-feeds-btn" class="btn primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <span>Refetch Security Feeds</span>
+            </button>
+          </div>
+
+          <div class="threat-hub-layout">
+            <!-- Left: Articles List -->
+            <div class="articles-column card">
+              <div class="column-header">
+                <h3>Ingested Alerts</h3>
+                <span id="alerts-count" class="badge">Loading...</span>
+              </div>
+              <div class="filter-bar">
+                <div class="search-input-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="feed-search" placeholder="Filter alerts by title or keywords...">
+                </div>
+              </div>
+              <div id="articles-list" class="scrollable-list">
+                <div class="placeholder-loader">
+                  <div class="spinner"></div>
+                  <p>Ingesting real-time threat data...</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Detailed AI Analysis Panel -->
+            <div class="analysis-column card" id="threat-details-panel">
+              <div class="panel-placeholder">
+                <div class="placeholder-svg-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.83a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                </div>
+                <h3>Select a Threat Alert</h3>
+                <p>Click on any alert from the ingested list to trigger real-time AI security synthesis, CVSS risk scoring, CVE identification, and compliance impact mapping.</p>
+              </div>
+              <div class="panel-content hidden" id="threat-details-content">
+                <!-- Loaded dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- TAB 2: PHISHING SANDBOX               -->
+        <!-- ===================================== -->
+        <section id="phishing-sandbox" class="tab-content">
+          <div class="view-header">
+            <div class="title-area">
+              <h2>URL Phishing Sandbox</h2>
+              <p>Paste suspicious links, credential forms, or login page targets for secure analysis.</p>
+            </div>
+          </div>
+
+          <div class="sandbox-input-card card">
+            <form id="phishing-scan-form" class="scan-form">
+              <div class="input-group">
+                <span class="input-prefix">HTTPS://</span>
+                <input type="text" id="phish-url-input" placeholder="enter-suspicious-domain-or-link.com/verify-login" required>
+              </div>
+              <button type="submit" class="btn danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Run Phishing Audit</span>
+              </button>
+            </form>
+          </div>
+
+          <div id="phishing-results-area" class="results-container hidden">
+            <!-- Phishing Results Grid -->
+            <div class="results-grid">
+              
+              <!-- Left Column: Metrics & Indicators -->
+              <div class="results-left">
+                <!-- Gauge Card -->
+                <div class="risk-gauge-card card">
+                  <h3>Phishing Probability</h3>
+                  <div class="gauge-wrapper">
+                    <svg viewBox="0 0 100 100" class="risk-gauge">
+                      <circle cx="50" cy="50" r="40" class="gauge-track"></circle>
+                      <circle cx="50" cy="50" r="40" class="gauge-fill" id="phish-gauge-fill" stroke-dasharray="251" stroke-dashoffset="251"></circle>
+                      <text x="50" y="55" class="gauge-value" id="phish-risk-val">0%</text>
+                    </svg>
+                  </div>
+                  <div class="verdict-badge" id="phish-verdict">SAFE</div>
+                </div>
+
+                <!-- Scraping Audit Info -->
+                <div class="audit-details-card card">
+                  <h3>Scraped Metadata Indicators</h3>
+                  <ul class="meta-indicators-list">
+                    <li>
+                      <span class="indicator-label">SSL status:</span>
+                      <span id="phish-indicator-ssl" class="indicator-value">Loading...</span>
+                    </li>
+                    <li>
+                      <span class="indicator-label">Domain age:</span>
+                      <span id="phish-indicator-age" class="indicator-value">Loading...</span>
+                    </li>
+                    <li>
+                      <span class="indicator-label">Password inputs:</span>
+                      <span id="phish-indicator-pass" class="indicator-value">Loading...</span>
+                    </li>
+                    <li>
+                      <span class="indicator-label">Outbound links ratio:</span>
+                      <span id="phish-indicator-links" class="indicator-value">Loading...</span>
+                    </li>
+                  </ul>
+
+                  <!-- ML Phishing Detection Feature Vector (UCI Benchmark) -->
+                  <div class="ml-features-block" style="margin-top: 14px; border-top: 1px solid var(--border-subtle); padding-top: 10px;">
+                    <span class="sidebar-header-label" style="padding-left: 0; margin-bottom: 6px; display: block;">ML HEURISTIC SIGNALS (UCI BENCHMARK)</span>
+                    <div class="ml-feature-chips" id="phish-ml-chips" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                      <span class="usecase-chip">Short URL: Clean</span>
+                      <span class="usecase-chip">@ Symbol: Clean</span>
+                      <span class="usecase-chip">Form Handler: Clean</span>
+                      <span class="usecase-chip">Iframe: Clean</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: AI Analysis -->
+              <div class="results-right card">
+                <div class="section-title">
+                  <span class="badge red">AI Sandbox Verdict</span>
+                  <h3>Detected Risk Factors</h3>
+                </div>
+                <div id="phish-risk-factors" class="factors-list">
+                  <!-- Loaded dynamically -->
+                </div>
+
+                <hr class="divider">
+
+                <div class="analysis-block">
+                  <h4>HTML Structural Check</h4>
+                  <p id="phish-layout-check" class="code-font">Checking...</p>
+                </div>
+
+                <div class="analysis-block">
+                  <h4>Verdict Justification</h4>
+                  <p id="phish-reasoning">Checking...</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Sandbox Placeholder -->
+          <div class="sandbox-placeholder" id="phish-placeholder">
+            <div class="placeholder-svg-icon danger-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <h3>Sandbox Ready</h3>
+            <p>Input a URL above to perform security page crawling, domain registration age checks, certificate health analysis, and AI risk heuristics.</p>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- TAB 3: SCAM DETECTOR                  -->
+        <!-- ===================================== -->
+        <section id="scam-detector" class="tab-content">
+          <div class="view-header">
+            <div class="title-area">
+              <h2>Website Scam Risk Detector</h2>
+              <p>Audits newly discovered portals, shops, and investment links for fraudulent patterns and low trust factors.</p>
+            </div>
+          </div>
+
+          <div class="sandbox-input-card card">
+            <form id="scam-scan-form" class="scan-form">
+              <div class="input-group">
+                <span class="input-prefix">DOMAIN</span>
+                <input type="text" id="scam-url-input" placeholder="e.g. discount-luxury-outlet.com" required>
+              </div>
+              <button type="submit" class="btn warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Audit Trust Score</span>
+              </button>
+            </form>
+          </div>
+
+          <div id="scam-results-area" class="results-container hidden">
+            <div class="results-grid">
+              
+              <!-- Left Column: Trust Gauge -->
+              <div class="results-left">
+                <div class="risk-gauge-card card">
+                  <h3>Trust Score Meter</h3>
+                  <div class="gauge-wrapper">
+                    <svg viewBox="0 0 100 100" class="risk-gauge">
+                      <circle cx="50" cy="50" r="40" class="gauge-track"></circle>
+                      <circle cx="50" cy="50" r="40" class="gauge-fill trust-color" id="scam-gauge-fill" stroke-dasharray="251" stroke-dashoffset="251"></circle>
+                      <text x="50" y="55" class="gauge-value" id="scam-trust-val">100</text>
+                    </svg>
+                  </div>
+                  <div class="verdict-badge warning-bg" id="scam-verdict">EVALUATING</div>
+                </div>
+
+                <div class="audit-details-card card">
+                  <h3>Domain Registration Details</h3>
+                  <ul class="meta-indicators-list">
+                    <li>
+                      <span class="indicator-label">Registrar:</span>
+                      <span id="scam-registrar" class="indicator-value">Unknown</span>
+                    </li>
+                    <li>
+                      <span class="indicator-label">Registered on:</span>
+                      <span id="scam-created-date" class="indicator-value">Unknown</span>
+                    </li>
+                    <li>
+                      <span class="indicator-label">Domain age:</span>
+                      <span id="scam-age-days" class="indicator-value">Unknown</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Right Column: Audit Signals -->
+              <div class="results-right card">
+                <div class="section-title">
+                  <span class="badge orange">Scam Signals Audit</span>
+                  <h3>Red Flag Indicators</h3>
+                </div>
+                <div id="scam-red-flags" class="factors-list">
+                  <!-- Loaded dynamically -->
+                </div>
+
+                <hr class="divider">
+
+                <div class="analysis-block">
+                  <h4>Claims &amp; Policy Assessment</h4>
+                  <p id="scam-signals-text">Auditing website content...</p>
+                </div>
+
+                <div class="analysis-block">
+                  <h4>Security Recommendation</h4>
+                  <p id="scam-assessment">Checking...</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Scam Placeholder -->
+          <div class="sandbox-placeholder" id="scam-placeholder">
+            <div class="placeholder-svg-icon warning-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <h3>Trust Audit Ready</h3>
+            <p>Input a website domain name above to trigger background WHOIS checks, policy audits, and content scam pattern recognition.</p>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- TAB: SBOM DEPENDENCY ANALYZER         -->
+        <!-- ===================================== -->
+        <section id="sbom-audit" class="tab-content">
+          <div class="view-header">
+            <div class="title-area">
+              <h2>SBOM Dependency Vulnerability Analyzer</h2>
+              <p>Audit project software bills of materials (requirements.txt, package.json) against live CVE and threat databases.</p>
+            </div>
+          </div>
+
+          <div class="sbom-input-card card">
+            <div class="manifest-quick-actions">
+              <span class="action-label" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">PRELOAD SAMPLE MANIFEST:</span>
+              <button type="button" class="btn secondary sm-btn" id="load-python-sbom-btn">Python requirements.txt</button>
+              <button type="button" class="btn secondary sm-btn" id="load-node-sbom-btn">Node.js package.json</button>
+            </div>
+            <form id="sbom-audit-form">
+              <div class="textarea-group" style="margin-top: 14px;">
+                <textarea id="sbom-manifest-input" rows="8" placeholder="Paste your requirements.txt or package.json dependencies here..." required></textarea>
+              </div>
+              <div class="form-actions" style="margin-top: 14px;">
+                <button type="submit" class="btn primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                  <span>Audit Manifest Dependencies</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div id="sbom-results-area" class="results-container hidden" style="margin-top: 20px;">
+            <div class="sbom-summary-cards">
+              <div class="card metric-card">
+                <span class="metric-label">Total Packages Audited</span>
+                <span class="metric-val" id="sbom-total-count">0</span>
+              </div>
+              <div class="card metric-card">
+                <span class="metric-label">Vulnerable Dependencies</span>
+                <span class="metric-val text-danger" id="sbom-vuln-count">0</span>
+              </div>
+              <div class="card metric-card">
+                <span class="metric-label">Overall Risk Status</span>
+                <span class="metric-badge" id="sbom-risk-status">SAFE</span>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+              <div class="section-title">
+                <span class="badge red">Vulnerability Matches</span>
+                <h3>Identified Security Vulnerabilities</h3>
+              </div>
+              <div id="sbom-vuln-list" class="sbom-vuln-table-wrapper" style="margin-top: 14px;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+              <h4>Verified Clean Dependencies</h4>
+              <div id="sbom-clean-list" class="clean-chips-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                <!-- Clean packages tags -->
+              </div>
+            </div>
+          </div>
+
+          <div class="sandbox-placeholder" id="sbom-placeholder">
+            <div class="placeholder-svg-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            </div>
+            <h3>SBOM Analyzer Ready</h3>
+            <p>Paste a requirements.txt or package.json above to discover direct dependency vulnerabilities, CISA KEV zero-day flags, and recommended patch upgrades.</p>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- TAB 4: PRICING PLANS                  -->
+        <!-- ===================================== -->
+        <section id="pricing-plans" class="tab-content">
+          <div class="view-header">
+            <div class="title-area">
+              <h2>Pricing Plans &amp; Billing</h2>
+              <p>Choose the level of threat intelligence, rate limits, and custom integrations that fit your team.</p>
+            </div>
+          </div>
+
+          <div class="pricing-controls card">
+            <div class="control-section">
+              <h4>Select Pricing Currency</h4>
+              <div class="selector-grid" id="currency-selector">
+                <button class="selector-btn active" data-currency="USD">USD ($)</button>
+                <button class="selector-btn" data-currency="EUR">EUR (€)</button>
+                <button class="selector-btn" data-currency="INR">INR (₹)</button>
+                <button class="selector-btn" data-currency="GBP">GBP (£)</button>
+              </div>
+            </div>
+            
+            <div class="control-section">
+              <h4>Choose Preferred Payment Method</h4>
+              <div class="selector-grid" id="payment-selector">
+                <button class="selector-btn active" data-payment="credit_card">Credit Card</button>
+                <button class="selector-btn" data-payment="stripe">Stripe</button>
+                <button class="selector-btn" data-payment="paypal">PayPal</button>
+                <button class="selector-btn" data-payment="crypto">Crypto (BTC/ETH)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pricing-grid">
+            <!-- Free Plan -->
+            <div class="pricing-card card">
+              <span class="plan-badge">Basic</span>
+              <h3>Free Plan</h3>
+              <div class="plan-price">
+                <span class="price-symbol" id="free-symbol">$</span><span class="price-amount" id="free-price">0</span>
+                <span class="price-period">/month</span>
+              </div>
+              <p class="plan-desc">Essential scanning for independent developers and personal sites.</p>
+              <ul class="plan-features">
+                <li>10 URL Phishing Scans / day</li>
+                <li>Standard RSS Advisories Feed</li>
+                <li>Simulation AI engine fallback</li>
+                <li>Standard community support</li>
+              </ul>
+              <button class="btn primary plan-btn disabled" disabled>Current Active Plan</button>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="pricing-card card popular">
+              <span class="plan-badge popular-badge">Most Popular</span>
+              <h3>Pro Plan</h3>
+              <div class="plan-price">
+                <span class="price-symbol" id="pro-symbol">$</span><span class="price-amount" id="pro-price">49</span>
+                <span class="price-period">/month</span>
+              </div>
+              <p class="plan-desc">Advanced real-time sandbox intelligence for active operations teams.</p>
+              <ul class="plan-features">
+                <li>Unlimited URL Phishing Scans</li>
+                <li>Unlimited Domain Scam Audits</li>
+                <li>Live Gemini 2.5 AI API integration</li>
+                <li>Slack / MS Teams webhook alerts</li>
+                <li>Email alerts on critical vulnerabilities</li>
+              </ul>
+              <button class="btn primary plan-btn" id="upgrade-pro-btn">Upgrade Account</button>
+            </div>
+
+            <!-- Custom Plan -->
+            <div class="pricing-card card">
+              <span class="plan-badge">Enterprise</span>
+              <h3>Customized Plan</h3>
+              <div class="plan-price">
+                <span class="price-amount">Custom</span>
+              </div>
+              <p class="plan-desc">Enterprise-grade security scanning, SLAs, and custom integrations.</p>
+              <ul class="plan-features">
+                <li>Everything in Pro Plan</li>
+                <li>Custom threat feeds scraping</li>
+                <li>Private API rate limits</li>
+                <li>SBOM matching for repository code</li>
+                <li>Dedicated support manager</li>
+              </ul>
+              <button class="btn primary plan-btn" id="contact-sales-btn">Contact Desk</button>
+            </div>
+          </div>
+          
+          <div class="payment-status-card card hidden" id="payment-notification">
+            <span class="status-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </span>
+            <div>
+              <h4 id="payment-status-title">Stripe Payment Gateway Active</h4>
+              <p id="payment-status-desc">You have selected Stripe as your preferred payment method. Click Upgrade above to proceed.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================== -->
+        <!-- TAB 5: SECRET KEYS MANAGER           -->
+        <!-- ===================================== -->
+        <section id="secret-keys" class="tab-content">
+          <div class="view-header">
+            <div class="title-area">
+              <h2>Secret Keys &amp; Multi-LLM Manager</h2>
+              <p>Connect your own API key for Google Gemini, OpenAI, Anthropic Claude, Groq, or custom LLM endpoints.</p>
+            </div>
+          </div>
+
+          <div class="card secret-keys-card">
+            <div class="key-form-group">
+              <label for="llm-provider-select">Select LLM Provider</label>
+              <select id="llm-provider-select" class="select-input">
+                <option value="google" selected>Google Gemini</option>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic Claude</option>
+                <option value="groq">Groq Cloud</option>
+                <option value="custom">Custom / OpenAI-Compatible (LocalAI / Ollama / OpenRouter)</option>
+              </select>
+            </div>
+
+            <div class="key-form-group">
+              <label for="user-api-key-input" id="key-label">Provider API Key</label>
+              <div class="input-with-button">
+                <input type="password" id="user-api-key-input" placeholder="Paste provider API key..." autocomplete="off">
+                <button type="button" class="btn secondary" id="toggle-key-visibility-btn">Show</button>
+              </div>
+              <p class="input-help-text">Your key is saved locally in your browser and passed via secure request headers (<code>x-api-key</code>).</p>
+            </div>
+
+            <div class="key-form-group">
+              <label for="llm-model-input">Target Model Name</label>
+              <input type="text" id="llm-model-input" class="select-input" placeholder="e.g. gemini-2.5-flash, gpt-4o-mini, claude-3-5-sonnet-20241022">
+              <p class="input-help-text">Leave blank to use provider's recommended default model.</p>
+            </div>
+
+            <div class="key-form-group hidden" id="custom-base-url-group">
+              <label for="custom-base-url-input">Custom Base API URL</label>
+              <input type="text" id="custom-base-url-input" class="select-input" placeholder="e.g. http://localhost:11434/v1 or https://openrouter.ai/api/v1">
+            </div>
+
+            <div class="key-actions">
+              <button type="button" class="btn primary" id="save-key-btn">Save Configuration</button>
+              <button type="button" class="btn secondary" id="test-key-btn">Test Connection</button>
+              <button type="button" class="btn danger-btn" id="clear-key-btn">Reset Defaults</button>
+            </div>
+
+            <div class="key-status-display card" id="key-status-box">
+              <span class="key-status-dot" id="key-status-dot"></span>
+              <div class="key-status-text">
+                <h4 id="key-status-title">Checking LLM Configuration...</h4>
+                <p id="key-status-desc">System status initializing.</p>
+              </div>
+            </div>
+
+            <!-- Webhook Alert Configuration Card -->
+            <div class="webhook-config-block" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-subtle);">
+              <div class="section-title">
+                <span class="badge blue">Alert Automation</span>
+                <h3 style="font-size: 1.1rem; margin-top: 4px;">Incident Alert Webhooks (Slack / Discord / Teams)</h3>
+              </div>
+              <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; margin-bottom: 14px;">
+                Dispatch real-time notifications to enterprise chat channels whenever CRITICAL threats or active CISA KEV zero-days are identified.
+              </p>
+
+              <div class="key-form-group">
+                <label for="webhook-platform-select">Platform Destination</label>
+                <select id="webhook-platform-select" class="select-input">
+                  <option value="slack" selected>Slack Incoming Webhook</option>
+                  <option value="discord">Discord Channel Webhook</option>
+                  <option value="teams">Microsoft Teams Connector</option>
+                </select>
+              </div>
+
+              <div class="key-form-group">
+                <label for="webhook-url-input">Target Webhook URL</label>
+                <input type="text" id="webhook-url-input" class="select-input" placeholder="https://hooks.slack.com/services/... or https://discord.com/api/webhooks/...">
+              </div>
+
+              <div class="key-actions">
+                <button type="button" class="btn primary" id="save-webhook-btn">Save Webhook</button>
+                <button type="button" class="btn secondary" id="test-webhook-btn">Send Test Dispatch</button>
+              </div>
+
+              <div id="webhook-status" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);"></div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
