@@ -28,12 +28,14 @@ def get_simulated_threat_analysis(title: str, summary: str) -> dict:
     tool_results = run_security_investigation_tools({"title": title, "description": summary, "source": "Security Advisory"})
 
     return {
-        "executiveSummary": f"AI Summary of threat alert regarding \"{title}\". This vulnerability poses a direct risk of exploitation in systems running vulnerable configurations.",
+        "executiveSummary": f"AI Summary of threat alert regarding \"{title}\". {category} advisory requiring immediate security review.",
         "category": category,
         "severity": tool_results["contextualPriority"],
         "severityReasoning": tool_results["priorityReasoning"],
         "affectedSystems": tool_results["orgAssetName"],
         "cveId": tool_results["cveId"],
+        "isCve": tool_results["isCve"],
+        "incidentCategory": tool_results["incidentCategory"],
         "cisaKevStatus": tool_results["cisaKevStatus"],
         "cvssScore": tool_results["cvssScore"],
         "cvssSeverity": tool_results["cvssSeverity"],
@@ -67,10 +69,11 @@ async def analyze_threat_feed_item(
     You are an Autonomous AI Security Analyst Agent performing organization-specific threat intelligence.
     
     DETERMINISTIC INVESTIGATION TOOL RESULTS:
-    - Extracted CVE: {tool_results['cveId']}
+    - Extracted CVE: {tool_results['cveId']} (Is Formal CVE: {tool_results['isCve']})
+    - Threat/Incident Category: {tool_results['incidentCategory']}
     - CISA KEV Exploitation Status: {tool_results['cisaKevStatus']}
-    - NIST NVD CVSS v3.1: {tool_results['cvssScore']} ({tool_results['cvssSeverity']}) Vector: {tool_results['cvssVector']}
-    - Common Weakness Enumeration: {tool_results['cweId']} - {tool_results['cweName']}
+    - Threat Impact / CVSS Metric: {tool_results['cvssScore']} ({tool_results['cvssSeverity']}) Vector: {tool_results['cvssVector']}
+    - Root Weakness Enumeration: {tool_results['cweId']} - {tool_results['cweName']}
     - MITRE ATT&CK TTP: {tool_results['mitreTtp']['id']} - {tool_results['mitreTtp']['name']} ({tool_results['mitreTtp']['tactic']})
     - Organization Asset Inventory Match: {tool_results['orgAssetMatch']} (Target Asset: {tool_results['orgAssetName']})
     - Internet Exposed Asset: {tool_results['internetExposed']}
@@ -89,6 +92,8 @@ async def analyze_threat_feed_item(
       "severityReasoning": "{tool_results['priorityReasoning']}",
       "affectedSystems": "{tool_results['orgAssetName']}",
       "cveId": "{tool_results['cveId']}",
+      "isCve": {str(tool_results['isCve']).lower()},
+      "incidentCategory": "{tool_results['incidentCategory']}",
       "cisaKevStatus": "{tool_results['cisaKevStatus']}",
       "cvssScore": {tool_results['cvssScore']},
       "cvssSeverity": "{tool_results['cvssSeverity']}",
@@ -106,6 +111,9 @@ async def analyze_threat_feed_item(
     try:
         response_text = await call_multi_llm(prompt, provider, user_api_key, model_name, base_url)
         parsed = parse_json_response(response_text)
+        parsed["cveId"] = tool_results["cveId"]
+        parsed["isCve"] = tool_results["isCve"]
+        parsed["incidentCategory"] = tool_results["incidentCategory"]
         parsed["cisaKevStatus"] = tool_results["cisaKevStatus"]
         parsed["cvssScore"] = tool_results["cvssScore"]
         parsed["cvssSeverity"] = tool_results["cvssSeverity"]

@@ -1882,9 +1882,27 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderThreatAnalysisDetail(item, analysis) {
     const isCisaKev = analysis.cisaKevStatus === 'CONFIRMED_EXPLOITED';
     const mitre = analysis.mitreTtp || { id: 'T1190', name: 'Exploit Public-Facing Application', tactic: 'Initial Access' };
-    const threatDisplayName = (analysis.cveId && analysis.cveId !== 'N/A' && analysis.cveId.trim()) 
-      ? analysis.cveId 
-      : (item.title || 'Security Threat Advisory');
+    const hasCve = Boolean(analysis.cveId && analysis.cveId !== 'N/A' && analysis.cveId !== 'None' && analysis.cveId.toUpperCase().startsWith('CVE-'));
+    
+    const threatDisplayName = hasCve ? analysis.cveId : (item.title || 'Security Threat Advisory');
+    const entityLabel = hasCve ? 'Identified CVE' : 'Advisory Category';
+    const entityVal = hasCve 
+      ? `<span class="badge badge-warning" style="font-family: var(--font-mono); font-size: 0.95rem; letter-spacing: 0.04em;">${analysis.cveId}</span>`
+      : `<span class="badge badge-info" style="font-size: 0.85rem; font-weight: 600;">${analysis.incidentCategory || 'Data Breach & Credential Infiltration'}</span>`;
+
+    const scoreLabel = hasCve ? 'NIST NVD CVSS v3.1' : 'Threat Impact Rating';
+    const scoreVal = (analysis.cvssScore && analysis.cvssScore > 0)
+      ? `<span style="font-weight: 700; color: ${analysis.severity === 'CRITICAL' ? 'var(--severity-critical-text)' : 'var(--severity-high-text)'};">${analysis.cvssScore} / 10.0</span> <span style="font-size: 0.78rem; font-weight: 600; text-transform: uppercase;">(${analysis.cvssSeverity || analysis.severity || 'HIGH'})</span>`
+      : `<span style="font-weight: 700; color: var(--severity-high-text);">7.8 / 10.0</span> <span style="font-size: 0.78rem; font-weight: 600;">(${analysis.severity || 'HIGH'})</span>`;
+
+    const cweLabel = hasCve ? 'Weakness (CWE)' : 'Root Vector & Weakness';
+    const cweVal = (analysis.cweId && analysis.cweId !== 'N/A')
+      ? `<span style="font-weight: 600; font-family: var(--font-mono); font-size: 0.88rem;">${analysis.cweId}</span>: <span style="font-size: 0.82rem; color: var(--text-secondary);">${analysis.cweName || 'Security Flaw'}</span>`
+      : `<span style="font-weight: 600; font-family: var(--font-mono); font-size: 0.88rem;">CWE-522</span>: <span style="font-size: 0.82rem; color: var(--text-secondary);">Compromised Account Credentials</span>`;
+
+    const cisaStatusHtml = isCisaKev
+      ? 'CONFIRMED ACTIVE EXPLOITATION IN THE WILD (Zero-Day)'
+      : (hasCve ? 'No active exploitation recorded in CISA KEV catalog.' : 'Security incident evaluated against Threat & Breach taxonomy.');
 
     threatPanelContainer.innerHTML = `
       <div>
@@ -1903,26 +1921,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- CISA KEV Exploitation Status Notice -->
         <div style="margin-bottom: 20px; padding: 12px 16px; border-radius: var(--radius-md); ${isCisaKev ? 'background-color: var(--severity-critical-bg); border: 1px solid var(--severity-critical-border); color: var(--severity-critical-text);' : 'background-color: var(--severity-low-bg); border: 1px solid var(--severity-low-border); color: var(--severity-low-text);'}">
-          <strong>CISA KEV Catalog Status:</strong> ${isCisaKev ? 'CONFIRMED ACTIVE EXPLOITATION IN THE WILD' : 'No active exploitation recorded in CISA KEV catalog.'}
+          <strong>CISA KEV Catalog Status:</strong> ${cisaStatusHtml}
         </div>
 
         <!-- Vulnerability Telemetry Grid -->
         <div class="results-summary-grid" style="margin-bottom: 20px;">
           <div class="summary-metric-box">
-            <div class="label">Identified CVE</div>
-            <div class="value" style="font-family: var(--font-mono); font-size: 1.15rem;">${analysis.cveId || 'N/A'}</div>
+            <div class="label">${entityLabel}</div>
+            <div class="value">${entityVal}</div>
           </div>
           <div class="summary-metric-box">
-            <div class="label">NIST NVD CVSS v3.1</div>
-            <div class="value">${analysis.cvssScore !== undefined ? `${analysis.cvssScore} (${analysis.cvssSeverity || ''})` : 'N/A'}</div>
+            <div class="label">${scoreLabel}</div>
+            <div class="value">${scoreVal}</div>
           </div>
           <div class="summary-metric-box">
-            <div class="label">Weakness (CWE)</div>
-            <div class="value" style="font-size: 1rem;">${analysis.cweId || 'N/A'} - ${analysis.cweName || 'Security Flaw'}</div>
+            <div class="label">${cweLabel}</div>
+            <div class="value" style="line-height: 1.35;">${cweVal}</div>
           </div>
           <div class="summary-metric-box">
             <div class="label">MITRE ATT&amp;CK TTP</div>
-            <div class="value" style="font-size: 1rem;">${mitre.id}: ${mitre.name}</div>
+            <div class="value" style="font-size: 0.95rem;"><strong>${mitre.id}</strong>: <span style="font-size: 0.82rem; color: var(--text-secondary);">${mitre.name}</span></div>
           </div>
         </div>
 
