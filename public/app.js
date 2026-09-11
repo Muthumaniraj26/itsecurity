@@ -1626,24 +1626,31 @@ document.addEventListener('DOMContentLoaded', () => {
       const cat = categorizeFeedItem(item);
       const words = (item.description || '').split(' ').length;
       const readTime = Math.max(2, Math.ceil(words / 30)) + ' min read';
+      const imgUrl = item.imageUrl || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80';
       
       return `
         <div class="news-feed-card">
-          <div>
+          <div class="news-feed-img-wrap">
+            <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80'">
+            <div class="news-feed-img-overlay"></div>
+            <div class="news-feed-img-tag">${cat.tag}</div>
+          </div>
+          <div class="news-feed-content">
             <div class="news-feed-header">
-              <span class="news-tag">${cat.tag}</span>
+              <span class="news-feed-source-chip">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                ${escapeHtml(item.source || 'Advisory Feed')}
+              </span>
               ${cat.badge}
             </div>
             <h4 class="news-feed-title">${escapeHtml(item.title)}</h4>
             <p class="news-feed-desc">${escapeHtml(item.description || 'Live threat intelligence telemetry and CVE advisory ingestion.')}</p>
           </div>
-          <div>
+          <div class="news-feed-footer-wrap">
             <div class="news-feed-meta">
-              <span class="news-feed-source">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                ${escapeHtml(item.source || 'Advisory Feed')}
-              </span>
-              <span>${formatDateTime(item.pubDate)} &bull; ${readTime}</span>
+              <span>${formatDateTime(item.pubDate)}</span>
+              <span>&bull;</span>
+              <span>${readTime}</span>
             </div>
             <div class="news-feed-actions">
               <button type="button" class="btn-analyze-feed-card" data-home-feed-idx="${idx}">

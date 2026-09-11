@@ -1,0 +1,10 @@
+{
+  "CVE-2026-42016": {
+    "cvssScore": 8.1,
+    "cvssSeverity": "HIGH",
+    "cvssVector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
+    "cweId": "CWE-863",
+    "cweName": "Security Weakness Enumeration",
+    "source": "live_nvd_api"
+  }
+}
