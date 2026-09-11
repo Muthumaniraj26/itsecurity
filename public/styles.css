@@ -1220,6 +1220,144 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 /* ==========================================================================
    TOOL EXECUTION INTERFACES, WORKBENCH GRID & TELEMETRY PANELS
    ========================================================================== */
+#view-tools {
+  position: relative;
+  overflow: hidden;
+  min-height: calc(100vh - 120px);
+}
+
+/* Ambient Animated Cyber Background Layer */
+.tools-bg-cyber-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Subtle Animated Cyber Dot Matrix Grid */
+.tools-bg-grid-mesh {
+  position: absolute;
+  inset: -60px;
+  background-image: 
+    radial-gradient(rgba(37, 99, 235, 0.14) 1.2px, transparent 1.2px),
+    radial-gradient(rgba(56, 189, 248, 0.10) 1.2px, transparent 1.2px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+  mask-image: radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.95) 15%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.95) 15%, transparent 80%);
+  animation: cyberGridFloat 36s linear infinite;
+}
+
+@keyframes cyberGridFloat {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-18px) scale(1.02); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Glowing Cyber Aura Orbs */
+.tools-glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.tools-orb-1 {
+  top: 20px;
+  right: -5%;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(37, 99, 235, 0.08) 60%, transparent 75%);
+  animation: floatOrb1 14s ease-in-out infinite alternate;
+}
+
+.tools-orb-2 {
+  top: 40%;
+  left: -8%;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(37, 99, 235, 0.06) 60%, transparent 75%);
+  animation: floatOrb2 18s ease-in-out infinite alternate;
+}
+
+.tools-orb-3 {
+  bottom: 5%;
+  right: 15%;
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(56, 189, 248, 0.05) 60%, transparent 75%);
+  animation: floatOrb3 16s ease-in-out infinite alternate;
+}
+
+@keyframes floatOrb1 {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  100% { transform: translate(-50px, 40px) scale(1.15); opacity: 0.75; }
+}
+
+@keyframes floatOrb2 {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.45; }
+  100% { transform: translate(60px, -40px) scale(1.12); opacity: 0.7; }
+}
+
+@keyframes floatOrb3 {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  100% { transform: translate(-40px, -30px) scale(1.2); opacity: 0.65; }
+}
+
+/* Subtle Animated Scanning Laser Beam */
+.tools-laser-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.35) 25%, rgba(37, 99, 235, 0.8) 50%, rgba(56, 189, 248, 0.35) 75%, transparent 100%);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6), 0 0 32px rgba(37, 99, 235, 0.25);
+  opacity: 0.65;
+  top: -10px;
+  animation: laserScanVertical 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes laserScanVertical {
+  0% { top: -5%; opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { top: 105%; opacity: 0; }
+}
+
+/* Sandbox Engine Header Pill */
+.sandbox-engine-pill {
+  background: rgba(239, 246, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--primary-200);
+  color: var(--primary-700);
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+}
+
+.sandbox-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseDotGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseDotGlow {
+  0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 6px #10b981; }
+  50% { transform: scale(1.3); opacity: 0.75; box-shadow: 0 0 12px #10b981; }
+}
+
 .tool-workbench-grid {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
@@ -1229,12 +1367,33 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 .execution-card {
-  background-color: #ffffff;
-  border: 1px solid var(--border-default);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 28px;
+  box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.07);
+  padding: 30px;
   margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-fast);
+}
+
+.execution-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--primary-500) 50%, transparent 100%);
+  opacity: 0.75;
+}
+
+.execution-card:hover {
+  border-color: var(--primary-300);
+  box-shadow: 0 14px 38px -6px rgba(37, 99, 235, 0.12);
 }
 
 .execution-stage-box {
@@ -1290,14 +1449,29 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
    SECURITY RESULTS PRESENTATION (UNCERTAINTY-AWARE & EXPLAINABLE)
    ========================================================================== */
 .results-card {
-  background-color: #ffffff;
-  border: 1px solid var(--border-default);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
-  padding: 28px;
+  box-shadow: 0 10px 32px -4px rgba(15, 23, 42, 0.09);
+  padding: 30px;
   margin-top: 24px;
   max-width: 100%;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.results-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--primary-500) 50%, transparent 100%);
+  opacity: 0.75;
 }
 
 .results-header-banner {

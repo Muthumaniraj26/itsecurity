@@ -604,11 +604,26 @@
       <!-- 5. TOOLS VIEW (EXECUTION & RESULTS)      -->
       <!-- ======================================== -->
       <section id="view-tools" class="page-view">
-        <div class="content-container">
+        <!-- Ambient Animated Cyber Background Layer -->
+        <div class="tools-bg-cyber-layer">
+          <div class="tools-bg-grid-mesh"></div>
+          <div class="tools-laser-scan-line"></div>
+          <div class="tools-glow-orb tools-orb-1"></div>
+          <div class="tools-glow-orb tools-orb-2"></div>
+          <div class="tools-glow-orb tools-orb-3"></div>
+        </div>
+
+        <div class="content-container" style="position: relative; z-index: 1;">
           <div class="dashboard-header" style="margin-bottom: 20px;">
-            <div>
-              <h2 style="font-family: var(--font-heading); font-size: 1.65rem; font-weight: 700; color: var(--primary-900);">Security Tools &amp; Sandbox</h2>
-              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Select a specialized microservice to execute targeted security intelligence workflows.</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h2 style="font-family: var(--font-heading); font-size: 1.65rem; font-weight: 700; color: var(--primary-900);">Security Tools &amp; Sandbox</h2>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Select a specialized microservice to execute targeted security intelligence workflows.</p>
+              </div>
+              <div class="sandbox-engine-pill">
+                <span class="sandbox-pulse-dot"></span>
+                <span>SANDBOX ENGINE ACTIVE &bull; 0.2s RESPONSIVENESS</span>
+              </div>
             </div>
           </div>
 
