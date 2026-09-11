@@ -1,1281 +1,2574 @@
+/**
+ * Security Intelligence - Enterprise AI Threat Operations Platform
+ * Vanilla JavaScript Controller (No frameworks, strictly standard Web APIs)
+ * Zero Emojis - Semantic UI - Resilient Backend Integration
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Global State
+
+  // ==========================================================================
+  // GLOBAL APPLICATION STATE
+  // ==========================================================================
+  let currentUser = null;
+  let authToken = localStorage.getItem('secintel_auth_token') || null;
+  let activeView = 'home';
   let threatFeeds = [];
   let selectedFeedItem = null;
+  let currentAnalysisReport = null;
+  let historyRecords = [];
+  let savedReports = [];
+  let onboardingStepIndex = 0;
 
-  function getAuthHeaders() {
+  // ==========================================================================
+  // AUTH & HEADERS HELPERS
+  // ==========================================================================
+  function getHeaders(includeAuth = true, includeLLM = false) {
     const headers = { 'Content-Type': 'application/json' };
-    const provider = localStorage.getItem('securityhelpdesk_llm_provider') || 'google';
-    const userKey = localStorage.getItem('securityhelpdesk_user_api_key');
-    const modelName = localStorage.getItem('securityhelpdesk_llm_model');
-    const baseUrl = localStorage.getItem('securityhelpdesk_base_url');
+    if (includeAuth && authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    if (includeLLM) {
+      const provider = localStorage.getItem('secintel_llm_provider') || 'google';
+      const userKey = localStorage.getItem('secintel_user_api_key');
+      const modelName = localStorage.getItem('secintel_llm_model');
+      const baseUrl = localStorage.getItem('secintel_base_url');
 
-    headers['x-llm-provider'] = provider;
-    if (userKey && userKey.trim()) headers['x-api-key'] = userKey.trim();
-    if (modelName && modelName.trim()) headers['x-llm-model'] = modelName.trim();
-    if (baseUrl && baseUrl.trim()) headers['x-base-url'] = baseUrl.trim();
+      headers['x-llm-provider'] = provider;
+      if (userKey && userKey.trim()) headers['x-api-key'] = userKey.trim();
+      if (modelName && modelName.trim()) headers['x-llm-model'] = modelName.trim();
+      if (baseUrl && baseUrl.trim()) headers['x-base-url'] = baseUrl.trim();
+    }
     return headers;
-  }
-
-  // Cache DOM Elements
-  const tabButtons = document.querySelectorAll('.nav-item');
-  const tabContents = document.querySelectorAll('.tab-content');
-  
-  // Threat Digest Elements
-  const refreshFeedsBtn = document.getElementById('refresh-feeds-btn');
-  const alertsCount = document.getElementById('alerts-count');
-  const feedSearchInput = document.getElementById('feed-search');
-  const articlesListContainer = document.getElementById('articles-list');
-  const threatDetailsPanel = document.getElementById('threat-details-panel');
-  const threatDetailsContent = document.getElementById('threat-details-content');
-
-  // Phishing Sandbox Elements
-  const phishingForm = document.getElementById('phishing-scan-form');
-  const phishUrlInput = document.getElementById('phish-url-input');
-  const phishPlaceholder = document.getElementById('phish-placeholder');
-  const phishResultsArea = document.getElementById('phishing-results-area');
-  const phishGaugeFill = document.getElementById('phish-gauge-fill');
-  const phishRiskVal = document.getElementById('phish-risk-val');
-  const phishVerdict = document.getElementById('phish-verdict');
-  const phishIndicatorSsl = document.getElementById('phish-indicator-ssl');
-  const phishIndicatorAge = document.getElementById('phish-indicator-age');
-  const phishIndicatorPass = document.getElementById('phish-indicator-pass');
-  const phishIndicatorLinks = document.getElementById('phish-indicator-links');
-  const phishRiskFactors = document.getElementById('phish-risk-factors');
-  const phishLayoutCheck = document.getElementById('phish-layout-check');
-  const phishReasoning = document.getElementById('phish-reasoning');
-
-  // Scam Detector Elements
-  const scamForm = document.getElementById('scam-scan-form');
-  const scamUrlInput = document.getElementById('scam-url-input');
-  const scamPlaceholder = document.getElementById('scam-placeholder');
-  const scamResultsArea = document.getElementById('scam-results-area');
-  const scamGaugeFill = document.getElementById('scam-gauge-fill');
-  const scamTrustVal = document.getElementById('scam-trust-val');
-  const scamVerdict = document.getElementById('scam-verdict');
-  const scamRegistrar = document.getElementById('scam-registrar');
-  const scamCreatedDate = document.getElementById('scam-created-date');
-  const scamAgeDays = document.getElementById('scam-age-days');
-  const scamRedFlags = document.getElementById('scam-red-flags');
-  const scamSignalsText = document.getElementById('scam-signals-text');
-  const scamAssessment = document.getElementById('scam-assessment');
-
-  // ==========================================
-  // TAB NAVIGATION
-  // ==========================================
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetTab = btn.getAttribute('data-tab');
-      
-      // Update active nav button
-      tabButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      // Update active content section
-      tabContents.forEach(content => {
-        content.classList.remove('active');
-        if (content.id === targetTab) {
-          content.classList.add('active');
-        }
-      });
-    });
-  });
-
-  // ==========================================
-  // UTILITY FUNCTIONS
-  // ==========================================
-  const gaugeAnimState = new Map();
-
-  function setGaugeValue(gaugeFillEl, valTextEl, value, isTrustMeter = false) {
-    if (!gaugeFillEl || !valTextEl) return;
-
-    const maxOffset = 251; // Circumference for r=40
-    const targetScore = Math.min(Math.max(Math.round(value), 0), 100);
-    const strokeOffset = maxOffset - (targetScore / 100) * maxOffset;
-
-    // Determine gauge stroke & drop-shadow colors based on target score
-    let colorHex = '#10b981'; // Green default
-    let glowRgba = 'rgba(16, 185, 129, 0.5)';
-
-    if (!isTrustMeter) {
-      // Risk Meter: Higher score = Higher risk (Danger)
-      if (targetScore >= 66) {
-        colorHex = '#ef4444'; // Red
-        glowRgba = 'rgba(239, 68, 68, 0.6)';
-      } else if (targetScore >= 31) {
-        colorHex = '#f59e0b'; // Amber
-        glowRgba = 'rgba(245, 158, 11, 0.6)';
-      } else {
-        colorHex = '#10b981'; // Green
-        glowRgba = 'rgba(16, 185, 129, 0.6)';
-      }
-    } else {
-      // Trust Meter: Higher score = Higher trust (Safe)
-      if (targetScore >= 70) {
-        colorHex = '#10b981'; // Green
-        glowRgba = 'rgba(16, 185, 129, 0.6)';
-      } else if (targetScore >= 35) {
-        colorHex = '#f59e0b'; // Amber
-        glowRgba = 'rgba(245, 158, 11, 0.6)';
-      } else {
-        colorHex = '#ef4444'; // Red
-        glowRgba = 'rgba(239, 68, 68, 0.6)';
-      }
-    }
-
-    // Apply SVG stroke color, drop shadow filter, and offset
-    gaugeFillEl.style.stroke = colorHex;
-    gaugeFillEl.style.filter = `drop-shadow(0 0 8px ${glowRgba})`;
-    gaugeFillEl.style.strokeDashoffset = strokeOffset;
-
-    // Animate Text Counter Count-up / Count-down
-    const elementId = valTextEl.id || 'gauge-val-text';
-    if (gaugeAnimState.has(elementId)) {
-      clearInterval(gaugeAnimState.get(elementId));
-    }
-
-    let currentVal = parseInt(valTextEl.textContent.replace('%', ''), 10) || 0;
-    if (currentVal === targetScore) {
-      valTextEl.textContent = isTrustMeter ? `${targetScore}` : `${targetScore}%`;
-      return;
-    }
-
-    const duration = 800; // ms
-    const steps = 25;
-    const stepTime = duration / steps;
-    const increment = (targetScore - currentVal) / steps;
-    let stepCount = 0;
-
-    const timer = setInterval(() => {
-      stepCount++;
-      currentVal += increment;
-      if (stepCount >= steps) {
-        currentVal = targetScore;
-        clearInterval(timer);
-        gaugeAnimState.delete(elementId);
-      }
-      valTextEl.textContent = isTrustMeter ? `${Math.round(currentVal)}` : `${Math.round(currentVal)}%`;
-    }, stepTime);
-
-    gaugeAnimState.set(elementId, timer);
   }
 
   function formatDateTime(dateStr) {
     if (!dateStr) return 'N/A';
     try {
       const d = new Date(dateStr);
-      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' +
+             d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch (e) {
       return dateStr;
     }
   }
 
-  // ==========================================
-  // 1. THREAT DIGEST WORKFLOW
-  // ==========================================
-  async function loadThreatFeeds() {
-    articlesListContainer.innerHTML = `
-      <div class="placeholder-loader">
-        <div class="spinner"></div>
-        <p>Querying security alert databases...</p>
-      </div>
-    `;
-    alertsCount.textContent = 'Loading...';
-    alertsCount.className = 'badge blue';
+  function getInitials(name) {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
 
-    try {
-      const response = await fetch('/api/feeds');
-      if (!response.ok) throw new Error('API server ingestion failed');
-
-      threatFeeds = await response.data || await response.json();
-      alertsCount.textContent = threatFeeds.length;
-      alertsCount.className = 'badge red';
-      
-      renderThreatItems(threatFeeds);
-    } catch (error) {
-      articlesListContainer.innerHTML = `
-        <div class="placeholder-loader">
-          <span style="font-size: 2rem"></span>
-          <p style="color: var(--accent-red)">Failed to fetch security feeds.</p>
-          <small>${error.message}</small>
-        </div>
-      `;
-      alertsCount.textContent = 'ERROR';
-      alertsCount.className = 'badge red';
+  function getRiskBadge(riskLevel) {
+    const level = (riskLevel || 'INFORMATIONAL').toUpperCase();
+    if (level === 'CRITICAL') {
+      return '<span class="badge badge-critical"><span class="badge-dot"></span>CRITICAL</span>';
+    } else if (level === 'HIGH' || level === 'DANGEROUS') {
+      return '<span class="badge badge-high"><span class="badge-dot"></span>HIGH</span>';
+    } else if (level === 'MEDIUM' || level === 'SUSPICIOUS' || level === 'LOW TRUST') {
+      return '<span class="badge badge-medium"><span class="badge-dot"></span>MEDIUM</span>';
+    } else if (level === 'LOW' || level === 'SAFE' || level === 'TRUSTWORTHY') {
+      return '<span class="badge badge-low"><span class="badge-dot"></span>LOW</span>';
+    } else {
+      return '<span class="badge badge-info"><span class="badge-dot"></span>INFO</span>';
     }
   }
 
-  function renderThreatItems(items) {
-    if (items.length === 0) {
-      articlesListContainer.innerHTML = `
-        <div class="panel-placeholder">
-          <p>No security alerts found matching filters.</p>
-        </div>
-      `;
-      return;
-    }
+  // ==========================================================================
+  // TOAST NOTIFICATIONS & CLIPBOARD HELPERS
+  // ==========================================================================
+  function showToast(message, duration = 2800) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span>${message}</span>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.25s ease';
+      setTimeout(() => toast.remove(), 260);
+    }, duration);
+  }
 
-    articlesListContainer.innerHTML = '';
-    items.forEach((item, index) => {
-      const card = document.createElement('div');
-      card.className = 'feed-item-card';
-      if (selectedFeedItem && selectedFeedItem.link === item.link) {
-        card.classList.add('selected');
+  function copyToClipboard(text, successMsg = 'Copied to clipboard!') {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(successMsg);
+      }).catch(() => {
+        fallbackCopyText(text, successMsg);
+      });
+    } else {
+      fallbackCopyText(text, successMsg);
+    }
+  }
+
+  function fallbackCopyText(text, successMsg) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      showToast(successMsg);
+    } catch (e) {
+      showToast('Copy failed');
+    }
+    document.body.removeChild(textarea);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function parseInlineMarkdown(str) {
+    if (!str) return '';
+    return str
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/__(.+?)__/g, '<strong>$1</strong>')
+      .replace(/(^|[^\*])\*([^\*\n]+)\*([^\*]|$)/g, '$1<em>$2</em>$3')
+      .replace(/(^|[^_])_([^_\n]+)_([^_]|$)/g, '$1<em>$2</em>$3');
+  }
+
+  function formatMarkdownResponse(raw) {
+    if (!raw) return '';
+
+    // Normalize newlines
+    let text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // 1. Break major section headers into their own lines
+    text = text.replace(/([^\n])\s*(\*\*(?:Explanation|Threat Summary|Actionable Guidance|Next Steps|Key Takeaways|Remediation Steps|Exposure Analysis|Mitigation Plan|Impact Analysis|Target Infrastructure|Recommendations?|Perimeter Defense|Log Review|Network Traffic Analysis|Credential Revocation|Legal & Privacy Notification):\*\*)/gi, '$1\n\n$2\n');
+
+    // 2. Clean double asterisks bullets
+    text = text.replace(/\*\s+\*\s+/g, '* ');
+
+    // 3. Break bullet items that are stuck to prior sentences or colons
+    text = text.replace(/([.:?!])\s+\*\s+/g, '$1\n* ');
+    text = text.replace(/([^\n])\s+(\*\s+\*\*)/g, '$1\n* **');
+
+    // 4. Break numbered items stuck to prior sentences or colons
+    text = text.replace(/([.:?!])\s+(\d+\.)\s+/g, '$1\n$2 ');
+    text = text.replace(/([^\n])\s+(\d+\.\s+\*\*)/g, '$1\n$2');
+
+    // 5. Clean redundant standalone bullet markers
+    text = text.replace(/^\s*\*\s*$/gm, '');
+    text = text.replace(/^\s*\d+\.\s*$/gm, '');
+
+    // 4. Extract code blocks
+    const codeBlocks = [];
+    text = text.replace(/```([a-zA-Z0-9_\-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+      const idx = codeBlocks.length;
+      const safeCode = escapeHtml(code);
+      codeBlocks.push(`<pre class="chat-code-block"><code class="language-${lang || 'text'}">${safeCode}</code></pre>`);
+      return `__CODE_BLOCK_${idx}__`;
+    });
+
+    // 5. Inline code
+    text = text.replace(/`([^`\n]+)`/g, (m, c) => {
+      return `<code>${escapeHtml(c)}</code>`;
+    });
+
+    const lines = text.split('\n');
+    let html = '';
+    let inUl = false;
+    let inOl = false;
+    let inBlockquote = false;
+
+    const closeLists = () => {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (inOl) { html += '</ol>'; inOl = false; }
+      if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; }
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i].trim();
+      if (!line) {
+        closeLists();
+        continue;
       }
 
-      card.innerHTML = `
-        <div class="feed-item-header">
-          <span>${item.source}</span>
-          <span>${formatDateTime(item.pubDate)}</span>
-        </div>
-        <h4>${item.title}</h4>
-        <p class="feed-item-desc">${item.description || 'No description provided.'}</p>
-      `;
+      // Check code block token
+      if (line.startsWith('__CODE_BLOCK_') && line.endsWith('__')) {
+        closeLists();
+        const codeIdx = parseInt(line.replace('__CODE_BLOCK_', '').replace('__', ''), 10);
+        html += codeBlocks[codeIdx] || '';
+        continue;
+      }
 
-      card.addEventListener('click', () => {
-        // Toggle selected state
-        document.querySelectorAll('.feed-item-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        
-        selectedFeedItem = item;
-        analyzeFeedItemDetails(item);
-      });
+      // Markdown Headers: #, ##, ###, ####
+      const headerMatch = line.match(/^(#{1,6})\s+(.*)$/);
+      if (headerMatch) {
+        closeLists();
+        const level = Math.min(Math.max(headerMatch[1].length, 4), 5);
+        html += `<h${level}>${parseInlineMarkdown(headerMatch[2])}</h${level}>`;
+        continue;
+      }
 
-      articlesListContainer.appendChild(card);
+      // Section bold headers e.g. "**Explanation:**" or "**Actionable Guidance:**"
+      const sectionMatch = line.match(/^(\*\*(?:Explanation|Threat Summary|Actionable Guidance|Next Steps|Key Takeaways|Remediation Steps|Exposure Analysis|Mitigation Plan|Impact Analysis|Target Infrastructure|Recommendations?):\*\*)\s*(.*)$/i);
+      if (sectionMatch) {
+        closeLists();
+        const title = parseInlineMarkdown(sectionMatch[1]);
+        const remainder = sectionMatch[2] ? parseInlineMarkdown(sectionMatch[2]) : '';
+        html += `<h4>${title}</h4>`;
+        if (remainder) {
+          html += `<p>${remainder}</p>`;
+        }
+        continue;
+      }
+
+      // Blockquote: > quote
+      if (line.startsWith('>')) {
+        if (inUl || inOl) closeLists();
+        if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; }
+        html += `<p>${parseInlineMarkdown(line.substring(1).trim())}</p>`;
+        continue;
+      } else if (inBlockquote) {
+        html += '</blockquote>';
+        inBlockquote = false;
+      }
+
+      // Unordered list item: * or -
+      const ulMatch = line.match(/^[\*\-]\s+(.*)$/);
+      if (ulMatch) {
+        if (inOl) { html += '</ol>'; inOl = false; }
+        if (!inUl) { html += '<ul>'; inUl = true; }
+        html += `<li>${parseInlineMarkdown(ulMatch[1])}</li>`;
+        continue;
+      }
+
+      // Ordered list item: 1. or 2.
+      const olMatch = line.match(/^(\d+)\.\s+(.*)$/);
+      if (olMatch) {
+        if (inUl) { html += '</ul>'; inUl = false; }
+        if (!inOl) { html += '<ol>'; inOl = true; }
+        html += `<li>${parseInlineMarkdown(olMatch[2])}</li>`;
+        continue;
+      }
+
+      // Regular paragraph
+      closeLists();
+      html += `<p>${parseInlineMarkdown(line)}</p>`;
+    }
+
+    closeLists();
+    return html;
+  }
+
+  // ==========================================================================
+  // NAVIGATION & VIEW SWITCHER
+  // ==========================================================================
+  const allPageViews = document.querySelectorAll('.page-view');
+  const allNavLinks = document.querySelectorAll('.nav-link');
+  const publicNavContainer = document.getElementById('public-nav-links');
+  const authNavContainer = document.getElementById('auth-nav-links');
+  const publicActionsContainer = document.getElementById('public-actions');
+  const authActionsContainer = document.getElementById('auth-actions');
+  const mobileToggleBtn = document.getElementById('mobile-toggle-btn');
+  const mainNav = document.getElementById('main-nav');
+
+  function navigateTo(viewId) {
+    activeView = viewId;
+
+    // Toggle active view
+    allPageViews.forEach(view => {
+      if (view.id === `view-${viewId}`) {
+        view.classList.add('active');
+      } else {
+        view.classList.remove('active');
+      }
+    });
+
+    // Update nav links active state
+    allNavLinks.forEach(link => {
+      if (link.getAttribute('data-view') === viewId) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+
+    // Close mobile nav drawer if open
+    if (mainNav) mainNav.classList.remove('mobile-open');
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Handle view-specific initializations
+    if (viewId === 'dashboard') {
+      loadDashboardData();
+    } else if (viewId === 'history') {
+      loadHistoryRecords();
+    } else if (viewId === 'reports') {
+      loadSavedReports();
+    } else if (viewId === 'settings') {
+      populateSettingsProfile();
+    } else if (viewId === 'tools' && threatFeeds.length === 0) {
+      loadThreatFeeds();
+    }
+  }
+
+  // Bind Navigation link buttons
+  allNavLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      const targetView = link.getAttribute('data-view');
+      if (targetView) navigateTo(targetView);
+    });
+  });
+
+  // Mobile menu toggle
+  if (mobileToggleBtn && mainNav) {
+    mobileToggleBtn.addEventListener('click', () => {
+      mainNav.classList.toggle('mobile-open');
     });
   }
 
-  async function analyzeFeedItemDetails(item) {
-    // Reveal panel details & show loading state
-    threatDetailsPanel.innerHTML = `
-      <div class="placeholder-loader">
-        <div class="spinner"></div>
-        <p>Triggering AI threat assessment framework...</p>
-        <small style="font-family: var(--font-mono)">Analyzing vulnerability footprint...</small>
-      </div>
-    `;
+  // Brand button navigation
+  const brandBtn = document.getElementById('nav-brand-btn');
+  if (brandBtn) {
+    brandBtn.addEventListener('click', () => {
+      navigateTo(currentUser ? 'dashboard' : 'home');
+    });
+  }
+
+  // Header login / register buttons
+  const btnGotoLogin = document.getElementById('btn-goto-login');
+  const btnGotoRegister = document.getElementById('btn-goto-register');
+  const linkToRegister = document.getElementById('link-to-register');
+  const linkToLogin = document.getElementById('link-to-login');
+  const btnGotoSettings = document.getElementById('btn-goto-settings');
+  const heroGetStartedBtn = document.getElementById('hero-get-started-btn');
+  const heroExploreToolsBtn = document.getElementById('hero-explore-tools-btn');
+  const btnDashboardNewAnalysis = document.getElementById('btn-dashboard-new-analysis');
+  const btnViewAllHistory = document.getElementById('btn-view-all-history');
+
+  if (btnGotoLogin) btnGotoLogin.addEventListener('click', () => navigateTo('login'));
+  if (btnGotoRegister) btnGotoRegister.addEventListener('click', () => navigateTo('register'));
+  if (linkToRegister) linkToRegister.addEventListener('click', (e) => { e.preventDefault(); navigateTo('register'); });
+  if (linkToLogin) linkToLogin.addEventListener('click', (e) => { e.preventDefault(); navigateTo('login'); });
+  if (btnGotoSettings) btnGotoSettings.addEventListener('click', () => navigateTo('settings'));
+  if (heroGetStartedBtn) heroGetStartedBtn.addEventListener('click', () => navigateTo(currentUser ? 'dashboard' : 'register'));
+  if (heroExploreToolsBtn) heroExploreToolsBtn.addEventListener('click', () => navigateTo('tools'));
+  if (btnDashboardNewAnalysis) btnDashboardNewAnalysis.addEventListener('click', () => navigateTo('tools'));
+  if (btnViewAllHistory) btnViewAllHistory.addEventListener('click', () => navigateTo('history'));
+
+  // Footer Navigation links
+  document.querySelectorAll('[data-footer-nav]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = link.getAttribute('data-footer-nav');
+      if (target) navigateTo(target);
+    });
+  });
+
+  // Switch tool buttons
+  document.querySelectorAll('[data-switch-tool]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tool = btn.getAttribute('data-switch-tool');
+      navigateTo('tools');
+      if (tool === 'phishing') activateToolPane('pane-url');
+      else if (tool === 'scam') activateToolPane('pane-scam');
+      else if (tool === 'threats') activateToolPane('pane-threat');
+    });
+  });
+
+  function updateAuthStateUI() {
+    if (currentUser) {
+      if (publicNavContainer) publicNavContainer.classList.add('hidden');
+      if (authNavContainer) authNavContainer.classList.remove('hidden');
+      if (publicActionsContainer) publicActionsContainer.classList.add('hidden');
+      if (authActionsContainer) authActionsContainer.classList.remove('hidden');
+
+      const nameEl = document.getElementById('nav-user-name');
+      const avatarEl = document.getElementById('nav-user-avatar');
+      if (nameEl) nameEl.textContent = currentUser.name;
+      if (avatarEl) avatarEl.textContent = getInitials(currentUser.name);
+    } else {
+      if (publicNavContainer) publicNavContainer.classList.remove('hidden');
+      if (authNavContainer) authNavContainer.classList.add('hidden');
+      if (publicActionsContainer) publicActionsContainer.classList.remove('hidden');
+      if (authActionsContainer) authActionsContainer.classList.add('hidden');
+    }
+  }
+
+  // ==========================================================================
+  // AUTHENTICATION LOGIC (USER STORE API)
+  // ==========================================================================
+  async function checkSession() {
+    if (!authToken) {
+      updateAuthStateUI();
+      navigateTo('home');
+      return;
+    }
 
     try {
-      const response = await fetch('/api/analyze-feed', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(item)
+      const res = await fetch('/api/user/me', {
+        headers: getHeaders(true, false)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentUser = data.user;
+        updateAuthStateUI();
+        navigateTo('dashboard');
+
+        // Check if onboarding is needed
+        if (currentUser && !currentUser.onboardingCompleted) {
+          startOnboarding();
+        }
+      } else {
+        // Token invalid or expired
+        localStorage.removeItem('secintel_auth_token');
+        authToken = null;
+        currentUser = null;
+        updateAuthStateUI();
+        navigateTo('home');
+      }
+    } catch (e) {
+      updateAuthStateUI();
+      navigateTo('home');
+    }
+  }
+
+  // Sign In Form Submission
+  const formLogin = document.getElementById('form-login');
+  const loginAlert = document.getElementById('login-alert');
+  const loginAlertText = document.getElementById('login-alert-text');
+
+  if (formLogin) {
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (loginAlert) loginAlert.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/user/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Sign in failed. Please verify credentials.');
+        }
+
+        authToken = data.token;
+        currentUser = data.user;
+        localStorage.setItem('secintel_auth_token', authToken);
+
+        formLogin.reset();
+        updateAuthStateUI();
+        navigateTo('dashboard');
+
+        if (!currentUser.onboardingCompleted) {
+          startOnboarding();
+        }
+      } catch (err) {
+        if (loginAlert && loginAlertText) {
+          loginAlertText.textContent = err.message;
+          loginAlert.classList.remove('hidden');
+        }
+      }
+    });
+  }
+
+  // Registration Form Submission
+  const formRegister = document.getElementById('form-register');
+  const registerAlert = document.getElementById('register-alert');
+  const registerAlertText = document.getElementById('register-alert-text');
+
+  if (formRegister) {
+    formRegister.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const passwordConfirm = document.getElementById('reg-password-confirm').value;
+
+      if (registerAlert) registerAlert.classList.add('hidden');
+
+      if (password !== passwordConfirm) {
+        if (registerAlert && registerAlertText) {
+          registerAlertText.textContent = 'Passwords do not match.';
+          registerAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/user/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Registration could not be completed.');
+        }
+
+        authToken = data.token;
+        currentUser = data.user;
+        localStorage.setItem('secintel_auth_token', authToken);
+
+        formRegister.reset();
+        updateAuthStateUI();
+        navigateTo('dashboard');
+        startOnboarding();
+      } catch (err) {
+        if (registerAlert && registerAlertText) {
+          registerAlertText.textContent = err.message;
+          registerAlert.classList.remove('hidden');
+        }
+      }
+    });
+  }
+
+  // Logout
+  const btnLogout = document.getElementById('btn-logout');
+  const btnSettingsSignout = document.getElementById('btn-settings-signout');
+
+  async function handleLogout() {
+    try {
+      if (authToken) {
+        await fetch('/api/user/logout', {
+          method: 'POST',
+          headers: getHeaders(true, false)
+        });
+      }
+    } catch (e) {}
+
+    localStorage.removeItem('secintel_auth_token');
+    authToken = null;
+    currentUser = null;
+    updateAuthStateUI();
+    navigateTo('home');
+  }
+
+  if (btnLogout) btnLogout.addEventListener('click', handleLogout);
+  if (btnSettingsSignout) btnSettingsSignout.addEventListener('click', handleLogout);
+
+  // Change Password Form
+  const formChangePassword = document.getElementById('form-change-password');
+  const passwordAlert = document.getElementById('password-alert');
+  const passwordAlertText = document.getElementById('password-alert-text');
+
+  if (formChangePassword) {
+    formChangePassword.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentPassword = document.getElementById('input-current-password').value;
+      const newPassword = document.getElementById('input-new-password').value;
+      const confirmPassword = document.getElementById('input-confirm-password').value;
+
+      if (passwordAlert) passwordAlert.classList.add('hidden');
+
+      if (newPassword !== confirmPassword) {
+        if (passwordAlert && passwordAlertText) {
+          passwordAlertText.textContent = 'New passwords do not match.';
+          passwordAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/user/change-password', {
+          method: 'POST',
+          headers: getHeaders(true, false),
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed to update password.');
+
+        formChangePassword.reset();
+        alert('Password updated successfully.');
+      } catch (err) {
+        if (passwordAlert && passwordAlertText) {
+          passwordAlertText.textContent = err.message;
+          passwordAlert.classList.remove('hidden');
+        }
+      }
+    });
+  }
+
+  function populateSettingsProfile() {
+    if (!currentUser) return;
+    const nameInput = document.getElementById('settings-profile-name');
+    const emailInput = document.getElementById('settings-profile-email');
+    const createdInput = document.getElementById('settings-profile-created');
+    if (nameInput) nameInput.value = currentUser.name || '';
+    if (emailInput) emailInput.value = currentUser.email || '';
+    if (createdInput) createdInput.value = formatDateTime(currentUser.createdAt);
+  }
+
+  // ==========================================================================
+  // FIRST-TIME ONBOARDING EXPERIENCE
+  // ==========================================================================
+  const modalOnboarding = document.getElementById('modal-onboarding');
+  const onboardingBody = document.getElementById('onboarding-body');
+  const onboardingIndicator = document.getElementById('onboarding-indicator');
+  const btnOnboardingPrev = document.getElementById('btn-onboarding-prev');
+  const btnOnboardingNext = document.getElementById('btn-onboarding-next');
+  const btnSkipOnboarding = document.getElementById('btn-skip-onboarding');
+
+  const onboardingSteps = [
+    {
+      title: 'Welcome to Security Intelligence',
+      content: `
+        <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 12px;">
+          Security Intelligence is an enterprise AI operations console for automated threat telemetry, zero-day correlation, and web safety inspection.
+        </p>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+          The platform operates strictly on empirical evidence, ensuring full explainability behind risk scores and vulnerability assessments.
+        </p>
+      `
+    },
+    {
+      title: 'Available Security Tools',
+      content: `
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="padding: 10px; border: 1px solid var(--border-default); border-radius: 6px;">
+            <strong style="color: var(--primary-900);">URL Threat Analysis:</strong> Non-rendering phishing inspection and UCI benchmark feature extraction.
+          </div>
+          <div style="padding: 10px; border: 1px solid var(--border-default); border-radius: 6px;">
+            <strong style="color: var(--primary-900);">Website Scam Detector:</strong> RDAP registrar age analysis, commercial claims audit, and trust score metrics.
+          </div>
+          <div style="padding: 10px; border: 1px solid var(--border-default); border-radius: 6px;">
+            <strong style="color: var(--primary-900);">Threat Digest Hub:</strong> Real-time CISA and ZDI bulletin aggregation with CISA KEV zero-day matching.
+          </div>
+        </div>
+      `
+    },
+    {
+      title: 'How to Run an Analysis',
+      content: `
+        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+          Select any tool from the <strong>Tools</strong> workspace, input the target link, and click <strong>Run Analysis</strong>.
+        </p>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+          Execution progress transparently reports live pipeline stages: parameter collection, feature extraction, and multi-LLM synthesis.
+        </p>
+      `
+    },
+    {
+      title: 'Observed Evidence vs. AI Assessment',
+      content: `
+        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+          All results are explicitly split into two dedicated sections:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="padding: 8px 12px; background-color: var(--bg-tertiary); border-radius: 4px; font-size: 0.86rem;">
+            <strong>Observed Evidence:</strong> Concrete scraped parameters, SSL status, and official CVE records.
+          </div>
+          <div style="padding: 8px 12px; background-color: var(--primary-50); border: 1px solid var(--accent-blue-border); border-radius: 4px; font-size: 0.86rem;">
+            <strong>AI Assessment:</strong> Contextual interpretation, exposure justification, and engineering action plans.
+          </div>
+        </div>
+      `
+    },
+    {
+      title: 'History & Saved Reports',
+      content: `
+        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+          Every completed analysis is automatically recorded to your environment database.
+        </p>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+          You can bookmark specific audits to your <strong>Saved Reports</strong> repository and export structured advisories in Markdown or JSON for incident documentation.
+        </p>
+      `
+    }
+  ];
+
+  function renderOnboardingStep() {
+    const step = onboardingSteps[onboardingStepIndex];
+    const titleEl = document.getElementById('onboarding-title');
+    if (titleEl) titleEl.textContent = step.title;
+    if (onboardingBody) onboardingBody.innerHTML = step.content;
+
+    // Update dots
+    if (onboardingIndicator) {
+      const dots = onboardingIndicator.querySelectorAll('.onboarding-dot');
+      dots.forEach((dot, idx) => {
+        if (idx === onboardingStepIndex) dot.classList.add('active');
+        else dot.classList.remove('active');
+      });
+    }
+
+    if (btnOnboardingPrev) {
+      btnOnboardingPrev.style.visibility = onboardingStepIndex === 0 ? 'hidden' : 'visible';
+    }
+    if (btnOnboardingNext) {
+      btnOnboardingNext.textContent = onboardingStepIndex === onboardingSteps.length - 1 ? 'Complete' : 'Next';
+    }
+  }
+
+  function startOnboarding() {
+    onboardingStepIndex = 0;
+    if (modalOnboarding) modalOnboarding.classList.remove('hidden');
+    renderOnboardingStep();
+  }
+
+  async function finishOnboarding() {
+    if (modalOnboarding) modalOnboarding.classList.add('hidden');
+    if (currentUser) {
+      currentUser.onboardingCompleted = true;
+      try {
+        await fetch('/api/user/onboarding/complete', {
+          method: 'POST',
+          headers: getHeaders(true, false)
+        });
+      } catch (e) {}
+    }
+  }
+
+  if (btnOnboardingNext) {
+    btnOnboardingNext.addEventListener('click', () => {
+      if (onboardingStepIndex < onboardingSteps.length - 1) {
+        onboardingStepIndex++;
+        renderOnboardingStep();
+      } else {
+        finishOnboarding();
+      }
+    });
+  }
+
+  if (btnOnboardingPrev) {
+    btnOnboardingPrev.addEventListener('click', () => {
+      if (onboardingStepIndex > 0) {
+        onboardingStepIndex--;
+        renderOnboardingStep();
+      }
+    });
+  }
+
+  if (btnSkipOnboarding) btnSkipOnboarding.addEventListener('click', finishOnboarding);
+
+  // ==========================================================================
+  // DASHBOARD TELEMETRY & METRICS
+  // ==========================================================================
+  async function loadDashboardData() {
+    try {
+      const res = await fetch('/api/user/history', {
+        headers: getHeaders(true, false)
+      });
+      if (!res.ok) return;
+
+      historyRecords = await res.json();
+      const totalCount = historyRecords.length;
+
+      let highCount = 0;
+      let medCount = 0;
+      let lowCount = 0;
+
+      historyRecords.forEach(item => {
+        const lvl = (item.riskLevel || '').toUpperCase();
+        if (lvl === 'CRITICAL' || lvl === 'HIGH' || lvl === 'DANGEROUS') highCount++;
+        else if (lvl === 'MEDIUM' || lvl === 'SUSPICIOUS' || lvl === 'LOW TRUST') medCount++;
+        else lowCount++;
       });
 
-      if (!response.ok) throw new Error('AI analysis agent responded with error');
+      const totalEl = document.getElementById('metric-total-count');
+      const highEl = document.getElementById('metric-high-count');
+      const medEl = document.getElementById('metric-medium-count');
+      const lowEl = document.getElementById('metric-low-count');
 
-      const data = await response.json();
-      const analysis = data.analysis;
+      if (totalEl) totalEl.textContent = totalCount;
+      if (highEl) highEl.textContent = highCount;
+      if (medEl) medEl.textContent = medCount;
+      if (lowEl) lowEl.textContent = lowCount;
 
-      let severityClass = 'blue';
-      let severityBadgeText = 'LOW RISK';
-      if (analysis.severity === 'Critical') { severityClass = 'red'; severityBadgeText = 'CRITICAL RISK'; }
-      else if (analysis.severity === 'High') { severityClass = 'orange'; severityBadgeText = 'HIGH RISK'; }
-      else if (analysis.severity === 'Medium') { severityClass = 'blue'; severityBadgeText = 'MEDIUM RISK'; }
-      else if (analysis.severity === 'Low') { severityClass = 'green'; severityBadgeText = 'LOW RISK'; }
+      renderDashboardRecent(historyRecords.slice(0, 5));
+    } catch (e) {}
+  }
 
-      // CISA KEV Badge styling
-      const isCisaKev = analysis.cisaKevStatus === 'CONFIRMED_EXPLOITED';
-      const cisaKevBadgeHtml = isCisaKev 
-        ? `<div class="kev-badge alert-red"><span class="badge-dot red"></span><span>🚨 CISA KEV Catalog: Active Exploitation Confirmed</span></div>`
-        : `<div class="kev-badge safe-green"><span class="badge-dot green"></span><span>🛡️ CISA KEV Catalog: No Active Exploitation Reported</span></div>`;
+  function renderDashboardRecent(recentItems) {
+    const container = document.getElementById('dashboard-recent-container');
+    if (!container) return;
 
-      // MITRE ATT&CK Card
-      const mitre = analysis.mitreTtp || { id: 'T1190', name: 'Exploit Public-Facing Application', tactic: 'Initial Access' };
-
-      // Org Asset Inventory Exposure Card
-      const assetMatch = analysis.orgAssetMatch || 'NO_MATCH';
-      const assetName = analysis.orgAssetName || 'Enterprise Infrastructure';
-      const isExposed = analysis.internetExposed === 'YES';
-      const assetExposureHtml = assetMatch === 'MATCHED'
-        ? `<div class="asset-card matched">
-            <div class="asset-header">
-              <span class="badge red pulse-badge">MATCHED ASSET</span>
-              <span class="exposure-tag ${isExposed ? 'danger' : 'warning'}">Internet Exposed: ${isExposed ? 'YES 🌐' : 'NO 🔒'}</span>
-            </div>
-            <div class="asset-title">${assetName}</div>
-            <small style="color: var(--text-muted)">Detected in Organization Asset Inventory</small>
-          </div>`
-        : `<div class="asset-card safe">
-            <div class="asset-header">
-              <span class="badge green">NO DIRECT ASSET MATCH</span>
-              <span class="exposure-tag safe">Internet Exposed: NO 🔒</span>
-            </div>
-            <div class="asset-title">${assetName}</div>
-            <small style="color: var(--text-muted)">No matching asset found in company inventory</small>
-          </div>`;
-
-      // Investigation Trail Stepper Logs
-      const trail = analysis.investigationTrail || [];
-      const trailHtml = trail.map((step, idx) => `
-        <div class="trail-step-item">
-          <div class="trail-step-header">
-            <span class="trail-capability-badge">${step.capability.toUpperCase()}</span>
-            <span class="trail-tool-name">tool: <code>${step.tool}</code></span>
+    if (!recentItems || recentItems.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
-          <p class="trail-step-output">${step.output}</p>
+          <h4 class="empty-state-title">No analyses yet</h4>
+          <p class="empty-state-desc">Run your first security analysis using the tools above to populate activity telemetry.</p>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-empty-launch">Launch First Analysis</button>
         </div>
-      `).join('');
+      `;
+      const btn = document.getElementById('btn-empty-launch');
+      if (btn) btn.addEventListener('click', () => { navigateTo('tools'); activateToolPane('pane-url'); });
+      return;
+    }
 
-      threatDetailsPanel.innerHTML = `
-        <div class="analysis-header card-sub">
-          <div class="title-block">
-            <span class="badge ${severityClass} pulse-badge">${severityBadgeText}</span>
-            <h3 style="margin-top: 10px; font-family: var(--font-heading); font-size: 1.25rem;">${item.title}</h3>
-            <div class="meta" style="margin-top: 6px; font-size: 0.8rem; color: var(--text-muted);">
-              Source: <strong style="color: var(--text-white)">${item.source}</strong> &bull; Ingested: ${formatDateTime(item.pubDate)}
+    container.innerHTML = `
+      <div class="table-wrapper" style="box-shadow: none; border: none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Tool</th>
+              <th>Target</th>
+              <th>Risk Level</th>
+              <th>Confidence</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recentItems.map(r => `
+              <tr>
+                <td><strong>${r.tool}</strong></td>
+                <td style="font-family: var(--font-mono); font-size: 0.82rem;">${r.target}</td>
+                <td>${getRiskBadge(r.riskLevel)}</td>
+                <td>${r.confidence}%</td>
+                <td style="font-size: 0.8rem; color: var(--text-muted);">${formatDateTime(r.createdAt)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // ==========================================================================
+  // TOOL PANES SWITCHER
+  // ==========================================================================
+  const toolPaneButtons = [
+    { btnId: 'tab-btn-url', paneId: 'pane-url' },
+    { btnId: 'tab-btn-scam', paneId: 'pane-scam' },
+    { btnId: 'tab-btn-threat', paneId: 'pane-threat' },
+    { btnId: 'tab-btn-sbom', paneId: 'pane-sbom' },
+    { btnId: 'tab-btn-llm', paneId: 'pane-llm' }
+  ];
+
+  function activateToolPane(targetPaneId) {
+    toolPaneButtons.forEach(({ btnId, paneId }) => {
+      const btn = document.getElementById(btnId);
+      const pane = document.getElementById(paneId);
+      if (paneId === targetPaneId) {
+        if (btn) btn.classList.add('active');
+        if (pane) pane.classList.remove('hidden');
+      } else {
+        if (btn) btn.classList.remove('active');
+        if (pane) pane.classList.add('hidden');
+      }
+    });
+
+    if (targetPaneId === 'pane-threat' && threatFeeds.length === 0) {
+      loadThreatFeeds();
+    }
+  }
+
+  toolPaneButtons.forEach(({ btnId, paneId }) => {
+    const btn = document.getElementById(btnId);
+    if (btn) btn.addEventListener('click', () => activateToolPane(paneId));
+  });
+
+  // ==========================================================================
+  // TOOL 1: URL PHISHING & THREAT ANALYSIS
+  // ==========================================================================
+  const formScanUrl = document.getElementById('form-scan-url');
+  const inputScanUrl = document.getElementById('input-scan-url');
+  const urlScanStages = document.getElementById('url-scan-stages');
+  const urlResultsContainer = document.getElementById('url-results-container');
+  const btnClearUrl = document.getElementById('btn-clear-url');
+
+  // Preset sample chips for URL Phishing
+  document.querySelectorAll('[data-preset-url]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (inputScanUrl) {
+        inputScanUrl.value = btn.getAttribute('data-preset-url');
+        inputScanUrl.focus();
+        showToast('Sample URL preloaded');
+      }
+    });
+  });
+
+  if (btnClearUrl && inputScanUrl) {
+    btnClearUrl.addEventListener('click', () => {
+      inputScanUrl.value = '';
+      inputScanUrl.focus();
+      if (urlResultsContainer) urlResultsContainer.classList.add('hidden');
+    });
+  }
+
+  // Preset sample chips for Scam Detector
+  document.querySelectorAll('[data-preset-scam]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const scamInput = document.getElementById('input-scan-scam');
+      if (scamInput) {
+        scamInput.value = btn.getAttribute('data-preset-scam');
+        scamInput.focus();
+        showToast('Sample domain preloaded');
+      }
+    });
+  });
+
+  const btnClearScam = document.getElementById('btn-clear-scam');
+  if (btnClearScam) {
+    btnClearScam.addEventListener('click', () => {
+      const scamInput = document.getElementById('input-scan-scam');
+      if (scamInput) {
+        scamInput.value = '';
+        scamInput.focus();
+      }
+      const scamResults = document.getElementById('scam-results-container');
+      if (scamResults) scamResults.classList.add('hidden');
+    });
+  }
+
+  function advanceUrlStages(stageNum) {
+    for (let i = 1; i <= 5; i++) {
+      const stageEl = document.getElementById(`url-stage-${i}`);
+      if (!stageEl) continue;
+      if (i < stageNum) {
+        stageEl.className = 'stage-item completed';
+      } else if (i === stageNum) {
+        stageEl.className = 'stage-item in-progress';
+      } else {
+        stageEl.className = 'stage-item';
+      }
+    }
+  }
+
+  if (formScanUrl) {
+    formScanUrl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = inputScanUrl.value.trim();
+      if (!url) return;
+
+      if (urlScanStages) urlScanStages.classList.remove('hidden');
+      if (urlResultsContainer) urlResultsContainer.classList.add('hidden');
+      advanceUrlStages(1);
+
+      try {
+        advanceUrlStages(2);
+        const stageTimer = setTimeout(() => advanceUrlStages(3), 600);
+
+        const res = await fetch('/api/scan-url', {
+          method: 'POST',
+          headers: getHeaders(true, true),
+          body: JSON.stringify({ url })
+        });
+        clearTimeout(stageTimer);
+
+        advanceUrlStages(4);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Service unavailable or analysis timed out.');
+        }
+
+        const data = await res.json();
+        advanceUrlStages(5);
+
+        // Map severity
+        const prob = data.analysis.phishingProbability || 0;
+        let riskLevel = 'Low';
+        let uncertaintyLabel = 'No significant indicators detected';
+        if (prob >= 70 || data.analysis.dangerLevel === 'Dangerous') {
+          riskLevel = 'High';
+          uncertaintyLabel = 'Potential Phishing (High probability)';
+        } else if (prob >= 35 || data.analysis.dangerLevel === 'Suspicious') {
+          riskLevel = 'Medium';
+          uncertaintyLabel = 'Suspicious Link (Inconclusive indicators)';
+        }
+
+        // Auto-record analysis in user store history
+        try {
+          await fetch('/api/user/history', {
+            method: 'POST',
+            headers: getHeaders(true, false),
+            body: JSON.stringify({
+              tool: 'URL Phishing & Threat Analysis',
+              target: url,
+              riskLevel: riskLevel,
+              confidence: Math.max(70, Math.min(99, prob + 15)),
+              summary: data.analysis.verdictReasoning || 'URL phishing scan completed.',
+              resultJson: data
+            })
+          });
+        } catch (saveErr) {}
+
+        // Render Results
+        renderUrlResults(data, url, riskLevel, uncertaintyLabel);
+        if (urlScanStages) urlScanStages.classList.add('hidden');
+        if (urlResultsContainer) urlResultsContainer.classList.remove('hidden');
+
+      } catch (err) {
+        if (urlScanStages) urlScanStages.classList.add('hidden');
+        if (urlResultsContainer) {
+          urlResultsContainer.innerHTML = `
+            <div class="error-state">
+              <h4 class="error-state-title">Analysis could not be completed</h4>
+              <p class="error-state-desc">${err.message}</p>
+              <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 12px;" onclick="document.getElementById('form-scan-url').dispatchEvent(new Event('submit'))">Retry Analysis</button>
             </div>
+          `;
+          urlResultsContainer.classList.remove('hidden');
+        }
+      }
+    });
+  }
+
+  function renderUrlResults(data, targetUrl, riskLevel, uncertaintyLabel) {
+    const scraped = data.scraped || {};
+    const meta = scraped.pageMetadata || {};
+    const domainInfo = scraped.domainInfo || {};
+    const analysis = data.analysis || {};
+    const mlVector = analysis.mlFeatureVector || {};
+
+    const prob = analysis.phishingProbability || 0;
+    const confidence = Math.max(70, Math.min(98, prob + 12));
+    const dangerLevel = analysis.dangerLevel || (prob >= 70 ? 'Dangerous' : (prob >= 35 ? 'Suspicious' : 'Safe'));
+    const meterClass = prob >= 60 ? 'critical' : (prob >= 25 ? 'medium' : 'low');
+
+    urlResultsContainer.innerHTML = `
+      <div class="results-card">
+        <!-- Header Banner -->
+        <div class="results-header-banner">
+          <div class="target-info">
+            <div class="report-badge-pill">URL Phishing &amp; Threat Analysis Report</div>
+            <div class="target-url-box">
+              <span class="target-url-text" id="url-target-display" title="${targetUrl}">${targetUrl}</span>
+              <button type="button" class="btn-copy-target" data-copy-target="${targetUrl}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy URL
+              </button>
+            </div>
+            <div class="results-meta-row">
+              <span class="results-meta-item">Classification: <strong>${uncertaintyLabel}</strong></span>
+              <span class="results-meta-item">Analyzed: <strong>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
+            </div>
+          </div>
+          <div>
+            ${getRiskBadge(riskLevel)}
           </div>
         </div>
 
-        <!-- Deterministic Security Intelligence Grid -->
-        <div class="tool-intelligence-grid">
-          ${cisaKevBadgeHtml}
+        <!-- Threat Score Meter Bar -->
+        <div class="threat-meter-container">
+          <div class="threat-meter-bar-wrap">
+            <div class="threat-meter-labels">
+              <span>PHISHING PROBABILITY GAUGE</span>
+              <span><strong>${prob}%</strong> &bull; ${dangerLevel}</span>
+            </div>
+            <div class="threat-meter-track">
+              <div class="threat-meter-fill ${meterClass}" style="width: ${Math.max(5, prob)}%;"></div>
+            </div>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+            <span>EVIDENCE CONFIDENCE:</span>
+            <strong style="color: var(--primary-900); font-size: 0.85rem;">${confidence}%</strong>
+          </div>
+        </div>
 
-          <div class="intel-card-grid">
-            <div class="intel-card">
-              <span class="intel-card-label">MITRE ATT&amp;CK TTP</span>
-              <div class="mitre-badge">
-                <span class="mitre-id">${mitre.id}</span>
-                <span class="mitre-name">${mitre.name}</span>
+        <!-- Metric Cards -->
+        <div class="results-summary-grid">
+          <div class="summary-metric-box">
+            <div class="label">Phishing Probability</div>
+            <div class="value" style="color: ${prob >= 60 ? 'var(--severity-critical-text)' : (prob >= 25 ? 'var(--severity-high-text)' : 'var(--severity-low-text)')};">
+              ${prob}%
+            </div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">Danger Rating</div>
+            <div class="value">${dangerLevel}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">Domain Age</div>
+            <div class="value">${domainInfo.ageDays !== null ? `${domainInfo.ageDays} days` : 'Unknown'}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">SSL Certificate</div>
+            <div class="value" style="font-size: 1.05rem;">${scraped.isHttps ? 'Valid HTTPS' : 'Insecure (HTTP)'}</div>
+          </div>
+        </div>
+
+        <!-- Strict Separation: Observed Evidence vs AI Assessment -->
+        <div class="analysis-dual-panel">
+          
+          <!-- LEFT: Observed Evidence -->
+          <div class="panel-evidence">
+            <div class="panel-heading">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              <span>Observed Evidence</span>
+            </div>
+            <table class="evidence-table">
+              <tbody>
+                <tr>
+                  <td class="prop-name">Target Domain</td>
+                  <td class="prop-val">${scraped.domain || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Registrar</td>
+                  <td class="prop-val">${domainInfo.registrar || 'Unknown'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Password Input Detected</td>
+                  <td class="prop-val">${meta.hasPasswordFields ? '<span style="color: var(--severity-critical-text); font-weight:600;">Yes (Credential Trap)</span>' : 'No'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Outbound Links Ratio</td>
+                  <td class="prop-val">${meta.externalLinks || 0} / ${meta.totalLinks || 0}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Short URL Service</td>
+                  <td class="prop-val">${meta.isShortUrl ? '<span style="color: var(--severity-high-text);">Yes (Redirector)</span>' : 'Clean'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Abnormal Form Action</td>
+                  <td class="prop-val">${meta.emptyOrExternalForm ? '<span style="color: var(--severity-critical-text); font-weight:600;">Yes (External Target)</span>' : 'Clean'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Hidden Iframe</td>
+                  <td class="prop-val">${meta.hasIframe ? '<span style="color: var(--severity-high-text);">Yes (Overlay)</span>' : 'Clean'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- RIGHT: AI Interpretation -->
+          <div class="panel-ai">
+            <div class="panel-heading">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              <span>AI Assessment &amp; Explanation</span>
+            </div>
+            <p class="ai-reasoning-text"><strong>Verdict Reasoning:</strong> ${analysis.verdictReasoning || 'Analysis evaluated site characteristics against phishing telemetry.'}</p>
+            <p class="ai-reasoning-text"><strong>Layout &amp; DOM Check:</strong> ${analysis.visualLayoutCheck || 'No layout anomalies reported.'}</p>
+            
+            <div style="margin-top: 14px;">
+              <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Identified Risk Factors</strong>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                ${analysis.riskFactors && analysis.riskFactors.length > 0
+                  ? analysis.riskFactors.map(f => `<div style="font-size: 0.84rem; color: var(--severity-critical-text); background: var(--severity-critical-bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--severity-critical-border);">${f}</div>`).join('')
+                  : `<div style="font-size: 0.84rem; color: var(--severity-low-text); background: var(--severity-low-bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--severity-low-border);">No critical threat indicators detected.</div>`
+                }
               </div>
-              <small class="mitre-tactic">Tactic: ${mitre.tactic}</small>
-            </div>
-
-            <div class="intel-card">
-              <span class="intel-card-label">IDENTIFIED CVE &amp; CATEGORY</span>
-              <div class="cve-display">
-                <span class="cve-id">${analysis.cveId || 'N/A'}</span>
-                <span class="category-pill">${analysis.category}</span>
-              </div>
-              <small style="color: var(--text-muted)">Deterministic Entity Extraction</small>
-            </div>
-
-            <div class="intel-card">
-              <span class="intel-card-label">NIST NVD CVSS &amp; WEAKNESS</span>
-              <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                <span class="cvss-score-pill ${(analysis.cvssScore || 0) >= 9.0 ? '' : 'high'}">CVSS ${analysis.cvssScore || 'N/A'}</span>
-                <span class="cwe-badge">${analysis.cweId || 'N/A'}</span>
-              </div>
-              <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 4px;">${analysis.cweName || 'Security Flaw'}</small>
             </div>
           </div>
 
-          <!-- Organization Asset Matching -->
-          <div class="analysis-panel-section" style="margin-top: 14px;">
-            <h4>Organization Asset Inventory Match</h4>
-            ${assetExposureHtml}
-          </div>
         </div>
 
-        <!-- Export Actions -->
-        <div class="export-btn-group">
-          <button type="button" class="btn export-btn" id="export-md-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Export Markdown (.md)</span>
-          </button>
-          <button type="button" class="btn export-btn" id="export-json-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span>Export JSON</span>
-          </button>
-        </div>
-
-        <!-- Contextual Risk Reasoning -->
-        <div class="cve-summary-box margin-top">
-          <div class="cve-info">
-            <p class="rationale-text"><strong>Contextual Risk Reasoning:</strong> ${analysis.severityReasoning}</p>
-          </div>
-        </div>
-
-        <!-- Agent Investigation Tool Execution Trail -->
-        <div class="analysis-panel-section margin-top">
-          <h4>Agent Investigation Trail (7 Capabilities Execution Log)</h4>
-          <div class="trail-container scrollable-trail">
-            ${trailHtml}
-          </div>
-        </div>
-
-        <div class="analysis-panel-section margin-top">
-          <h4>Executive Intelligence Digest</h4>
-          <p class="executive-summary-text">${analysis.executiveSummary}</p>
-        </div>
-
-        <div class="analysis-panel-section">
-          <h4>Affected Infrastructure &amp; Systems</h4>
-          <p class="affected-systems-text">${analysis.affectedSystems}</p>
-        </div>
-
-        <div class="analysis-panel-section">
-          <h4>Compliance Framework Impact Audit</h4>
-          <div class="compliance-badges-grid">
-            ${analysis.complianceImpact && analysis.complianceImpact.length > 0
-              ? analysis.complianceImpact.map(std => `<div class="compliance-card"><span class="comp-dot"></span><span>${std}</span></div>`).join('')
-              : '<div class="compliance-card safe"><span class="comp-dot safe"></span><span>No Regulatory Standards Violated</span></div>'
+        <!-- Recommended Actions -->
+        <div style="margin-top: 24px;">
+          <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: var(--primary-900);">Recommended Mitigation Actions</h4>
+          <div class="action-plan-list">
+            ${riskLevel === 'High' || prob >= 60
+              ? `
+                <div class="action-plan-item"><span class="action-plan-num">01</span><span>Block destination domain on corporate perimeter firewall and DNS resolvers.</span></div>
+                <div class="action-plan-item"><span class="action-plan-num">02</span><span>Initiate password reset &amp; MFA session revocation for users who interacted with this destination.</span></div>
+                <div class="action-plan-item"><span class="action-plan-num">03</span><span>Export structured advisory and attach to SIEM / Incident Response ticket.</span></div>
+              `
+              : `
+                <div class="action-plan-item"><span class="action-plan-num">01</span><span>No perimeter block required. Standard telemetry logging and monitoring active.</span></div>
+                <div class="action-plan-item"><span class="action-plan-num">02</span><span>Re-audit endpoint if domain WHOIS or DNS infrastructure changes.</span></div>
+              `
             }
           </div>
         </div>
 
-        <div class="analysis-panel-section">
-          <h4>Engineering Remediation Action Plan</h4>
-          <ul class="remediation-steps">
-            ${analysis.actionPlan.map((step, idx) => `
-              <li class="remediation-step-item">
-                <span class="step-num-badge">0${idx + 1}</span>
-                <span class="step-text">${step}</span>
-              </li>
-            `).join('')}
-          </ul>
+        <!-- Actions: Save Report & Export -->
+        <div style="display: flex; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-default); flex-wrap: wrap;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save-url-report">Save Report</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-export-url-md">Export Markdown</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-export-url-json">Export JSON</button>
         </div>
+      </div>
+    `;
 
-        <!-- Interactive AI Security Analyst Assistant Chat Drawer -->
-        <div class="analyst-chat-card">
-          <div class="section-title">
-            <span class="badge green">Interactive Assistant</span>
-            <h4 style="margin-top: 4px; font-size: 1rem;">Ask AI Security Analyst</h4>
-          </div>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Ask contextual questions regarding threat exposure, CVE exploitability, or custom workarounds.</p>
-          <div class="chat-messages-container" id="threat-chat-messages">
-            <div class="chat-bubble analyst">
-              <div class="chat-bubble-author">AI Security Analyst</div>
-              I have synthesized this advisory. Ask me anything about internal infrastructure exposure, mitigation alternatives, or CVE mechanics.
-            </div>
-          </div>
-          <form id="threat-chat-form" class="chat-input-row">
-            <input type="text" id="threat-chat-input" placeholder="e.g., Are our Linux servers vulnerable? What is the temporary mitigation?" required>
-            <button type="submit" class="btn primary sm-btn">Ask</button>
-          </form>
-        </div>
+    // Bind copy button
+    urlResultsContainer.querySelectorAll('[data-copy-target]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-copy-target');
+        copyToClipboard(val, 'Target URL copied to clipboard!');
+      });
+    });
 
-        <hr class="divider">
-        <a href="${item.link}" target="_blank" class="btn primary" style="text-decoration: none; width: fit-content;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          <span>View Original Security Advisory Link</span>
-        </a>
-      `;
-
-      // Attach Export Listeners
-      const exportMdBtn = document.getElementById('export-md-btn');
-      if (exportMdBtn) {
-        exportMdBtn.addEventListener('click', async () => {
-          try {
-            const res = await fetch('/api/export-advisory', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ type: 'threat', format: 'markdown', item, analysis })
-            });
-            const data = await res.json();
-            triggerFileDownload(data.filename, data.content, 'text/markdown');
-          } catch (e) {
-            alert('Export failed: ' + e.message);
+    // Bind save report button
+    const btnSaveReport = document.getElementById('btn-save-url-report');
+    if (btnSaveReport) {
+      btnSaveReport.addEventListener('click', async () => {
+        try {
+          const saveRes = await fetch('/api/user/reports', {
+            method: 'POST',
+            headers: getHeaders(true, false),
+            body: JSON.stringify({
+              reportName: `URL Analysis: ${scraped.domain || targetUrl}`,
+              target: targetUrl,
+              riskLevel: riskLevel,
+              contentJson: { scraped, analysis }
+            })
+          });
+          if (saveRes.ok) {
+            showToast('Report saved to your repository.');
+            btnSaveReport.textContent = 'Report Saved';
+            btnSaveReport.disabled = true;
           }
-        });
-      }
+        } catch (e) {
+          showToast('Could not save report: ' + e.message);
+        }
+      });
+    }
 
-      const exportJsonBtn = document.getElementById('export-json-btn');
-      if (exportJsonBtn) {
-        exportJsonBtn.addEventListener('click', async () => {
-          try {
-            const res = await fetch('/api/export-advisory', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ type: 'threat', format: 'json', item, analysis })
-            });
-            const data = await res.json();
-            triggerFileDownload(data.filename, JSON.stringify(data.content, null, 2), 'application/json');
-          } catch (e) {
-            alert('Export failed: ' + e.message);
-          }
-        });
-      }
+    // Bind export buttons
+    const btnExportMd = document.getElementById('btn-export-url-md');
+    const btnExportJson = document.getElementById('btn-export-url-json');
 
-      // Attach Threat Chat Listener
-      const chatForm = document.getElementById('threat-chat-form');
-      const chatInput = document.getElementById('threat-chat-input');
-      const chatMessages = document.getElementById('threat-chat-messages');
-      const chatHistory = [];
+    if (btnExportMd) {
+      btnExportMd.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/export-advisory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'phishing', format: 'markdown', scraped, analysis })
+          });
+          const exp = await res.json();
+          downloadTextFile(exp.filename, exp.content, 'text/markdown');
+          showToast('Markdown advisory downloaded.');
+        } catch (e) {
+          showToast('Export failed: ' + e.message);
+        }
+      });
+    }
 
-      if (chatForm && chatInput && chatMessages) {
-        chatForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const userMsg = chatInput.value.trim();
-          if (!userMsg) return;
-
-          // Add user bubble
-          const userBubble = document.createElement('div');
-          userBubble.className = 'chat-bubble user';
-          userBubble.textContent = userMsg;
-          chatMessages.appendChild(userBubble);
-          chatInput.value = '';
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-
-          // Add loading bubble
-          const loadingBubble = document.createElement('div');
-          loadingBubble.className = 'chat-bubble analyst';
-          loadingBubble.innerHTML = `<div class="chat-bubble-author">AI Security Analyst</div><em>Analyzing question against threat context...</em>`;
-          chatMessages.appendChild(loadingBubble);
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-
-          chatHistory.push({ role: 'user', content: userMsg });
-
-          try {
-            const response = await fetch('/api/threat-chat', {
-              method: 'POST',
-              headers: getAuthHeaders(),
-              body: JSON.stringify({
-                message: userMsg,
-                context: {
-                  title: item.title,
-                  cveId: analysis.cveId,
-                  cvssScore: analysis.cvssScore,
-                  cvssSeverity: analysis.cvssSeverity,
-                  cweId: analysis.cweId,
-                  cweName: analysis.cweName,
-                  cisaKevStatus: analysis.cisaKevStatus,
-                  severity: analysis.severity,
-                  affectedSystems: analysis.affectedSystems,
-                  severityReasoning: analysis.severityReasoning,
-                  actionPlan: analysis.actionPlan
-                },
-                history: chatHistory
-              })
-            });
-            const resData = await response.json();
-            loadingBubble.innerHTML = `<div class="chat-bubble-author">AI Security Analyst</div>${resData.answer || 'Analysis complete.'}`;
-            chatHistory.push({ role: 'assistant', content: resData.answer });
-          } catch (err) {
-            loadingBubble.innerHTML = `<div class="chat-bubble-author">AI Security Analyst</div>[Error] Could not retrieve response: ${err.message}`;
-          }
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-      }
-    } catch (error) {
-      threatDetailsPanel.innerHTML = `
-        <div class="panel-placeholder">
-          <span style="font-size: 2rem"></span>
-          <h3 style="color: var(--accent-red)">AI Agent Failed</h3>
-          <p>${error.message}</p>
-        </div>
-      `;
+    if (btnExportJson) {
+      btnExportJson.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/export-advisory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'phishing', format: 'json', scraped, analysis })
+          });
+          const exp = await res.json();
+          downloadTextFile(exp.filename, JSON.stringify(exp.content, null, 2), 'application/json');
+          showToast('JSON telemetry downloaded.');
+        } catch (e) {
+          showToast('Export failed: ' + e.message);
+        }
+      });
     }
   }
 
-  // Filter feed items by search input
-  feedSearchInput.addEventListener('input', (e) => {
-    const searchVal = e.target.value.toLowerCase().trim();
-    if (!searchVal) {
-      renderThreatItems(threatFeeds);
+  // ==========================================================================
+  // TOOL 2: WEBSITE SCAM RISK DETECTOR
+  // ==========================================================================
+  const formScanScam = document.getElementById('form-scan-scam');
+  const inputScanScam = document.getElementById('input-scan-scam');
+  const scamScanStages = document.getElementById('scam-scan-stages');
+  const scamResultsContainer = document.getElementById('scam-results-container');
+
+  function advanceScamStages(stageNum) {
+    for (let i = 1; i <= 5; i++) {
+      const stageEl = document.getElementById(`scam-stage-${i}`);
+      if (!stageEl) continue;
+      if (i < stageNum) {
+        stageEl.className = 'stage-item completed';
+      } else if (i === stageNum) {
+        stageEl.className = 'stage-item in-progress';
+      } else {
+        stageEl.className = 'stage-item';
+      }
+    }
+  }
+
+  if (formScanScam) {
+    formScanScam.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const domain = inputScanScam.value.trim();
+      if (!domain) return;
+
+      if (scamScanStages) scamScanStages.classList.remove('hidden');
+      if (scamResultsContainer) scamResultsContainer.classList.add('hidden');
+      advanceScamStages(1);
+
+      try {
+        advanceScamStages(2);
+        const stageTimer = setTimeout(() => advanceScamStages(3), 600);
+
+        const res = await fetch('/api/detect-scam', {
+          method: 'POST',
+          headers: getHeaders(true, true),
+          body: JSON.stringify({ url: domain })
+        });
+        clearTimeout(stageTimer);
+
+        advanceScamStages(4);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Service unavailable or domain audit failed.');
+        }
+
+        const data = await res.json();
+        advanceScamStages(5);
+
+        // Determine risk level
+        const scamProb = data.analysis.scamProbability || 0;
+        let riskLevel = 'Low';
+        let uncertaintyLabel = 'No significant scam indicators detected';
+        if (scamProb >= 60) {
+          riskLevel = 'High';
+          uncertaintyLabel = 'Potential Scam (High probability)';
+        } else if (scamProb >= 25) {
+          riskLevel = 'Medium';
+          uncertaintyLabel = 'Elevated Risk (Low Trust Factors)';
+        }
+
+        // Auto-record analysis in user store history
+        try {
+          await fetch('/api/user/history', {
+            method: 'POST',
+            headers: getHeaders(true, false),
+            body: JSON.stringify({
+              tool: 'Website Scam Risk Detector',
+              target: domain,
+              riskLevel: riskLevel,
+              confidence: Math.max(65, Math.min(95, scamProb + 10)),
+              summary: data.analysis.assessmentText || 'Scam audit completed.',
+              resultJson: data
+            })
+          });
+        } catch (saveErr) {}
+
+        // Render Results
+        renderScamResults(data, domain, riskLevel, uncertaintyLabel);
+        if (scamScanStages) scamScanStages.classList.add('hidden');
+        if (scamResultsContainer) scamResultsContainer.classList.remove('hidden');
+
+      } catch (err) {
+        if (scamScanStages) scamScanStages.classList.add('hidden');
+        if (scamResultsContainer) {
+          scamResultsContainer.innerHTML = `
+            <div class="error-state">
+              <h4 class="error-state-title">Audit could not be completed</h4>
+              <p class="error-state-desc">${err.message}</p>
+              <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 12px;" onclick="document.getElementById('form-scan-scam').dispatchEvent(new Event('submit'))">Retry Audit</button>
+            </div>
+          `;
+          scamResultsContainer.classList.remove('hidden');
+        }
+      }
+    });
+  }
+
+  function renderScamResults(data, domain, riskLevel, uncertaintyLabel) {
+    const scraped = data.scraped || {};
+    const domainInfo = scraped.domainInfo || {};
+    const analysis = data.analysis || {};
+
+    const trustScore = analysis.trustScore || 50;
+    const scamProb = analysis.scamProbability || (100 - trustScore);
+    const meterClass = scamProb >= 60 ? 'critical' : (scamProb >= 25 ? 'medium' : 'low');
+
+    scamResultsContainer.innerHTML = `
+      <div class="results-card">
+        <!-- Header Banner -->
+        <div class="results-header-banner">
+          <div class="target-info">
+            <div class="report-badge-pill">Website Scam Risk &amp; Trust Audit</div>
+            <div class="target-url-box">
+              <span class="target-url-text" id="scam-target-display" title="${domain}">${domain}</span>
+              <button type="button" class="btn-copy-target" data-copy-target="${domain}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Domain
+              </button>
+            </div>
+            <div class="results-meta-row">
+              <span class="results-meta-item">Classification: <strong>${uncertaintyLabel}</strong></span>
+              <span class="results-meta-item">Audited: <strong>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
+            </div>
+          </div>
+          <div>
+            ${getRiskBadge(riskLevel)}
+          </div>
+        </div>
+
+        <!-- Trust & Risk Meter -->
+        <div class="threat-meter-container">
+          <div class="threat-meter-bar-wrap">
+            <div class="threat-meter-labels">
+              <span>COMMERCIAL TRUST METER</span>
+              <span><strong>Trust Score: ${trustScore}/100</strong> &bull; Scam Prob: ${scamProb}%</span>
+            </div>
+            <div class="threat-meter-track">
+              <div class="threat-meter-fill ${meterClass}" style="width: ${Math.max(5, scamProb)}%;"></div>
+            </div>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+            <span>REGISTRAR STATUS:</span>
+            <strong style="color: var(--primary-900); font-size: 0.85rem;">${domainInfo.registrar || 'Active'}</strong>
+          </div>
+        </div>
+
+        <div class="results-summary-grid">
+          <div class="summary-metric-box">
+            <div class="label">Trust Score</div>
+            <div class="value" style="color: ${trustScore >= 70 ? 'var(--severity-low-text)' : (trustScore >= 35 ? 'var(--severity-medium-text)' : 'var(--severity-critical-text)')};">
+              ${trustScore} / 100
+            </div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">Registrar</div>
+            <div class="value" style="font-size: 1.05rem;">${domainInfo.registrar || 'Unknown'}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">Registration Date</div>
+            <div class="value" style="font-size: 1.05rem;">${domainInfo.createdDate ? new Date(domainInfo.createdDate).toLocaleDateString() : 'N/A'}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">Domain Age</div>
+            <div class="value">${domainInfo.ageDays !== null ? `${domainInfo.ageDays} days` : 'Unknown'}</div>
+          </div>
+        </div>
+
+        <!-- Strict Separation: Observed Evidence vs AI Assessment -->
+        <div class="analysis-dual-panel">
+          
+          <div class="panel-evidence">
+            <div class="panel-heading">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              <span>Observed Evidence</span>
+            </div>
+            <table class="evidence-table">
+              <tbody>
+                <tr>
+                  <td class="prop-name">Target URL</td>
+                  <td class="prop-val">${scraped.url || domain}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Domain Age Flag</td>
+                  <td class="prop-val">${domainInfo.ageDays !== null && domainInfo.ageDays < 90 ? '<span style="color: var(--severity-high-text); font-weight:600;">Young Domain (<90 days)</span>' : 'Established'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">HTTPS Verified</td>
+                  <td class="prop-val">${scraped.isHttps ? 'Yes (TLS Active)' : '<span style="color: var(--severity-critical-text);">No (Insecure HTTP)</span>'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Page Title</td>
+                  <td class="prop-val">${scraped.pageMetadata ? scraped.pageMetadata.title || 'Untitled' : 'Untitled'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="panel-ai">
+            <div class="panel-heading">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              <span>AI Assessment &amp; Content Audit</span>
+            </div>
+            <p class="ai-reasoning-text"><strong>Claims &amp; Policies:</strong> ${analysis.riskSignalsText || 'Policy statements evaluated.'}</p>
+            <p class="ai-reasoning-text"><strong>Trust Recommendation:</strong> ${analysis.assessmentText || 'Assessment concluded.'}</p>
+            
+            <div style="margin-top: 14px;">
+              <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Commercial Red Flags</strong>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                ${analysis.redFlags && analysis.redFlags.length > 0
+                  ? analysis.redFlags.map(f => `<div style="font-size: 0.84rem; color: var(--severity-high-text); background: var(--severity-high-bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--severity-high-border);">${f}</div>`).join('')
+                  : `<div style="font-size: 0.84rem; color: var(--severity-low-text); background: var(--severity-low-bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--severity-low-border);">No critical commercial red flags found.</div>`
+                }
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-default); flex-wrap: wrap;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save-scam-report">Save Report</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-export-scam-md">Export Markdown</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-export-scam-json">Export JSON</button>
+        </div>
+      </div>
+    `;
+
+    // Bind copy button
+    scamResultsContainer.querySelectorAll('[data-copy-target]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-copy-target');
+        copyToClipboard(val, 'Domain copied to clipboard!');
+      });
+    });
+
+    // Bind save report button
+    const btnSaveReport = document.getElementById('btn-save-scam-report');
+    if (btnSaveReport) {
+      btnSaveReport.addEventListener('click', async () => {
+        try {
+          const saveRes = await fetch('/api/user/reports', {
+            method: 'POST',
+            headers: getHeaders(true, false),
+            body: JSON.stringify({
+              reportName: `Scam Audit: ${domain}`,
+              target: domain,
+              riskLevel: riskLevel,
+              contentJson: { scraped, analysis }
+            })
+          });
+          if (saveRes.ok) {
+            showToast('Report saved to your repository.');
+            btnSaveReport.textContent = 'Report Saved';
+            btnSaveReport.disabled = true;
+          }
+        } catch (e) {
+          showToast('Could not save report: ' + e.message);
+        }
+      });
+    }
+
+    // Bind export buttons
+    const btnExportMd = document.getElementById('btn-export-scam-md');
+    const btnExportJson = document.getElementById('btn-export-scam-json');
+
+    if (btnExportMd) {
+      btnExportMd.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/export-advisory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'scam', format: 'markdown', scraped, analysis })
+          });
+          const exp = await res.json();
+          downloadTextFile(exp.filename, exp.content, 'text/markdown');
+          showToast('Markdown advisory downloaded.');
+        } catch (e) {
+          showToast('Export failed: ' + e.message);
+        }
+      });
+    }
+
+    if (btnExportJson) {
+      btnExportJson.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/export-advisory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'scam', format: 'json', scraped, analysis })
+          });
+          const exp = await res.json();
+          downloadTextFile(exp.filename, JSON.stringify(exp.content, null, 2), 'application/json');
+          showToast('JSON telemetry downloaded.');
+        } catch (e) {
+          showToast('Export failed: ' + e.message);
+        }
+      });
+    }
+  }
+
+  // ==========================================================================
+  // TOOL 3: THREAT DIGEST FEED HUB
+  // ==========================================================================
+  const feedItemsList = document.getElementById('feed-items-list');
+  const feedItemsCount = document.getElementById('feed-items-count');
+  const inputFeedSearch = document.getElementById('input-feed-search');
+  const btnRefreshFeeds = document.getElementById('btn-refresh-feeds');
+  const threatPanelContainer = document.getElementById('threat-panel-container');
+
+  // Home Page Welcome Intel Hub Showcase elements
+  const homeThreatGrid = document.getElementById('home-threat-grid');
+  const homeFeedCounter = document.getElementById('home-live-feed-counter');
+  const homeSearchInput = document.getElementById('home-feed-search-input');
+  const btnHomeRefreshFeeds = document.getElementById('btn-home-refresh-feeds');
+  const btnHomeOpenWorkbench = document.getElementById('btn-home-open-workbench');
+  const homeFeedTabs = document.querySelectorAll('.home-feed-tab');
+  const homeTrendChips = document.querySelectorAll('.trend-chip-item');
+  let currentHomeFilter = 'all';
+
+  function categorizeFeedItem(item) {
+    const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+    if (text.includes('cisa') || text.includes('kev') || text.includes('exploited') || text.includes('actively')) {
+      return { tag: 'CISA KEV EXPLOIT', badge: '<span class="badge badge-critical"><span class="badge-dot"></span>CRITICAL KEV</span>', category: 'cisa' };
+    }
+    if (text.includes('phish') || text.includes('passkey') || text.includes('credential') || text.includes('identity') || text.includes('token')) {
+      return { tag: 'PHISHING & IDENTITY', badge: '<span class="badge badge-high"><span class="badge-dot"></span>HIGH RISK</span>', category: 'phishing' };
+    }
+    if (text.includes('cloud') || text.includes('microsoft') || text.includes('m365') || text.includes('azure') || text.includes('aws') || text.includes('google cloud')) {
+      return { tag: 'CLOUD & M365 DEFENSE', badge: '<span class="badge badge-medium"><span class="badge-dot"></span>MEDIUM RISK</span>', category: 'cloud' };
+    }
+    if (text.includes('compliance') || text.includes('privacy') || text.includes('nis2') || text.includes('gdpr') || text.includes('regulatory') || text.includes('breach')) {
+      return { tag: 'COMPLIANCE & PRIVACY', badge: '<span class="badge badge-info"><span class="badge-dot"></span>COMPLIANCE</span>', category: 'compliance' };
+    }
+    if (text.includes('zero-day') || text.includes('0-day') || text.includes('rce') || text.includes('cve-')) {
+      return { tag: 'VULNERABILITY INTEL', badge: '<span class="badge badge-high"><span class="badge-dot"></span>HIGH RISK</span>', category: 'cisa' };
+    }
+    return { tag: 'THREAT ADVISORY', badge: '<span class="badge badge-info"><span class="badge-dot"></span>INFO</span>', category: 'all' };
+  }
+
+  function renderHomeThreatGrid(items) {
+    if (!homeThreatGrid) return;
+    if (!items || items.length === 0) {
+      homeThreatGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 36px 16px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+          No security advisories match the selected filter.
+        </div>
+      `;
       return;
     }
 
-    const filtered = threatFeeds.filter(item => 
-      item.title.toLowerCase().includes(searchVal) || 
-      item.source.toLowerCase().includes(searchVal) ||
-      (item.description && item.description.toLowerCase().includes(searchVal))
-    );
-    renderThreatItems(filtered);
-  });
+    // Display top 8 cards for rich homepage layout
+    const displayItems = items.slice(0, 8);
 
-  refreshFeedsBtn.addEventListener('click', loadThreatFeeds);
-
-  // ==========================================
-  // 2. PHISHING URL SCANNER WORKFLOW
-  // ==========================================
-  phishingForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const url = phishUrlInput.value.trim();
-    if (!url) return;
-
-    // Transition UI: Hide placeholder, Reveal Results Area, Show loading values
-    phishPlaceholder.classList.add('hidden');
-    phishResultsArea.classList.remove('hidden');
-    
-    // Set spinner loading text in elements
-    phishVerdict.textContent = 'SCANNING...';
-    phishVerdict.className = 'verdict-badge warning-bg';
-    setGaugeValue(phishGaugeFill, phishRiskVal, 0);
-    
-    phishIndicatorSsl.textContent = 'Calculating...';
-    phishIndicatorSsl.className = 'indicator-value';
-    phishIndicatorAge.textContent = 'Checking...';
-    phishIndicatorAge.className = 'indicator-value';
-    phishIndicatorPass.textContent = 'Scanning...';
-    phishIndicatorPass.className = 'indicator-value';
-    phishIndicatorLinks.textContent = 'Auditing...';
-    phishIndicatorLinks.className = 'indicator-value';
-    
-    phishRiskFactors.innerHTML = `
-      <div class="placeholder-loader">
-        <div class="spinner"></div>
-        <p>Crawling target URL and analyzing secure DOM factors...</p>
-      </div>
-    `;
-    phishLayoutCheck.textContent = 'Scraping CSS/HTML properties...';
-    phishReasoning.textContent = 'Invoking security AI agent sandbox classification...';
-
-    try {
-      const response = await fetch('/api/scan-url', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ url })
-      });
-
-      if (!response.ok) throw new Error('API server returned error scanning URL');
-
-      const data = await response.json();
-      const scraped = data.scraped;
-      const analysis = data.analysis;
-
-      // Update Gauge & Verdict Badge
-      setGaugeValue(phishGaugeFill, phishRiskVal, analysis.phishingProbability);
+    homeThreatGrid.innerHTML = displayItems.map((item, idx) => {
+      const cat = categorizeFeedItem(item);
+      const words = (item.description || '').split(' ').length;
+      const readTime = Math.max(2, Math.ceil(words / 30)) + ' min read';
       
-      phishVerdict.textContent = analysis.dangerLevel.toUpperCase();
-      if (analysis.dangerLevel === 'Safe') {
-        phishVerdict.className = 'verdict-badge safe-bg';
-      } else if (analysis.dangerLevel === 'Suspicious') {
-        phishVerdict.className = 'verdict-badge warning-bg';
-      } else {
-        phishVerdict.className = 'verdict-badge'; // Defaults to Danger/Red
-      }
+      return `
+        <div class="news-feed-card">
+          <div>
+            <div class="news-feed-header">
+              <span class="news-tag">${cat.tag}</span>
+              ${cat.badge}
+            </div>
+            <h4 class="news-feed-title">${escapeHtml(item.title)}</h4>
+            <p class="news-feed-desc">${escapeHtml(item.description || 'Live threat intelligence telemetry and CVE advisory ingestion.')}</p>
+          </div>
+          <div>
+            <div class="news-feed-meta">
+              <span class="news-feed-source">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                ${escapeHtml(item.source || 'Advisory Feed')}
+              </span>
+              <span>${formatDateTime(item.pubDate)} &bull; ${readTime}</span>
+            </div>
+            <div class="news-feed-actions">
+              <button type="button" class="btn-analyze-feed-card" data-home-feed-idx="${idx}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                <span>Analyze with AI Analyst</span>
+              </button>
+              <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn-official-feed-link" title="Open official bulletin">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
 
-      // Update Scraped Metadata Indicators
-      phishIndicatorSsl.textContent = scraped.isHttps ? 'SECURE (HTTPS)' : 'INSECURE (HTTP)';
-      phishIndicatorSsl.className = scraped.isHttps ? 'indicator-value val-success' : 'indicator-value val-danger';
-      
-      const ageDays = scraped.domainInfo.ageDays;
-      if (ageDays === null) {
-        phishIndicatorAge.textContent = 'Unknown (No record)';
-        phishIndicatorAge.className = 'indicator-value val-warning';
-      } else {
-        phishIndicatorAge.textContent = `${ageDays} days`;
-        phishIndicatorAge.className = ageDays < 90 ? 'indicator-value val-danger' : 'indicator-value val-success';
-      }
-
-      const hasPassword = scraped.pageMetadata.hasPasswordFields;
-      phishIndicatorPass.textContent = hasPassword ? 'YES (High Risk)' : 'No (Standard)';
-      phishIndicatorPass.className = hasPassword ? 'indicator-value val-danger' : 'indicator-value val-success';
-
-      const totalLnk = scraped.pageMetadata.totalLinks;
-      const extLnk = scraped.pageMetadata.externalLinks;
-      const ratio = totalLnk > 0 ? (extLnk / totalLnk * 100).toFixed(0) : 0;
-      phishIndicatorLinks.textContent = `${extLnk}/${totalLnk} (${ratio}%)`;
-      phishIndicatorLinks.className = ratio > 60 ? 'indicator-value val-warning' : 'indicator-value val-success';
-
-      // Update ML Feature Vector Chips (matching vaibhavbichave/Phishing-URL-Detection)
-      const mlChipsContainer = document.getElementById('phish-ml-chips');
-      if (mlChipsContainer) {
-        const vec = analysis.mlFeatureVector || {};
-        const chips = [];
-        if (vec.ShortURL === -1) chips.push('<span class="usecase-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">Short URL Service</span>');
-        if (vec['Symbol@'] === -1) chips.push('<span class="usecase-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">@ Symbol Trap</span>');
-        if (vec['ServerFormHandler'] === -1) chips.push('<span class="usecase-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">External/Empty Form</span>');
-        if (vec.IframeRedirection === -1) chips.push('<span class="usecase-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">Hidden Iframe</span>');
-        if (vec.DisableRightClick === -1) chips.push('<span class="usecase-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">Right-Click Blocked</span>');
-        if (vec.InfoEmail === -1) chips.push('<span class="usecase-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">Mailto Submission</span>');
-        if (vec.NonStdPort === -1) chips.push('<span class="usecase-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">Non-Std Port</span>');
-        if (vec.HTTPSDomainURL === -1) chips.push('<span class="usecase-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">Fake HTTPS in Domain</span>');
-
-        if (chips.length === 0) {
-          chips.push('<span class="usecase-chip" style="border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;">✓ Clean Domain Structure</span>');
-          chips.push('<span class="usecase-chip" style="border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;">✓ Valid Form Action</span>');
-          chips.push('<span class="usecase-chip" style="border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;">✓ No Iframe / Script Traps</span>');
+    // Attach click listener on each card's AI Analyst button
+    homeThreatGrid.querySelectorAll('.btn-analyze-feed-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-home-feed-idx'), 10);
+        const item = displayItems[idx];
+        if (item) {
+          selectedFeedItem = item;
+          switchView('threats');
+          // Highlight in main workbench feed list
+          if (feedItemsList) {
+            feedItemsList.querySelectorAll('.feed-item-card').forEach((c, i) => {
+              if (threatFeeds[i] && threatFeeds[i].link === item.link) {
+                c.classList.add('selected');
+                c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              } else {
+                c.classList.remove('selected');
+              }
+            });
+          }
+          analyzeThreatItem(item);
+          const wb = document.getElementById('threat-panel-container');
+          if (wb) wb.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        mlChipsContainer.innerHTML = chips.join('');
-      }
+      });
+    });
+  }
 
-      // Update Risk Factors list
-      if (analysis.riskFactors && analysis.riskFactors.length > 0) {
-        phishRiskFactors.innerHTML = '';
-        analysis.riskFactors.forEach(factor => {
-          const item = document.createElement('div');
-          item.className = 'factor-item';
-          item.innerHTML = `<span>-</span> <span>${factor}</span>`;
-          phishRiskFactors.appendChild(item);
-        });
-      } else {
-        phishRiskFactors.innerHTML = `
-          <div class="factor-item" style="background: rgba(0, 230, 118, 0.05); border-color: rgba(0, 230, 118, 0.15); color: #B9F6CA;">
-            <span>-</span> <span>No critical phishing risk indicators detected in site structure.</span>
-          </div>
-        `;
-      }
+  function applyHomeFeedFilter() {
+    let filtered = [...threatFeeds];
+    const query = (homeSearchInput ? homeSearchInput.value : '').toLowerCase().trim();
 
-      // Update text descriptions
-      phishLayoutCheck.textContent = analysis.visualLayoutCheck || 'No layout warnings detected.';
-      phishReasoning.textContent = analysis.verdictReasoning;
+    if (currentHomeFilter !== 'all') {
+      filtered = filtered.filter(item => {
+        const cat = categorizeFeedItem(item);
+        if (currentHomeFilter === 'cisa') return cat.category === 'cisa';
+        if (currentHomeFilter === 'phishing') return cat.category === 'phishing';
+        if (currentHomeFilter === 'cloud') return cat.category === 'cloud';
+        if (currentHomeFilter === 'compliance') return cat.category === 'compliance';
+        return true;
+      });
+    }
 
-    } catch (error) {
-      phishRiskFactors.innerHTML = `
-        <div class="factor-item">
-          <span>[ERROR]</span> <span>Scanner Fail: ${error.message}</span>
+    if (query) {
+      filtered = filtered.filter(i =>
+        (i.title && i.title.toLowerCase().includes(query)) ||
+        (i.source && i.source.toLowerCase().includes(query)) ||
+        (i.description && i.description.toLowerCase().includes(query))
+      );
+    }
+
+    renderHomeThreatGrid(filtered);
+  }
+
+  async function loadThreatFeeds() {
+    if (feedItemsList) {
+      feedItemsList.innerHTML = `
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">Querying official security bulletins...</p>
         </div>
       `;
-      phishVerdict.textContent = 'ERROR';
-      phishVerdict.className = 'verdict-badge';
     }
-  });
-
-  // ==========================================
-  // 3. WEBSITE SCAM DETECTOR WORKFLOW
-  // ==========================================
-  scamForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const domain = scamUrlInput.value.trim();
-    if (!domain) return;
-
-    scamPlaceholder.classList.add('hidden');
-    scamResultsArea.classList.remove('hidden');
-
-    scamVerdict.textContent = 'AUDITING...';
-    scamVerdict.className = 'verdict-badge warning-bg';
-    setGaugeValue(scamGaugeFill, scamTrustVal, 100, true);
-
-    scamRegistrar.textContent = 'Querying RDAP...';
-    scamCreatedDate.textContent = 'Parsing events...';
-    scamAgeDays.textContent = 'Calculating age...';
-
-    scamRedFlags.innerHTML = `
-      <div class="placeholder-loader">
-        <div class="spinner"></div>
-        <p>Scanning registrar records & querying RDAP registry...</p>
-      </div>
-    `;
-    scamSignalsText.textContent = 'Retrieving business terms, policies, and contacts...';
-    scamAssessment.textContent = 'Running trust assessment script...';
+    if (feedItemsCount) feedItemsCount.textContent = 'Loading...';
 
     try {
-      const response = await fetch('/api/detect-scam', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ url: domain })
-      });
+      const res = await fetch('/api/feeds');
+      if (!res.ok) throw new Error('Failed to retrieve feeds.');
 
-      if (!response.ok) throw new Error('API server returned error auditing domain');
-
-      const data = await response.json();
-      const scraped = data.scraped;
-      const analysis = data.analysis;
-
-      // Update Gauge & Verdict Badge
-      setGaugeValue(scamGaugeFill, scamTrustVal, analysis.trustScore, true);
-
-      scamVerdict.textContent = analysis.scamProbability > 50 ? 'HIGH RISK SCAM' : (analysis.scamProbability > 25 ? 'LOW TRUST' : 'TRUSTWORTHY');
-      if (analysis.scamProbability > 50) {
-        scamVerdict.className = 'verdict-badge';
-      } else if (analysis.scamProbability > 25) {
-        scamVerdict.className = 'verdict-badge warning-bg';
-      } else {
-        scamVerdict.className = 'verdict-badge safe-bg';
-      }
-
-      // Update domain registration metadata
-      scamRegistrar.textContent = scraped.domainInfo.registrar || 'Unknown';
+      threatFeeds = await res.json();
+      if (feedItemsCount) feedItemsCount.textContent = threatFeeds.length;
+      if (homeFeedCounter) homeFeedCounter.textContent = `${threatFeeds.length} Feeds Monitored`;
       
-      const createdDate = scraped.domainInfo.createdDate;
-      scamCreatedDate.textContent = createdDate ? new Date(createdDate).toLocaleDateString() : 'N/A';
-      
-      const ageDays = scraped.domainInfo.ageDays;
-      scamAgeDays.textContent = ageDays !== null ? `${ageDays} days` : 'Unknown';
-
-      // Update Red Flags
-      if (analysis.redFlags && analysis.redFlags.length > 0) {
-        scamRedFlags.innerHTML = '';
-        analysis.redFlags.forEach(flag => {
-          const item = document.createElement('div');
-          item.className = 'factor-item red-flag';
-          item.innerHTML = `<span>-</span> <span>${flag}</span>`;
-          scamRedFlags.appendChild(item);
-        });
-      } else {
-        scamRedFlags.innerHTML = `
-          <div class="factor-item" style="background: rgba(0, 230, 118, 0.05); border-color: rgba(0, 230, 118, 0.15); color: #B9F6CA;">
-            <span>-</span> <span>No scam indicators detected in registrar age or content policies.</span>
+      renderThreatItems(threatFeeds);
+      renderHomeThreatGrid(threatFeeds);
+    } catch (err) {
+      if (feedItemsList) {
+        feedItemsList.innerHTML = `
+          <div style="padding: 16px; color: var(--severity-critical-text); font-size: 0.85rem;">
+            Could not load feeds: ${err.message}
           </div>
         `;
       }
+      if (feedItemsCount) feedItemsCount.textContent = 'ERROR';
+    }
+  }
 
-      // Update text descriptions
-      scamSignalsText.textContent = analysis.riskSignalsText;
-      scamAssessment.textContent = analysis.assessmentText;
+  function renderThreatItems(items) {
+    if (!feedItemsList) return;
+    if (!items || items.length === 0) {
+      feedItemsList.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">No bulletins match query.</div>`;
+      return;
+    }
 
-    } catch (error) {
-      scamRedFlags.innerHTML = `
-        <div class="factor-item red-flag">
-          <span>[ERROR]</span> <span>Scam Audit Fail: ${error.message}</span>
+    feedItemsList.innerHTML = items.map((item, idx) => `
+      <div class="feed-item-card ${selectedFeedItem && selectedFeedItem.link === item.link ? 'selected' : ''}" data-feed-idx="${idx}">
+        <div class="feed-item-source-row">
+          <span>${item.source || 'Advisory'}</span>
+          <span>${formatDateTime(item.pubDate)}</span>
         </div>
-      `;
-      scamVerdict.textContent = 'ERROR';
-      scamVerdict.className = 'verdict-badge';
-    }
-  });
+        <div class="feed-item-title">${item.title}</div>
+        <div class="feed-item-desc">${item.description || 'No summary text provided.'}</div>
+      </div>
+    `).join('');
 
-  // ==========================================
-  // 4. PRICING PLANS WORKFLOW
-  // ==========================================
-  const currencyPrices = {
-    USD: { symbol: '$', proPrice: '49' },
-    EUR: { symbol: '€', proPrice: '45' },
-    INR: { symbol: '₹', proPrice: '3999' },
-    GBP: { symbol: '£', proPrice: '39' }
-  };
-
-  const currencyButtons = document.querySelectorAll('#currency-selector .selector-btn');
-  const paymentButtons = document.querySelectorAll('#payment-selector .selector-btn');
-  const paymentNotification = document.getElementById('payment-notification');
-  const paymentStatusTitle = document.getElementById('payment-status-title');
-  const paymentStatusDesc = document.getElementById('payment-status-desc');
-
-  // Currency selection handler
-  currencyButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      // Toggle active states
-      currencyButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      const selectedCurrency = btn.getAttribute('data-currency');
-      const pricing = currencyPrices[selectedCurrency];
-
-      // Update Free & Pro price elements
-      document.getElementById('free-symbol').textContent = pricing.symbol;
-      document.getElementById('pro-symbol').textContent = pricing.symbol;
-      document.getElementById('pro-price').textContent = pricing.proPrice;
-    });
-  });
-
-  // Payment method selection handler
-  const paymentNames = {
-    credit_card: { title: 'Credit Card Channel Active', desc: 'Secure card checkout enabled via 3D-Secure 2.0.' },
-    stripe: { title: 'Stripe Gateway Selected', desc: 'Payment will be securely routed through Stripe Elements.' },
-    paypal: { title: 'PayPal Checkout Selected', desc: 'Login details and subscription auth will execute via PayPal Secure Sandbox.' },
-    crypto: { title: 'Crypto Wallet Connected', desc: 'A custom Web3 payment prompt will request payment in BTC/ETH equivalent value.' }
-  };
-
-  paymentButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      // Toggle active states
-      paymentButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      const selectedPayment = btn.getAttribute('data-payment');
-      const info = paymentNames[selectedPayment];
-
-      // Reveal and populate payment notification card
-      paymentNotification.classList.remove('hidden');
-      paymentStatusTitle.textContent = info.title;
-      paymentStatusDesc.textContent = info.desc;
-    });
-  });
-
-  // Upgrade Actions
-  const upgradeProBtn = document.getElementById('upgrade-pro-btn');
-  if (upgradeProBtn) {
-    upgradeProBtn.addEventListener('click', () => {
-      const activePaymentEl = document.querySelector('#payment-selector .selector-btn.active');
-      const activeCurrencyEl = document.querySelector('#currency-selector .selector-btn.active');
-      const paymentMethod = activePaymentEl ? activePaymentEl.textContent.trim() : 'Credit Card';
-      const currency = activeCurrencyEl ? activeCurrencyEl.getAttribute('data-currency') : 'USD';
-      const priceVal = currencyPrices[currency].proPrice;
-      const symbol = currencyPrices[currency].symbol;
-
-      alert(`Redirecting to secure ${paymentMethod} checkout page for Pro Subscription (${symbol}${priceVal}/month)...`);
+    // Attach click listener
+    feedItemsList.querySelectorAll('.feed-item-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const idx = parseInt(card.getAttribute('data-feed-idx'), 10);
+        selectedFeedItem = items[idx];
+        feedItemsList.querySelectorAll('.feed-item-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        analyzeThreatItem(selectedFeedItem);
+      });
     });
   }
 
-  const contactSalesBtn = document.getElementById('contact-sales-btn');
-  if (contactSalesBtn) {
-    contactSalesBtn.addEventListener('click', () => {
-      alert("Redirecting to help desk connection portal to customize your plan...");
-    });
-  }
-
-  // ==========================================
-  // 5. SECRET KEYS MANAGER WORKFLOW (MULTI-LLM)
-  // ==========================================
-  const llmProviderSelect = document.getElementById('llm-provider-select');
-  const userApiKeyInput = document.getElementById('user-api-key-input');
-  const llmModelInput = document.getElementById('llm-model-input');
-  const customBaseUrlInput = document.getElementById('custom-base-url-input');
-  const customBaseUrlGroup = document.getElementById('custom-base-url-group');
-  const toggleKeyVisibilityBtn = document.getElementById('toggle-key-visibility-btn');
-  const saveKeyBtn = document.getElementById('save-key-btn');
-  const testKeyBtn = document.getElementById('test-key-btn');
-  const clearKeyBtn = document.getElementById('clear-key-btn');
-  const keyStatusDot = document.getElementById('key-status-dot');
-  const keyStatusTitle = document.getElementById('key-status-title');
-  const keyStatusDesc = document.getElementById('key-status-desc');
-
-  const providerDefaults = {
-    google: { label: 'Google Gemini API Key', placeholder: 'gemini-2.5-flash' },
-    openai: { label: 'OpenAI API Key', placeholder: 'gpt-4o-mini' },
-    anthropic: { label: 'Anthropic Claude API Key', placeholder: 'claude-3-5-sonnet-20241022' },
-    groq: { label: 'Groq Cloud API Key', placeholder: 'llama-3.3-70b-versatile' },
-    custom: { label: 'Custom API Key (Optional)', placeholder: 'my-custom-model-name' }
-  };
-
-  function updateProviderUI() {
-    const provider = llmProviderSelect ? llmProviderSelect.value : 'google';
-    const info = providerDefaults[provider] || providerDefaults.google;
-
-    const keyLabel = document.getElementById('key-label');
-    if (keyLabel) keyLabel.textContent = info.label;
-    if (llmModelInput) llmModelInput.placeholder = `e.g. ${info.placeholder}`;
-
-    if (provider === 'custom') {
-      if (customBaseUrlGroup) customBaseUrlGroup.classList.remove('hidden');
-    } else {
-      if (customBaseUrlGroup) customBaseUrlGroup.classList.add('hidden');
-    }
-  }
-
-  function updateKeyStatusUI() {
-    const provider = localStorage.getItem('securityhelpdesk_llm_provider') || 'google';
-    const savedKey = localStorage.getItem('securityhelpdesk_user_api_key') || '';
-    const savedModel = localStorage.getItem('securityhelpdesk_llm_model') || '';
-    const savedUrl = localStorage.getItem('securityhelpdesk_base_url') || '';
-    const sidebarAgentText = document.getElementById('sidebar-agent-text') || document.querySelector('.mode-text');
-    const sidebarAgentDot = document.getElementById('sidebar-agent-dot') || document.querySelector('.badge-dot');
-
-    if (llmProviderSelect) llmProviderSelect.value = provider;
-    if (userApiKeyInput) userApiKeyInput.value = savedKey;
-    if (llmModelInput) llmModelInput.value = savedModel;
-    if (customBaseUrlInput) customBaseUrlInput.value = savedUrl;
-
-    updateProviderUI();
-
-    const providerDisplayNames = {
-      google: 'GEMINI',
-      openai: 'OPENAI',
-      anthropic: 'CLAUDE',
-      groq: 'GROQ',
-      custom: 'CUSTOM LLM'
-    };
-
-    if ((savedKey && savedKey.trim()) || provider === 'custom') {
-      const activeProviderName = providerDisplayNames[provider] || provider.toUpperCase();
-      const activeModel = (savedModel && savedModel.trim()) ? savedModel.trim().toUpperCase() : (providerDefaults[provider]?.placeholder || 'DEFAULT').toUpperCase();
-
-      if (keyStatusDot) keyStatusDot.className = 'key-status-dot active';
-      if (keyStatusTitle) keyStatusTitle.textContent = `Provider Configured: ${activeProviderName}`;
-      if (keyStatusDesc) keyStatusDesc.textContent = `Scans will route via ${activeProviderName} using model [${activeModel}].`;
-
-      if (sidebarAgentText) {
-        sidebarAgentText.textContent = `AI: ${activeProviderName} (${activeModel})`;
-      }
-      if (sidebarAgentDot) {
-        sidebarAgentDot.style.backgroundColor = '#10b981';
-        sidebarAgentDot.style.boxShadow = '0 0 8px rgba(16, 185, 129, 0.6)';
-      }
-    } else {
-      if (keyStatusDot) keyStatusDot.className = 'key-status-dot warning';
-      if (keyStatusTitle) keyStatusTitle.textContent = 'No Custom Key Configured';
-      if (keyStatusDesc) keyStatusDesc.textContent = 'Operating with server default Gemini environment or simulation engine.';
-
-      if (sidebarAgentText) {
-        sidebarAgentText.textContent = 'AI ENGINE: SERVER DEFAULT';
-      }
-      if (sidebarAgentDot) {
-        sidebarAgentDot.style.backgroundColor = '#f59e0b';
-        sidebarAgentDot.style.boxShadow = '0 0 8px rgba(245, 158, 11, 0.6)';
-      }
-    }
-  }
-
-  if (llmProviderSelect) {
-    llmProviderSelect.addEventListener('change', updateProviderUI);
-  }
-
-  if (toggleKeyVisibilityBtn) {
-    toggleKeyVisibilityBtn.addEventListener('click', () => {
-      if (userApiKeyInput.type === 'password') {
-        userApiKeyInput.type = 'text';
-        toggleKeyVisibilityBtn.textContent = 'Hide';
-      } else {
-        userApiKeyInput.type = 'password';
-        toggleKeyVisibilityBtn.textContent = 'Show';
-      }
-    });
-  }
-
-  if (saveKeyBtn) {
-    saveKeyBtn.addEventListener('click', () => {
-      const provider = llmProviderSelect.value;
-      const keyVal = userApiKeyInput.value.trim();
-      const modelVal = llmModelInput.value.trim();
-      const urlVal = customBaseUrlInput.value.trim();
-
-      if (provider !== 'custom' && !keyVal) {
-        alert(`Please enter a valid API key for ${provider.toUpperCase()} before saving.`);
+  if (inputFeedSearch) {
+    inputFeedSearch.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      if (!query) {
+        renderThreatItems(threatFeeds);
         return;
       }
-
-      localStorage.setItem('securityhelpdesk_llm_provider', provider);
-      localStorage.setItem('securityhelpdesk_user_api_key', keyVal);
-      localStorage.setItem('securityhelpdesk_llm_model', modelVal);
-      localStorage.setItem('securityhelpdesk_base_url', urlVal);
-
-      updateKeyStatusUI();
-      alert(`LLM Configuration for ${provider.toUpperCase()} saved successfully.`);
+      const filtered = threatFeeds.filter(i =>
+        (i.title && i.title.toLowerCase().includes(query)) ||
+        (i.source && i.source.toLowerCase().includes(query)) ||
+        (i.description && i.description.toLowerCase().includes(query))
+      );
+      renderThreatItems(filtered);
     });
   }
 
-  if (clearKeyBtn) {
-    clearKeyBtn.addEventListener('click', () => {
-      localStorage.removeItem('securityhelpdesk_llm_provider');
-      localStorage.removeItem('securityhelpdesk_user_api_key');
-      localStorage.removeItem('securityhelpdesk_llm_model');
-      localStorage.removeItem('securityhelpdesk_base_url');
+  if (btnRefreshFeeds) btnRefreshFeeds.addEventListener('click', loadThreatFeeds);
 
-      updateKeyStatusUI();
-      alert('LLM Configuration reset to defaults.');
+  // Home controls setup
+  if (btnHomeRefreshFeeds) {
+    btnHomeRefreshFeeds.addEventListener('click', () => {
+      loadThreatFeeds();
+      showToast('Live threat feeds synchronized!');
     });
   }
 
-  if (testKeyBtn) {
-    testKeyBtn.addEventListener('click', async () => {
-      const provider = llmProviderSelect.value;
-      const keyVal = userApiKeyInput.value.trim();
-      const modelVal = llmModelInput.value.trim();
-      const urlVal = customBaseUrlInput.value.trim();
+  if (btnHomeOpenWorkbench) {
+    btnHomeOpenWorkbench.addEventListener('click', () => {
+      switchView('threats');
+    });
+  }
 
-      if (provider !== 'custom' && !keyVal) {
-        alert(`Please enter an API key for ${provider.toUpperCase()} to test.`);
-        return;
+  if (homeSearchInput) {
+    homeSearchInput.addEventListener('input', applyHomeFeedFilter);
+  }
+
+  homeFeedTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      homeFeedTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentHomeFilter = tab.getAttribute('data-filter') || 'all';
+      applyHomeFeedFilter();
+    });
+  });
+
+  homeTrendChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const topic = chip.getAttribute('data-topic') || '';
+      if (homeSearchInput) {
+        homeSearchInput.value = topic;
+        applyHomeFeedFilter();
+        homeSearchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+    });
+  });
 
-      if (keyStatusDot) keyStatusDot.className = 'key-status-dot warning';
-      if (keyStatusTitle) keyStatusTitle.textContent = `Validating ${provider.toUpperCase()} Connection...`;
-      if (keyStatusDesc) keyStatusDesc.textContent = `Sending test completion prompt to ${provider.toUpperCase()} endpoint...`;
+  async function analyzeThreatItem(item) {
+    if (!threatPanelContainer) return;
+    threatPanelContainer.innerHTML = `
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <h4 style="font-size: 1rem; color: var(--primary-900); margin-bottom: 4px;">Synthesizing Security Advisory</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Extracting CVE, querying CISA KEV catalog, and mapping MITRE ATT&amp;CK TTPs...</p>
+      </div>
+    `;
 
+    try {
+      const res = await fetch('/api/analyze-feed', {
+        method: 'POST',
+        headers: getHeaders(true, true),
+        body: JSON.stringify(item)
+      });
+
+      if (!res.ok) throw new Error('AI threat assessment agent reported error.');
+      const data = await res.json();
+      const analysis = data.analysis;
+
+      // Auto-record in history
       try {
-        const response = await fetch('/api/test-key', {
+        await fetch('/api/user/history', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(true, false),
           body: JSON.stringify({
-            provider: provider,
-            apiKey: keyVal,
-            modelName: modelVal,
-            baseUrl: urlVal
+            tool: 'Threat Digest',
+            target: item.title,
+            riskLevel: analysis.severity || 'Medium',
+            confidence: 90,
+            summary: analysis.executiveSummary || 'Threat feed analyzed.',
+            resultJson: data
           })
         });
-        const res = await response.json();
-        if (res.valid) {
-          if (keyStatusDot) keyStatusDot.className = 'key-status-dot active';
-          if (keyStatusTitle) keyStatusTitle.textContent = 'Connection Verified';
-          if (keyStatusDesc) keyStatusDesc.textContent = res.message;
-        } else {
-          if (keyStatusDot) keyStatusDot.className = 'key-status-dot error';
-          if (keyStatusTitle) keyStatusTitle.textContent = 'Validation Failed';
-          if (keyStatusDesc) keyStatusDesc.textContent = res.message;
+      } catch (e) {}
+
+      renderThreatAnalysisDetail(item, analysis);
+    } catch (err) {
+      threatPanelContainer.innerHTML = `
+        <div class="error-state">
+          <h4 class="error-state-title">Analysis Failed</h4>
+          <p class="error-state-desc">${err.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  function renderThreatAnalysisDetail(item, analysis) {
+    const isCisaKev = analysis.cisaKevStatus === 'CONFIRMED_EXPLOITED';
+    const mitre = analysis.mitreTtp || { id: 'T1190', name: 'Exploit Public-Facing Application', tactic: 'Initial Access' };
+    const threatDisplayName = (analysis.cveId && analysis.cveId !== 'N/A' && analysis.cveId.trim()) 
+      ? analysis.cveId 
+      : (item.title || 'Security Threat Advisory');
+
+    threatPanelContainer.innerHTML = `
+      <div>
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--border-default); padding-bottom: 16px; margin-bottom: 20px; gap: 16px; flex-wrap: wrap;">
+          <div>
+            ${getRiskBadge(analysis.severity)}
+            <h3 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 700; color: var(--primary-900); margin-top: 8px;">${item.title}</h3>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+              Source: <strong>${item.source}</strong> &bull; Published: ${formatDateTime(item.pubDate)}
+            </div>
+          </div>
+          <div>
+            <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Original Bulletin &rarr;</a>
+          </div>
+        </div>
+
+        <!-- CISA KEV Exploitation Status Notice -->
+        <div style="margin-bottom: 20px; padding: 12px 16px; border-radius: var(--radius-md); ${isCisaKev ? 'background-color: var(--severity-critical-bg); border: 1px solid var(--severity-critical-border); color: var(--severity-critical-text);' : 'background-color: var(--severity-low-bg); border: 1px solid var(--severity-low-border); color: var(--severity-low-text);'}">
+          <strong>CISA KEV Catalog Status:</strong> ${isCisaKev ? 'CONFIRMED ACTIVE EXPLOITATION IN THE WILD' : 'No active exploitation recorded in CISA KEV catalog.'}
+        </div>
+
+        <!-- Vulnerability Telemetry Grid -->
+        <div class="results-summary-grid" style="margin-bottom: 20px;">
+          <div class="summary-metric-box">
+            <div class="label">Identified CVE</div>
+            <div class="value" style="font-family: var(--font-mono); font-size: 1.15rem;">${analysis.cveId || 'N/A'}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">NIST NVD CVSS v3.1</div>
+            <div class="value">${analysis.cvssScore !== undefined ? `${analysis.cvssScore} (${analysis.cvssSeverity || ''})` : 'N/A'}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">Weakness (CWE)</div>
+            <div class="value" style="font-size: 1rem;">${analysis.cweId || 'N/A'} - ${analysis.cweName || 'Security Flaw'}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">MITRE ATT&amp;CK TTP</div>
+            <div class="value" style="font-size: 1rem;">${mitre.id}: ${mitre.name}</div>
+          </div>
+        </div>
+
+        <!-- Contextual Risk Reasoning -->
+        <div class="card" style="margin-bottom: 20px; background-color: var(--bg-tertiary);">
+          <strong style="font-size: 0.85rem; color: var(--primary-900);">Contextual Risk Reasoning:</strong>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.55;">
+            ${analysis.severityReasoning || 'Risk evaluated based on vulnerability mechanics and exploitation likelihood.'}
+          </p>
+        </div>
+
+        <!-- Executive Summary -->
+        <div style="margin-bottom: 20px;">
+          <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 600; color: var(--primary-900); margin-bottom: 6px;">Executive Intelligence Digest</h4>
+          <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6;">${analysis.executiveSummary || 'No summary available.'}</p>
+        </div>
+
+        <!-- Engineering Remediation Action Plan -->
+        <div style="margin-bottom: 20px;">
+          <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 600; color: var(--primary-900); margin-bottom: 8px;">Engineering Remediation Action Plan</h4>
+          <div class="action-plan-list">
+            ${analysis.actionPlan && analysis.actionPlan.length > 0
+              ? analysis.actionPlan.map((step, idx) => `
+                <div class="action-plan-item">
+                  <span class="action-plan-num">0${idx + 1}</span>
+                  <span>${step}</span>
+                </div>
+              `).join('')
+              : '<div class="action-plan-item"><span>Apply latest vendor security patches immediately.</span></div>'
+            }
+          </div>
+        </div>
+
+        <!-- Export Buttons -->
+        <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-default);">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save-threat-report">Save Report</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-export-threat-md">Export Markdown</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-export-threat-json">Export JSON</button>
+        </div>
+
+        <!-- Interactive AI Security Analyst Chat -->
+        <div class="threat-chat-card">
+          <div class="threat-chat-header">
+            <div class="threat-chat-title-wrap">
+              <div class="threat-chat-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              </div>
+              <div>
+                <div class="threat-chat-title">Ask AI Security Analyst</div>
+                <div class="threat-chat-subtitle">Synthesizing advisory telemetry, CVE exposure, and actionable remediation</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn btn-secondary btn-xs" id="btn-clear-threat-chat" title="Clear conversation log">Clear Chat</button>
+            </div>
+          </div>
+
+          <div id="threat-chat-log" class="threat-chat-log">
+            <div class="chat-msg analyst">
+              <div class="chat-msg-header">
+                <span class="chat-msg-author analyst">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  AI Security Analyst
+                </span>
+                <span class="chat-msg-time">Ready</span>
+              </div>
+              <div class="chat-msg-bubble">
+                <p>I have synthesized this advisory (<strong>${escapeHtml(threatDisplayName)}</strong>). Ask me anything regarding threat vector exposure, log hunting queries, or immediate containment procedures.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prompt suggestion chips -->
+          <div class="chat-chips-container">
+            <span class="chat-chips-label">Quick Prompts:</span>
+            <button type="button" class="chat-chip-btn" data-prompt="Explain this threat in detail and its key exposure risks.">Explain this threat</button>
+            <button type="button" class="chat-chip-btn" data-prompt="What immediate actionable remediation steps should we take?">Actionable Guidance</button>
+            <button type="button" class="chat-chip-btn" data-prompt="How do I hunt for IOCs in Microsoft 365, Azure AD, or Firewall logs?">Log Review &amp; IOC Hunting</button>
+            <button type="button" class="chat-chip-btn" data-prompt="What perimeter firewall or IPS rules should be deployed?">Firewall &amp; IPS Rules</button>
+            <button type="button" class="chat-chip-btn" data-prompt="Is our Linux / Cloud infrastructure vulnerable?">Infrastructure Exposure</button>
+          </div>
+
+          <!-- Chat Input Form -->
+          <div class="chat-form-container">
+            <form id="form-threat-chat" class="chat-input-row">
+              <input type="text" id="input-threat-chat" class="chat-input-field" placeholder="Ask about exposure, log queries, mitigation, or remediation..." required autocomplete="off">
+              <button type="submit" class="btn btn-primary btn-sm" id="btn-submit-threat-chat" style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 10px 18px;">
+                <span>Ask</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Save report
+    const btnSaveThreat = document.getElementById('btn-save-threat-report');
+    if (btnSaveThreat) {
+      btnSaveThreat.addEventListener('click', async () => {
+        try {
+          const saveRes = await fetch('/api/user/reports', {
+            method: 'POST',
+            headers: getHeaders(true, false),
+            body: JSON.stringify({
+              reportName: `Advisory: ${analysis.cveId || item.title}`,
+              target: item.title,
+              riskLevel: analysis.severity || 'Medium',
+              contentJson: { item, analysis }
+            })
+          });
+          if (saveRes.ok) {
+            showToast('Report saved to your repository.');
+            btnSaveThreat.textContent = 'Report Saved';
+            btnSaveThreat.disabled = true;
+          }
+        } catch (e) {
+          showToast('Could not save report: ' + e.message);
         }
+      });
+    }
+
+    // Export buttons
+    const btnExportMd = document.getElementById('btn-export-threat-md');
+    const btnExportJson = document.getElementById('btn-export-threat-json');
+
+    if (btnExportMd) {
+      btnExportMd.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/export-advisory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'threat', format: 'markdown', item, analysis })
+          });
+          const exp = await res.json();
+          downloadTextFile(exp.filename, exp.content, 'text/markdown');
+        } catch (e) {
+          showToast('Export failed: ' + e.message);
+        }
+      });
+    }
+
+    if (btnExportJson) {
+      btnExportJson.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/export-advisory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'threat', format: 'json', item, analysis })
+          });
+          const exp = await res.json();
+          downloadTextFile(exp.filename, JSON.stringify(exp.content, null, 2), 'application/json');
+        } catch (e) {
+          showToast('Export failed: ' + e.message);
+        }
+      });
+    }
+
+    // Interactive Chat handler
+    const formChat = document.getElementById('form-threat-chat');
+    const inputChat = document.getElementById('input-threat-chat');
+    const chatLog = document.getElementById('threat-chat-log');
+    const btnClearChat = document.getElementById('btn-clear-threat-chat');
+    const chatHistory = [];
+
+    const sendUserQuery = async (queryText) => {
+      const userMsg = (queryText || '').trim();
+      if (!userMsg) return;
+
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Add user message bubble
+      const userBubble = document.createElement('div');
+      userBubble.className = 'chat-msg user';
+      userBubble.innerHTML = `
+        <div class="chat-msg-header">
+          <span class="chat-msg-author user">You</span>
+          <span class="chat-msg-time">${nowTime}</span>
+        </div>
+        <div class="chat-msg-bubble">
+          <p>${escapeHtml(userMsg)}</p>
+        </div>
+      `;
+      chatLog.appendChild(userBubble);
+      if (inputChat) inputChat.value = '';
+      chatLog.scrollTop = chatLog.scrollHeight;
+
+      // Add loading state bubble
+      const loadingId = 'chat-loading-' + Date.now();
+      const loadingBubble = document.createElement('div');
+      loadingBubble.id = loadingId;
+      loadingBubble.className = 'chat-msg analyst';
+      loadingBubble.innerHTML = `
+        <div class="chat-msg-header">
+          <span class="chat-msg-author analyst">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            AI Security Analyst
+          </span>
+          <span class="chat-msg-time">Analyzing...</span>
+        </div>
+        <div class="chat-msg-bubble" style="display: flex; align-items: center; gap: 10px; padding: 12px 18px;">
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Synthesizing advisory guidance</span>
+          <span class="chat-typing-dots">
+            <span class="chat-typing-dot"></span>
+            <span class="chat-typing-dot"></span>
+            <span class="chat-typing-dot"></span>
+          </span>
+        </div>
+      `;
+      chatLog.appendChild(loadingBubble);
+      chatLog.scrollTop = chatLog.scrollHeight;
+
+      chatHistory.push({ role: 'user', content: userMsg });
+
+      try {
+        const chatRes = await fetch('/api/threat-chat', {
+          method: 'POST',
+          headers: getHeaders(true, true),
+          body: JSON.stringify({
+            message: userMsg,
+            context: {
+              title: item.title,
+              cveId: threatDisplayName,
+              cvssScore: analysis.cvssScore,
+              cweId: analysis.cweId,
+              cisaKevStatus: analysis.cisaKevStatus,
+              severity: analysis.severity,
+              affectedSystems: analysis.affectedSystems,
+              severityReasoning: analysis.severityReasoning,
+              actionPlan: analysis.actionPlan
+            },
+            history: chatHistory
+          })
+        });
+
+        const chatData = await chatRes.json();
+        const responseTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const rawAnswer = chatData.answer || 'Assessment complete. No further actions identified.';
+        const formattedHtml = formatMarkdownResponse(rawAnswer);
+
+        const loadEl = document.getElementById(loadingId);
+        if (loadEl) {
+          loadEl.innerHTML = `
+            <div class="chat-msg-header">
+              <span class="chat-msg-author analyst">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                AI Security Analyst
+              </span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="chat-msg-time">${responseTime}</span>
+                <button type="button" class="chat-btn-copy-msg" data-copy-payload="${encodeURIComponent(rawAnswer)}" title="Copy response">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy
+                </button>
+              </div>
+            </div>
+            <div class="chat-msg-bubble">
+              ${formattedHtml}
+            </div>
+          `;
+
+          // Setup copy button on this new message
+          const copyBtn = loadEl.querySelector('.chat-btn-copy-msg');
+          if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+              const payload = decodeURIComponent(copyBtn.getAttribute('data-copy-payload') || '');
+              copyToClipboard(payload, 'Analyst response copied to clipboard!');
+            });
+          }
+        }
+        chatHistory.push({ role: 'assistant', content: rawAnswer });
+        chatLog.scrollTop = chatLog.scrollHeight;
       } catch (err) {
-        if (keyStatusDot) keyStatusDot.className = 'key-status-dot error';
-        if (keyStatusTitle) keyStatusTitle.textContent = 'Test Network Error';
-        if (keyStatusDesc) keyStatusDesc.textContent = err.message;
+        const loadEl = document.getElementById(loadingId);
+        if (loadEl) {
+          loadEl.innerHTML = `
+            <div class="chat-msg-header">
+              <span class="chat-msg-author analyst">AI Security Analyst</span>
+              <span class="chat-msg-time">Error</span>
+            </div>
+            <div class="chat-msg-bubble" style="border-left-color: var(--danger-500); background-color: #fef2f2;">
+              <p style="color: #991b1b; font-weight: 500;">Unable to connect to AI Security Analyst service: ${escapeHtml(err.message)}</p>
+            </div>
+          `;
+        }
       }
+    };
+
+    if (formChat && inputChat) {
+      formChat.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendUserQuery(inputChat.value);
+      });
+    }
+
+    // Quick Prompt Chips
+    const promptChips = document.querySelectorAll('.chat-chip-btn');
+    promptChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const prompt = chip.getAttribute('data-prompt');
+        if (prompt) {
+          sendUserQuery(prompt);
+        }
+      });
     });
-  }
 
-  // ==========================================
-  // UTILITY: FILE DOWNLOAD
-  // ==========================================
-  function triggerFileDownload(filename, textContent, mimeType = 'text/plain') {
-    const blob = new Blob([textContent], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename || 'security_export.txt';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
-  }
-
-  // ==========================================
-  // 6. SBOM ANALYZER WORKFLOW
-  // ==========================================
-  const loadPythonSbomBtn = document.getElementById('load-python-sbom-btn');
-  const loadNodeSbomBtn = document.getElementById('load-node-sbom-btn');
-  const sbomForm = document.getElementById('sbom-audit-form');
-  const sbomInput = document.getElementById('sbom-manifest-input');
-  const sbomPlaceholder = document.getElementById('sbom-placeholder');
-  const sbomResultsArea = document.getElementById('sbom-results-area');
-  const sbomTotalCount = document.getElementById('sbom-total-count');
-  const sbomVulnCount = document.getElementById('sbom-vuln-count');
-  const sbomRiskStatus = document.getElementById('sbom-risk-status');
-  const sbomVulnList = document.getElementById('sbom-vuln-list');
-  const sbomCleanList = document.getElementById('sbom-clean-list');
-
-  const samplePythonSbom = `# Production Microservices Manifest
-fastapi>=0.110.0
-uvicorn>=0.28.0
-log4j==2.14.1
-requests==2.25.1
-urllib3==1.26.4
-aiohttp==3.8.1
-paramiko==2.7.2
-pillow==9.5.0
-beautifulsoup4>=4.12.0
-python-dotenv>=1.0.1`;
-
-  const sampleNodeSbom = `{
-  "name": "enterprise-backend",
-  "version": "2.4.0",
-  "dependencies": {
-    "express": "^4.17.1",
-    "axios": "^1.4.0",
-    "jsonwebtoken": "^8.5.1",
-    "lodash": "^4.17.19",
-    "moment": "^2.29.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  }
-}`;
-
-  if (loadPythonSbomBtn && sbomInput) {
-    loadPythonSbomBtn.addEventListener('click', () => {
-      sbomInput.value = samplePythonSbom;
-    });
-  }
-
-  if (loadNodeSbomBtn && sbomInput) {
-    loadNodeSbomBtn.addEventListener('click', () => {
-      sbomInput.value = sampleNodeSbom;
-    });
-  }
-
-  if (sbomForm) {
-    sbomForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const manifest = sbomInput.value.trim();
-      if (!manifest) return;
-
-      if (sbomPlaceholder) sbomPlaceholder.classList.add('hidden');
-      if (sbomResultsArea) sbomResultsArea.classList.remove('hidden');
-
-      if (sbomRiskStatus) {
-        sbomRiskStatus.textContent = 'AUDITING...';
-        sbomRiskStatus.className = 'metric-badge';
-      }
-
-      if (sbomVulnList) {
-        sbomVulnList.innerHTML = `
-          <div class="placeholder-loader">
-            <div class="spinner"></div>
-            <p>Correlating dependency graph with CISA KEV and CVE catalogs...</p>
+    // Clear chat
+    if (btnClearChat && chatLog) {
+      btnClearChat.addEventListener('click', () => {
+        chatHistory.length = 0;
+        chatLog.innerHTML = `
+          <div class="chat-msg analyst">
+            <div class="chat-msg-header">
+              <span class="chat-msg-author analyst">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                AI Security Analyst
+              </span>
+              <span class="chat-msg-time">Ready</span>
+            </div>
+            <div class="chat-msg-bubble">
+              <p>Conversation cleared. Ask me anything regarding <strong>${escapeHtml(threatDisplayName)}</strong>.</p>
+            </div>
           </div>
         `;
+        showToast('Chat history cleared.');
+      });
+    }
+  }
+
+  // ==========================================================================
+  // TOOL 4: SBOM DEPENDENCY ANALYZER
+  // ==========================================================================
+  const formScanSbom = document.getElementById('form-scan-sbom');
+  const inputSbomManifest = document.getElementById('input-sbom-manifest');
+  const sbomResultsContainer = document.getElementById('sbom-results-container');
+  const btnSbomSamplePy = document.getElementById('btn-sbom-sample-py');
+  const btnSbomSampleNode = document.getElementById('btn-sbom-sample-node');
+
+  const samplePy = `fastapi>=0.110.0\nuvicorn>=0.28.0\nlog4j==2.14.1\nrequests==2.25.1\nurllib3==1.26.4\naiohttp==3.8.1\nparamiko==2.7.2`;
+  const sampleNode = `{\n  "dependencies": {\n    "express": "^4.17.1",\n    "axios": "^1.4.0",\n    "jsonwebtoken": "^8.5.1",\n    "lodash": "^4.17.19"\n  }\n}`;
+
+  if (btnSbomSamplePy && inputSbomManifest) {
+    btnSbomSamplePy.addEventListener('click', () => { inputSbomManifest.value = samplePy; showToast('Python requirements loaded'); });
+  }
+  if (btnSbomSampleNode && inputSbomManifest) {
+    btnSbomSampleNode.addEventListener('click', () => { inputSbomManifest.value = sampleNode; showToast('Node.js package.json loaded'); });
+  }
+
+  const btnCaseStudyLog4j = document.getElementById('btn-case-study-log4j');
+  const btnCaseStudySpring = document.getElementById('btn-case-study-spring');
+
+  if (btnCaseStudyLog4j && inputSbomManifest) {
+    btnCaseStudyLog4j.addEventListener('click', () => {
+      inputSbomManifest.value = `log4j-core==2.14.1\nspring-core==5.3.18\nfastapi>=0.110.0\nrequests==2.25.1`;
+      showToast('Log4j CVE-2021-44228 manifest loaded');
+      formScanSbom.dispatchEvent(new Event('submit'));
+    });
+  }
+
+  if (btnCaseStudySpring && inputSbomManifest) {
+    btnCaseStudySpring.addEventListener('click', () => {
+      inputSbomManifest.value = `spring-beans==5.3.17\nspring-webmvc==5.3.17\njackson-databind==2.12.0`;
+      showToast('Spring4Shell CVE-2022-22965 manifest loaded');
+      formScanSbom.dispatchEvent(new Event('submit'));
+    });
+  }
+
+  if (formScanSbom) {
+    formScanSbom.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const manifest = inputSbomManifest.value.trim();
+      if (!manifest) return;
+
+      if (sbomResultsContainer) {
+        sbomResultsContainer.innerHTML = `
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Auditing dependencies against live CVE and CISA catalogs...</p>
+          </div>
+        `;
+        sbomResultsContainer.classList.remove('hidden');
       }
 
       try {
-        const response = await fetch('/api/sbom/audit', {
+        const res = await fetch('/api/sbom/audit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ manifest })
         });
-        if (!response.ok) throw new Error('SBOM server audit failed');
-        const data = await response.json();
+        if (!res.ok) throw new Error('SBOM audit server error.');
 
-        if (sbomTotalCount) sbomTotalCount.textContent = data.totalDependencies;
-        if (sbomVulnCount) sbomVulnCount.textContent = data.vulnerableCount;
-
-        if (sbomRiskStatus) {
-          sbomRiskStatus.textContent = data.riskLevel;
-          if (data.riskLevel === 'CRITICAL') sbomRiskStatus.className = 'metric-badge critical';
-          else if (data.riskLevel === 'HIGH') sbomRiskStatus.className = 'metric-badge high';
-          else sbomRiskStatus.className = 'metric-badge';
-        }
-
-        // Render Vulnerabilities
-        if (sbomVulnList) {
-          if (data.matchedVulnerabilities && data.matchedVulnerabilities.length > 0) {
-            sbomVulnList.innerHTML = data.matchedVulnerabilities.map(v => `
-              <div class="sbom-vuln-item">
-                <div class="sbom-vuln-header">
-                  <span class="sbom-pkg-name">${v.package} (installed: <code>${v.version}</code>)</span>
-                  <span class="badge ${v.severity === 'CRITICAL' ? 'red' : 'orange'}">${v.severity}</span>
-                </div>
-                <div style="font-size: 0.85rem; color: var(--text-white); font-weight: 600; margin-bottom: 4px;">
-                  ${v.cveId}: ${v.title}
-                </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
-                  Constraint: ${v.affectedConstraint} &bull; CISA KEV: <strong>${v.cisaKev ? 'YES 🚨' : 'No'}</strong> &bull; Source: ${v.source}
-                </div>
-                <div style="font-size: 0.82rem; color: #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 6px 10px; border-radius: 4px;">
-                  <strong>Remediation:</strong> ${v.remediation}
-                </div>
-              </div>
-            `).join('');
-          } else {
-            sbomVulnList.innerHTML = `
-              <div style="padding: 20px; text-align: center; color: #6ee7b7; background: rgba(16, 185, 129, 0.08); border-radius: 8px;">
-                ✓ All parsed dependencies are clean. No matched vulnerabilities or CISA KEV zero-days identified.
-              </div>
-            `;
-          }
-        }
-
-        // Render Clean Packages
-        if (sbomCleanList) {
-          if (data.cleanDependencies && data.cleanDependencies.length > 0) {
-            sbomCleanList.innerHTML = data.cleanDependencies.map(pkg => `
-              <span class="clean-chip">✓ ${pkg}</span>
-            `).join('');
-          } else {
-            sbomCleanList.innerHTML = `<span style="font-size: 0.8rem; color: var(--text-muted);">None</span>`;
-          }
-        }
-
+        const data = await res.json();
+        renderSbomResults(data);
       } catch (err) {
-        if (sbomVulnList) {
-          sbomVulnList.innerHTML = `<div style="color: #ef4444; padding: 20px;">Error running SBOM audit: ${err.message}</div>`;
+        if (sbomResultsContainer) {
+          sbomResultsContainer.innerHTML = `
+            <div class="error-state">
+              <h4 class="error-state-title">Audit Failed</h4>
+              <p class="error-state-desc">${err.message}</p>
+            </div>
+          `;
         }
       }
     });
   }
 
-  // ==========================================
-  // 7. WEBHOOK DISPATCH WORKFLOW
-  // ==========================================
-  const webhookPlatformSelect = document.getElementById('webhook-platform-select');
-  const webhookUrlInput = document.getElementById('webhook-url-input');
-  const saveWebhookBtn = document.getElementById('save-webhook-btn');
-  const testWebhookBtn = document.getElementById('test-webhook-btn');
-  const webhookStatus = document.getElementById('webhook-status');
+  function renderSbomResults(data) {
+    if (!sbomResultsContainer) return;
+    sbomResultsContainer.innerHTML = `
+      <div class="results-card">
+        <div class="results-header-banner">
+          <div>
+            <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">DEPENDENCY MANIFEST AUDIT</span>
+            <h3>SBOM Security Evaluation</h3>
+          </div>
+          <div>${getRiskBadge(data.riskLevel)}</div>
+        </div>
 
-  if (webhookUrlInput) {
-    webhookUrlInput.value = localStorage.getItem('securityhelpdesk_webhook_url') || '';
-  }
-  if (webhookPlatformSelect) {
-    webhookPlatformSelect.value = localStorage.getItem('securityhelpdesk_webhook_platform') || 'slack';
+        <div class="results-summary-grid">
+          <div class="summary-metric-box">
+            <div class="label">Total Packages Audited</div>
+            <div class="value">${data.totalDependencies || 0}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">Vulnerable Dependencies</div>
+            <div class="value" style="color: ${data.vulnerableCount > 0 ? 'var(--severity-critical-text)' : 'var(--severity-low-text)'};">${data.vulnerableCount || 0}</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="label">Overall Status</div>
+            <div class="value" style="font-size: 1.15rem;">${data.riskLevel || 'Safe'}</div>
+          </div>
+        </div>
+
+        <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 600; color: var(--primary-900); margin: 20px 0 10px;">Matched Vulnerabilities</h4>
+        ${data.matchedVulnerabilities && data.matchedVulnerabilities.length > 0
+          ? `
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Package</th>
+                    <th>Installed</th>
+                    <th>Severity</th>
+                    <th>CVE</th>
+                    <th>CISA KEV</th>
+                    <th>Remediation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.matchedVulnerabilities.map(v => `
+                    <tr>
+                      <td><strong>${v.package}</strong></td>
+                      <td><code>${v.version}</code></td>
+                      <td>${getRiskBadge(v.severity)}</td>
+                      <td style="font-family: var(--font-mono); font-size: 0.8rem;">${v.cveId}</td>
+                      <td>${v.cisaKev ? '<strong style="color: var(--severity-critical-text);">YES</strong>' : 'No'}</td>
+                      <td style="font-size: 0.82rem; color: var(--primary-700);">${v.remediation}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `
+          : `<div style="padding: 16px; background-color: var(--severity-low-bg); border: 1px solid var(--severity-low-border); border-radius: var(--radius-md); color: var(--severity-low-text); font-size: 0.88rem;">All parsed dependencies are verified clean against active CVE databases.</div>`
+        }
+
+        <div style="margin-top: 20px;">
+          <h5 style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">Clean Packages</h5>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            ${data.cleanDependencies && data.cleanDependencies.length > 0
+              ? data.cleanDependencies.map(pkg => `<span style="font-size: 0.8rem; background-color: var(--bg-tertiary); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border-default);">${pkg}</span>`).join('')
+              : '<span style="font-size: 0.8rem; color: var(--text-muted);">None</span>'
+            }
+          </div>
+        </div>
+      </div>
+    `;
   }
 
-  if (saveWebhookBtn) {
-    saveWebhookBtn.addEventListener('click', () => {
-      const platform = webhookPlatformSelect.value;
-      const url = webhookUrlInput.value.trim();
-      localStorage.setItem('securityhelpdesk_webhook_platform', platform);
-      localStorage.setItem('securityhelpdesk_webhook_url', url);
-      if (webhookStatus) {
-        webhookStatus.textContent = `Webhook configuration for ${platform.toUpperCase()} saved.`;
-        webhookStatus.style.color = '#10b981';
+  // ==========================================================================
+  // TOOL 5: LLM GATEWAY & WEBHOOKS
+  // ==========================================================================
+  const selectLlmProvider = document.getElementById('select-llm-provider');
+  const inputLlmKey = document.getElementById('input-llm-key');
+  const inputLlmModel = document.getElementById('input-llm-model');
+  const inputCustomBaseUrl = document.getElementById('input-custom-base-url');
+  const groupCustomBaseUrl = document.getElementById('group-custom-base-url');
+  const labelLlmKey = document.getElementById('label-llm-key');
+  const btnToggleKeyView = document.getElementById('btn-toggle-key-view');
+  const btnSaveLlmConfig = document.getElementById('btn-save-llm-config');
+  const btnTestLlmKey = document.getElementById('btn-test-llm-key');
+  const btnResetLlmConfig = document.getElementById('btn-reset-llm-config');
+  const llmStatusText = document.getElementById('llm-status-text');
+
+  const providerInfo = {
+    google: { label: 'Google Gemini API Key', placeholder: 'gemini-2.5-flash' },
+    openai: { label: 'OpenAI API Key', placeholder: 'gpt-4o-mini' },
+    anthropic: { label: 'Anthropic Claude API Key', placeholder: 'claude-3-5-sonnet-20241022' },
+    groq: { label: 'Groq Cloud API Key', placeholder: 'llama-3.3-70b-versatile' },
+    custom: { label: 'Custom Endpoint API Key (Optional)', placeholder: 'model-name' }
+  };
+
+  function updateLlmUI() {
+    const prov = selectLlmProvider ? selectLlmProvider.value : 'google';
+    const info = providerInfo[prov] || providerInfo.google;
+
+    if (labelLlmKey) labelLlmKey.textContent = info.label;
+    if (inputLlmModel) inputLlmModel.placeholder = `e.g. ${info.placeholder}`;
+
+    if (groupCustomBaseUrl) {
+      if (prov === 'custom') groupCustomBaseUrl.classList.remove('hidden');
+      else groupCustomBaseUrl.classList.add('hidden');
+    }
+  }
+
+  function loadSavedLlmConfig() {
+    const savedProv = localStorage.getItem('secintel_llm_provider') || 'google';
+    const savedKey = localStorage.getItem('secintel_user_api_key') || '';
+    const savedModel = localStorage.getItem('secintel_llm_model') || '';
+    const savedUrl = localStorage.getItem('secintel_base_url') || '';
+
+    if (selectLlmProvider) selectLlmProvider.value = savedProv;
+    if (inputLlmKey) inputLlmKey.value = savedKey;
+    if (inputLlmModel) inputLlmModel.value = savedModel;
+    if (inputCustomBaseUrl) inputCustomBaseUrl.value = savedUrl;
+
+    updateLlmUI();
+
+    if (llmStatusText) {
+      if (savedKey || savedProv === 'custom') {
+        llmStatusText.textContent = `LLM Engine: Configured for ${savedProv.toUpperCase()} (${savedModel || 'Default'}).`;
+        llmStatusText.style.color = 'var(--primary-700)';
+      } else {
+        llmStatusText.textContent = 'LLM Engine: Operating with server default environment or simulation fallback.';
+        llmStatusText.style.color = 'var(--text-secondary)';
+      }
+    }
+  }
+
+  if (selectLlmProvider) selectLlmProvider.addEventListener('change', updateLlmUI);
+
+  if (btnToggleKeyView && inputLlmKey) {
+    btnToggleKeyView.addEventListener('click', () => {
+      if (inputLlmKey.type === 'password') {
+        inputLlmKey.type = 'text';
+        btnToggleKeyView.textContent = 'Hide';
+      } else {
+        inputLlmKey.type = 'password';
+        btnToggleKeyView.textContent = 'Show';
       }
     });
   }
 
-  if (testWebhookBtn) {
-    testWebhookBtn.addEventListener('click', async () => {
-      const platform = webhookPlatformSelect.value;
-      const url = webhookUrlInput.value.trim();
+  if (btnSaveLlmConfig) {
+    btnSaveLlmConfig.addEventListener('click', () => {
+      const prov = selectLlmProvider.value;
+      const key = inputLlmKey.value.trim();
+      const model = inputLlmModel.value.trim();
+      const url = inputCustomBaseUrl.value.trim();
+
+      localStorage.setItem('secintel_llm_provider', prov);
+      localStorage.setItem('secintel_user_api_key', key);
+      localStorage.setItem('secintel_llm_model', model);
+      localStorage.setItem('secintel_base_url', url);
+
+      loadSavedLlmConfig();
+      alert(`LLM settings for ${prov.toUpperCase()} saved.`);
+    });
+  }
+
+  if (btnResetLlmConfig) {
+    btnResetLlmConfig.addEventListener('click', () => {
+      localStorage.removeItem('secintel_llm_provider');
+      localStorage.removeItem('secintel_user_api_key');
+      localStorage.removeItem('secintel_llm_model');
+      localStorage.removeItem('secintel_base_url');
+      loadSavedLlmConfig();
+      alert('LLM settings reset to defaults.');
+    });
+  }
+
+  if (btnTestLlmKey) {
+    btnTestLlmKey.addEventListener('click', async () => {
+      const prov = selectLlmProvider.value;
+      const key = inputLlmKey.value.trim();
+      const model = inputLlmModel.value.trim();
+      const url = inputCustomBaseUrl.value.trim();
+
+      if (llmStatusText) {
+        llmStatusText.textContent = `Validating ${prov.toUpperCase()} connection...`;
+        llmStatusText.style.color = 'var(--text-muted)';
+      }
+
+      try {
+        const res = await fetch('/api/test-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: prov, apiKey: key, modelName: model, baseUrl: url })
+        });
+        const resData = await res.json();
+        if (llmStatusText) {
+          llmStatusText.textContent = resData.valid ? `Verified: ${resData.message}` : `Failed: ${resData.message}`;
+          llmStatusText.style.color = resData.valid ? 'var(--severity-low-text)' : 'var(--severity-critical-text)';
+        }
+      } catch (err) {
+        if (llmStatusText) {
+          llmStatusText.textContent = 'Connection test failed: ' + err.message;
+          llmStatusText.style.color = 'var(--severity-critical-text)';
+        }
+      }
+    });
+  }
+
+  // Webhooks
+  const selectWebhookPlatform = document.getElementById('select-webhook-platform');
+  const inputWebhookUrl = document.getElementById('input-webhook-url');
+  const btnSaveWebhook = document.getElementById('btn-save-webhook');
+  const btnTestWebhook = document.getElementById('btn-test-webhook');
+  const webhookFeedback = document.getElementById('webhook-feedback');
+
+  if (inputWebhookUrl) inputWebhookUrl.value = localStorage.getItem('secintel_webhook_url') || '';
+  if (selectWebhookPlatform) selectWebhookPlatform.value = localStorage.getItem('secintel_webhook_platform') || 'slack';
+
+  if (btnSaveWebhook) {
+    btnSaveWebhook.addEventListener('click', () => {
+      localStorage.setItem('secintel_webhook_url', inputWebhookUrl.value.trim());
+      localStorage.setItem('secintel_webhook_platform', selectWebhookPlatform.value);
+      if (webhookFeedback) {
+        webhookFeedback.textContent = 'Webhook configuration saved.';
+        webhookFeedback.style.color = 'var(--severity-low-text)';
+      }
+    });
+  }
+
+  if (btnTestWebhook) {
+    btnTestWebhook.addEventListener('click', async () => {
+      const url = inputWebhookUrl.value.trim();
+      const platform = selectWebhookPlatform.value;
       if (!url) {
-        alert('Please specify a webhook URL first.');
+        alert('Please enter a webhook URL first.');
         return;
       }
 
-      if (webhookStatus) {
-        webhookStatus.textContent = `Dispatching test security alert to ${platform.toUpperCase()}...`;
-        webhookStatus.style.color = '#f59e0b';
+      if (webhookFeedback) {
+        webhookFeedback.textContent = 'Sending test alert dispatch...';
+        webhookFeedback.style.color = 'var(--text-muted)';
       }
 
       try {
@@ -1286,30 +2579,567 @@ python-dotenv>=1.0.1`;
             webhookUrl: url,
             platform: platform,
             alertData: {
-              title: "Test Security Alert: Critical Vulnerability Simulation",
+              title: "Test Security Alert: Incident Verification",
               cveId: "CVE-2024-TEST",
               severity: "CRITICAL",
-              executiveSummary: "This is an automated verification alert from the SECURITYHELPDESK Autonomous Security Platform."
+              executiveSummary: "Automated alert verification dispatch from Security Intelligence Operations."
             }
           })
         });
         const resData = await res.json();
-        if (webhookStatus) {
-          webhookStatus.textContent = resData.message;
-          webhookStatus.style.color = resData.success ? '#10b981' : '#f59e0b';
+        if (webhookFeedback) {
+          webhookFeedback.textContent = resData.message;
+          webhookFeedback.style.color = resData.success ? 'var(--severity-low-text)' : 'var(--severity-high-text)';
         }
       } catch (err) {
-        if (webhookStatus) {
-          webhookStatus.textContent = 'Network error sending webhook: ' + err.message;
-          webhookStatus.style.color = '#ef4444';
+        if (webhookFeedback) {
+          webhookFeedback.textContent = 'Network error: ' + err.message;
+          webhookFeedback.style.color = 'var(--severity-critical-text)';
         }
       }
     });
   }
 
-  // Initialize Key Status on startup
-  updateKeyStatusUI();
+  // ==========================================================================
+  // HISTORY VIEW LOGIC
+  // ==========================================================================
+  const historyTableBody = document.getElementById('history-table-body');
+  const inputHistorySearch = document.getElementById('input-history-search');
+  const selectHistoryToolFilter = document.getElementById('select-history-tool-filter');
+  const selectHistoryRiskFilter = document.getElementById('select-history-risk-filter');
+  const btnRefreshHistory = document.getElementById('btn-refresh-history');
 
-  // Load Ingestion Feed automatically on boot
+  async function loadHistoryRecords() {
+    if (!historyTableBody) return;
+    historyTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px;">Loading records...</td></tr>`;
+
+    try {
+      const res = await fetch('/api/user/history', { headers: getHeaders(true, false) });
+      if (!res.ok) throw new Error('Could not fetch history.');
+      historyRecords = await res.json();
+      applyHistoryFilters();
+    } catch (e) {
+      historyTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px; color: var(--severity-critical-text);">${e.message}</td></tr>`;
+    }
+  }
+
+  function applyHistoryFilters() {
+    if (!historyTableBody) return;
+    const query = inputHistorySearch ? inputHistorySearch.value.toLowerCase().trim() : '';
+    const toolFilter = selectHistoryToolFilter ? selectHistoryToolFilter.value : 'all';
+    const riskFilter = selectHistoryRiskFilter ? selectHistoryRiskFilter.value : 'all';
+
+    let filtered = historyRecords;
+
+    if (query) {
+      filtered = filtered.filter(item =>
+        (item.target && item.target.toLowerCase().includes(query)) ||
+        (item.tool && item.tool.toLowerCase().includes(query)) ||
+        (item.summary && item.summary.toLowerCase().includes(query))
+      );
+    }
+
+    if (toolFilter !== 'all') {
+      filtered = filtered.filter(item => item.tool === toolFilter);
+    }
+
+    if (riskFilter !== 'all') {
+      filtered = filtered.filter(item => item.riskLevel.toUpperCase() === riskFilter);
+    }
+
+    if (filtered.length === 0) {
+      historyTableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; padding: 36px; color: var(--text-muted);">
+            No analysis records found matching your filters.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    historyTableBody.innerHTML = filtered.map((rec, idx) => `
+      <tr>
+        <td><strong>${rec.tool}</strong></td>
+        <td style="font-family: var(--font-mono); font-size: 0.82rem; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${rec.target}</td>
+        <td>${getRiskBadge(rec.riskLevel)}</td>
+        <td>${rec.confidence}%</td>
+        <td style="font-size: 0.8rem; color: var(--text-muted);">${formatDateTime(rec.createdAt)}</td>
+        <td>
+          <button type="button" class="btn btn-secondary btn-sm btn-view-history-detail" data-idx="${idx}">Inspect</button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Attach inspect listeners
+    historyTableBody.querySelectorAll('.btn-view-history-detail').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        showReportDetailModal(filtered[idx].target, filtered[idx].resultJson, filtered[idx].riskLevel);
+      });
+    });
+  }
+
+  if (inputHistorySearch) inputHistorySearch.addEventListener('input', applyHistoryFilters);
+  if (selectHistoryToolFilter) selectHistoryToolFilter.addEventListener('change', applyHistoryFilters);
+  if (selectHistoryRiskFilter) selectHistoryRiskFilter.addEventListener('change', applyHistoryFilters);
+  if (btnRefreshHistory) btnRefreshHistory.addEventListener('click', loadHistoryRecords);
+
+  // ==========================================================================
+  // SAVED REPORTS VIEW LOGIC
+  // ==========================================================================
+  const reportsTableBody = document.getElementById('reports-table-body');
+
+  async function loadSavedReports() {
+    if (!reportsTableBody) return;
+    reportsTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 24px;">Loading reports...</td></tr>`;
+
+    try {
+      const res = await fetch('/api/user/reports', { headers: getHeaders(true, false) });
+      if (!res.ok) throw new Error('Could not fetch saved reports.');
+      savedReports = await res.json();
+
+      if (savedReports.length === 0) {
+        reportsTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 36px; color: var(--text-muted);">
+              No saved reports in repository. Save an advisory from the Tools analysis page to view it here.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      reportsTableBody.innerHTML = savedReports.map((rep, idx) => `
+        <tr>
+          <td><strong>${rep.reportName}</strong></td>
+          <td style="font-family: var(--font-mono); font-size: 0.82rem;">${rep.target}</td>
+          <td>${getRiskBadge(rep.riskLevel)}</td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">${formatDateTime(rep.createdAt)}</td>
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn btn-secondary btn-sm btn-view-report" data-rep-idx="${idx}">View</button>
+              <button type="button" class="btn btn-secondary btn-sm btn-export-rep-md" data-rep-idx="${idx}">Markdown</button>
+              <button type="button" class="btn btn-danger btn-sm btn-delete-rep" data-rep-id="${rep.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      // Bind actions
+      reportsTableBody.querySelectorAll('.btn-view-report').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-rep-idx'), 10);
+          showReportDetailModal(savedReports[idx].reportName, savedReports[idx].content, savedReports[idx].riskLevel);
+        });
+      });
+
+      reportsTableBody.querySelectorAll('.btn-export-rep-md').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const idx = parseInt(btn.getAttribute('data-rep-idx'), 10);
+          const rep = savedReports[idx];
+          downloadTextFile(`report_${rep.id}.json`, JSON.stringify(rep.content, null, 2), 'application/json');
+        });
+      });
+
+      reportsTableBody.querySelectorAll('.btn-delete-rep').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const repId = btn.getAttribute('data-rep-id');
+          if (!confirm('Are you sure you want to delete this saved report?')) return;
+          try {
+            await fetch(`/api/user/reports/${repId}`, {
+              method: 'DELETE',
+              headers: getHeaders(true, false)
+            });
+            loadSavedReports();
+          } catch (e) {
+            alert('Delete failed: ' + e.message);
+          }
+        });
+      });
+
+    } catch (err) {
+      reportsTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 24px; color: var(--severity-critical-text);">${err.message}</td></tr>`;
+    }
+  }
+
+  // ==========================================================================
+  // REPORT DETAIL MODAL
+  // ==========================================================================
+  const modalReportDetail = document.getElementById('modal-report-detail');
+  const modalReportTitle = document.getElementById('modal-report-title');
+  const modalReportBody = document.getElementById('modal-report-body');
+  const btnCloseReportModal = document.getElementById('btn-close-report-modal');
+  const btnCloseReportModal2 = document.getElementById('btn-close-report-modal-2');
+
+  function showReportDetailModal(title, contentObj, riskLevel) {
+    if (!modalReportDetail || !modalReportBody) return;
+    if (modalReportTitle) modalReportTitle.textContent = title || 'Report Details';
+
+    modalReportBody.innerHTML = `
+      <div style="margin-bottom: 16px;">
+        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">EVALUATED RISK:</span>
+        ${getRiskBadge(riskLevel)}
+      </div>
+      <div style="background-color: var(--bg-tertiary); padding: 16px; border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 0.82rem; white-space: pre-wrap; word-break: break-all; max-height: 50vh; overflow-y: auto;">
+${JSON.stringify(contentObj, null, 2)}
+      </div>
+    `;
+
+    modalReportDetail.classList.remove('hidden');
+  }
+
+  if (btnCloseReportModal) btnCloseReportModal.addEventListener('click', () => modalReportDetail.classList.add('hidden'));
+  if (btnCloseReportModal2) btnCloseReportModal2.addEventListener('click', () => modalReportDetail.classList.add('hidden'));
+
+  // ==========================================================================
+  // FILE DOWNLOAD HELPER
+  // ==========================================================================
+  function downloadTextFile(filename, content, mimeType = 'text/plain') {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'security_intelligence_export.txt';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  }
+
+  // ==========================================================================
+  // PRICING PAGE CONTROLLER
+  // ==========================================================================
+  const billingMonthlyBtn = document.getElementById('billing-monthly-btn');
+  const billingAnnualBtn = document.getElementById('billing-annual-btn');
+  const priceValPro = document.getElementById('price-val-pro');
+  const priceNotePro = document.getElementById('price-note-pro');
+  const priceValEnt = document.getElementById('price-val-ent');
+  const priceNoteEnt = document.getElementById('price-note-ent');
+
+  let currentBillingCycle = 'monthly';
+
+  function setBillingCycle(cycle) {
+    currentBillingCycle = cycle;
+    if (cycle === 'annual') {
+      if (billingAnnualBtn) billingAnnualBtn.classList.add('active');
+      if (billingMonthlyBtn) billingMonthlyBtn.classList.remove('active');
+      if (priceValPro) priceValPro.textContent = '39';
+      if (priceNotePro) priceNotePro.textContent = 'Billed annually ($468/yr - 20% savings)';
+      if (priceValEnt) priceValEnt.textContent = '159';
+      if (priceNoteEnt) priceNoteEnt.textContent = 'Billed annually ($1,908/yr - 20% savings)';
+    } else {
+      if (billingMonthlyBtn) billingMonthlyBtn.classList.add('active');
+      if (billingAnnualBtn) billingAnnualBtn.classList.remove('active');
+      if (priceValPro) priceValPro.textContent = '49';
+      if (priceNotePro) priceNotePro.textContent = 'Billed monthly ($588/yr)';
+      if (priceValEnt) priceValEnt.textContent = '199';
+      if (priceNoteEnt) priceNoteEnt.textContent = 'Billed monthly ($2,388/yr)';
+    }
+  }
+
+  if (billingMonthlyBtn) billingMonthlyBtn.addEventListener('click', () => setBillingCycle('monthly'));
+  if (billingAnnualBtn) billingAnnualBtn.addEventListener('click', () => setBillingCycle('annual'));
+
+  // Pricing Plan CTA buttons
+  const btnTierCommunity = document.getElementById('btn-tier-community');
+  const btnTierPro = document.getElementById('btn-tier-pro');
+  const btnTierEnterprise = document.getElementById('btn-tier-enterprise');
+  const btnTierCustom = document.getElementById('btn-tier-custom');
+
+  if (btnTierCommunity) {
+    btnTierCommunity.addEventListener('click', () => {
+      navigateTo(currentUser ? 'tools' : 'register');
+    });
+  }
+
+  if (btnTierPro) {
+    btnTierPro.addEventListener('click', () => {
+      if (currentUser) {
+        navigateTo('settings');
+      } else {
+        navigateTo('register');
+      }
+    });
+  }
+
+  if (btnTierEnterprise) {
+    btnTierEnterprise.addEventListener('click', () => {
+      if (currentUser) {
+        navigateTo('settings');
+      } else {
+        navigateTo('register');
+      }
+    });
+  }
+
+  if (btnTierCustom) {
+    btnTierCustom.addEventListener('click', () => {
+      navigateTo('docs');
+      const offlineDoc = document.getElementById('doc-offline-deployment');
+      if (offlineDoc) offlineDoc.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // ==========================================================================
+  // DOCUMENTATION PORTAL ENHANCEMENTS
+  // ==========================================================================
+  const docSearchInput = document.getElementById('doc-search-input');
+  const docNavItems = document.querySelectorAll('.doc-nav-item');
+  const docCategoryGroups = document.querySelectorAll('.doc-category-group');
+
+  if (docSearchInput) {
+    docSearchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+
+      docCategoryGroups.forEach(group => {
+        let groupHasMatch = false;
+        const items = group.querySelectorAll('.doc-nav-item');
+
+        items.forEach(item => {
+          const text = item.textContent.toLowerCase();
+          const targetId = item.querySelector('a')?.getAttribute('href')?.replace('#', '');
+          const article = targetId ? document.getElementById(targetId) : null;
+          const articleText = article ? article.textContent.toLowerCase() : '';
+
+          if (!q || text.includes(q) || articleText.includes(q)) {
+            item.style.display = 'block';
+            groupHasMatch = true;
+          } else {
+            item.style.display = 'none';
+          }
+        });
+
+        group.style.display = groupHasMatch ? 'block' : 'none';
+      });
+    });
+  }
+
+  // Doc Code Snippet Copy Buttons
+  document.querySelectorAll('.doc-copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const codeBlock = btn.closest('.doc-code-block');
+      const codeElement = codeBlock ? codeBlock.querySelector('code') : null;
+      if (codeElement) {
+        const text = codeElement.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          const orig = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.style.borderColor = '#22c55e';
+          btn.style.color = '#22c55e';
+          setTimeout(() => {
+            btn.textContent = orig;
+            btn.style.borderColor = '';
+            btn.style.color = '';
+          }, 2000);
+        }).catch(() => {
+          btn.textContent = 'Failed';
+        });
+      }
+    });
+  });
+
+  // Doc Navigation smooth active item highlight
+  docNavItems.forEach(item => {
+    const link = item.querySelector('a');
+    if (link) {
+      link.addEventListener('click', (e) => {
+        docNavItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      });
+    }
+  });
+
+  // ==========================================================================
+  // ABOUT PAGE INTERACTIVE CONTROLLERS
+  // ==========================================================================
+  const pillarNavBtns = document.querySelectorAll('.pillar-nav-btn');
+  const pillarCardDisplay = document.getElementById('pillar-card-display');
+
+  const pillarData = {
+    'explainable': {
+      badge: 'GROUNDED IN EVIDENCE',
+      heading: 'Zero-Hallucination Threat Grounding',
+      text: 'Unlike generic chatbots that guess at vulnerability mechanics, Security Intelligence uses a strict <strong>deterministic sandbox pipeline</strong>. We crawl HTML DOMs, inspect form submission vectors, verify SSL certificate chains, and pull raw RDAP registration telemetry. The AI never invents facts; it translates verified telemetry into structured incident response guidance.',
+      features: [
+        { title: 'UCI Machine Learning Vectors:', desc: '12 calibrated phishing indicators (prefix/suffix tricks, @-symbols, suspicious subdomains).' },
+        { title: 'Cryptographic Inspection:', desc: 'Validates TLS expiration, issuer reputation, and self-signed certificates.' },
+        { title: 'Verifiable Reasoning:', desc: 'Separates observed empirical data from AI-generated analytical commentary.' }
+      ]
+    },
+    'sovereign': {
+      badge: 'AIR-GAPPED & ON-PREM',
+      heading: '100% Sovereign & Local Model Execution',
+      text: 'For sensitive defense, financial, and healthcare networks where data egress is forbidden, Security Intelligence operates completely offline. Connect directly to local self-hosted inference servers (Ollama, vLLM, LMStudio) using open-weights models like Llama 3 or Mistral without sending telemetry to external clouds.',
+      features: [
+        { title: 'Zero Data Leakage:', desc: 'Proprietary source code, URLs, and internal logs never leave your private VPC.' },
+        { title: 'Local Caching Proxies:', desc: 'Offline mirrors for CISA KEV catalogs, NIST NVD, and RDAP registration stores.' },
+        { title: 'Hardware Optimization:', desc: 'Runs efficiently on standard GPU workstations or quantized CPU inference.' }
+      ]
+    },
+    'threat-intel': {
+      badge: 'AUTHORITATIVE FEEDS',
+      heading: 'Unified Threat Intelligence Convergence',
+      text: 'Cyber incidents require cross-referencing multiple authoritative sources in seconds. Security Intelligence converges real-time security bulletins from CISA, BleepingComputer, and ZDI with official CVE records and the CISA Known Exploited Vulnerabilities (KEV) catalog.',
+      features: [
+        { title: 'CISA KEV Verification:', desc: 'Instant confirmation of active exploitation in the wild by nation-state actors.' },
+        { title: 'MITRE ATT&CK Mapping:', desc: 'Correlates vulnerabilities to specific enterprise Tactics, Techniques, and Procedures.' },
+        { title: 'NIST NVD CVSS v3.1:', desc: 'Pulls exact vector strings and base metrics for risk prioritization.' }
+      ]
+    },
+    'compliance': {
+      badge: 'REGULATORY COMPLIANCE',
+      heading: 'Incident Response & Governance Readiness',
+      text: 'Under directives like EU NIS2 and GDPR, organizations face stringent 24-to-72-hour incident disclosure mandates. Security Intelligence produces standardized Markdown and JSON reports detailing affected systems, root causes, and remediation evidence ready for audit review.',
+      features: [
+        { title: 'NIS2 & GDPR Ready:', desc: 'Structured timeline exports and breach assessment templates for DPO notifications.' },
+        { title: 'SOC2 Type II Audit Trail:', desc: 'Persistent investigation history logs with cryptographic user attribution.' },
+        { title: 'Executive & Engineering Formats:', desc: 'Dual-format exports tailored for C-suite briefings or DevOps Jira tickets.' }
+      ]
+    }
+  };
+
+  pillarNavBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      pillarNavBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const pillarKey = btn.getAttribute('data-pillar');
+      const data = pillarData[pillarKey];
+      if (data && pillarCardDisplay) {
+        pillarCardDisplay.innerHTML = `
+          <div class="pillar-panel active">
+            <div class="pillar-badge">${data.badge}</div>
+            <h3 class="pillar-heading">${data.heading}</h3>
+            <p class="pillar-text">${data.text}</p>
+            <div class="pillar-features-grid">
+              ${data.features.map(f => `
+                <div class="pillar-feature-item">
+                  <strong>${f.title}</strong> ${f.desc}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+    });
+  });
+
+  // Interactive Architecture Inspector
+  const archNodes = document.querySelectorAll('.arch-stage-node');
+  const archDetailBadge = document.getElementById('arch-detail-badge');
+  const archDetailTitle = document.getElementById('arch-detail-title');
+  const archDetailDesc = document.getElementById('arch-detail-desc');
+  const archDetailSpecs = document.getElementById('arch-detail-specs');
+
+  const archStagesData = {
+    'ingest': {
+      badge: 'STAGE 1: TARGET INGESTION',
+      title: 'Target Normalization & Safe Ingestion',
+      desc: 'Accepts suspect URLs, domain names, security advisories, or software manifest files (SBOM). Inputs are sanitized, normalized against RFC 3986 standards, and passed to non-rendering sandboxes with strict timeout boundaries to prevent SSRF and local network traversal.',
+      specs: [
+        { label: 'Max Input Timeout:', value: '8.0 seconds' },
+        { label: 'Network Isolation:', value: 'Private IP loopback blocking' },
+        { label: 'Supported Formats:', value: 'URLs, Domains, RSS 2.0/Atom, pip/npm manifests' }
+      ]
+    },
+    'sandbox': {
+      badge: 'STAGE 2: ISOLATED SANDBOX',
+      title: 'Headless Sandboxing & Heuristic Extraction',
+      desc: 'Non-rendering asynchronous sandboxes safely inspect the target web asset. The crawler extracts raw HTML DOM trees, form action endpoints, SSL/TLS certificate chains, and performs RDAP registration queries to determine domain longevity.',
+      specs: [
+        { label: 'Inspection Depth:', value: 'Form handlers, redirect chains, certificate issuer' },
+        { label: 'Execution Safety:', value: 'Zero client-side JS execution' },
+        { label: 'Heuristic Models:', value: '30-vector UCI benchmark analyzer' }
+      ]
+    },
+    'intel': {
+      badge: 'STAGE 3: THREAT INTEL CORRELATION',
+      title: 'Vulnerability & Exploitation Catalog Matching',
+      desc: 'Observed artifacts and CVE entities are correlated against the live CISA Known Exploited Vulnerabilities (KEV) cache, NIST NVD CVSS v3.1 database, and MITRE ATT&CK enterprise enterprise matrix.',
+      specs: [
+        { label: 'KEV Correlation:', value: 'Active exploit verification in the wild' },
+        { label: 'TTP Mapping:', value: 'Adversary tactic & technique assignment' },
+        { label: 'Severity Calibration:', value: 'Context-aware risk scoring' }
+      ]
+    },
+    'ai': {
+      badge: 'STAGE 4: MULTI-LLM GATEWAY',
+      title: 'Context-Grounded AI Synthesis Engine',
+      desc: 'The platform packages verified empirical telemetry into a tamper-proof prompt template and routes it through our multi-LLM gateway (Google Gemini, OpenAI, Claude, Groq, or Local Ollama/vLLM) with strict grounding guardrails.',
+      specs: [
+        { label: 'Provider Agnostic:', value: 'Cloud or 100% on-premises offline models' },
+        { label: 'Prompt Grounding:', value: 'Strict zero-hallucination constraint rules' },
+        { label: 'Response Latency:', value: 'Sub-second streaming synthesis' }
+      ]
+    },
+    'ops': {
+      badge: 'STAGE 5: SECOPS ACTION PLAN',
+      title: 'Actionable Incident Guidance & Report Export',
+      desc: 'Outputs structured executive digests, technical exposure breakdowns, prioritized engineering checklists, custom SIEM/KQL hunting queries, and exportable Markdown/JSON advisories ready for incident response.',
+      specs: [
+        { label: 'Export Formats:', value: 'Markdown (.md), JSON, PDF-ready HTML' },
+        { label: 'SIEM Integration:', value: 'Automated webhook dispatch to Slack/Teams/SIEM' },
+        { label: 'Interactive Chat:', value: 'Real-time AI Security Analyst Q&A assistant' }
+      ]
+    }
+  };
+
+  archNodes.forEach(node => {
+    node.addEventListener('click', () => {
+      archNodes.forEach(n => n.classList.remove('active'));
+      node.classList.add('active');
+      const stageKey = node.getAttribute('data-stage');
+      const stage = archStagesData[stageKey];
+      if (stage && archDetailTitle && archDetailDesc) {
+        if (archDetailBadge) archDetailBadge.textContent = stage.badge;
+        archDetailTitle.textContent = stage.title;
+        archDetailDesc.textContent = stage.desc;
+        if (archDetailSpecs) {
+          archDetailSpecs.innerHTML = stage.specs.map(s => `
+            <div class="arch-spec-item"><strong>${s.label}</strong> ${s.value}</div>
+          `).join('');
+        }
+      }
+    });
+  });
+
+  // Interactive FAQ Accordion
+  document.querySelectorAll('.about-faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const answer = btn.nextElementSibling;
+      const isExpanded = btn.classList.contains('active');
+      
+      // Close other open FAQs
+      document.querySelectorAll('.about-faq-question').forEach(b => {
+        b.classList.remove('active');
+        if (b.nextElementSibling) b.nextElementSibling.classList.remove('show');
+      });
+
+      if (!isExpanded && answer) {
+        btn.classList.add('active');
+        answer.classList.add('show');
+      }
+    });
+  });
+
+  // About CTA Buttons
+  const btnAboutGotoTools = document.getElementById('btn-about-goto-tools');
+  const btnAboutGotoDocs = document.getElementById('btn-about-goto-docs');
+  if (btnAboutGotoTools) {
+    btnAboutGotoTools.addEventListener('click', () => switchView('tools'));
+  }
+  if (btnAboutGotoDocs) {
+    btnAboutGotoDocs.addEventListener('click', () => switchView('docs'));
+  }
+
+  // ==========================================================================
+  // INITIALIZATION ON BOOT
+  // ==========================================================================
+  loadSavedLlmConfig();
+  checkSession();
   loadThreatFeeds();
+
 });
+

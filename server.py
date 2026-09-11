@@ -10,6 +10,7 @@ from src.services.llm_gateway.router import router as llm_gateway_router
 from src.services.threat_digest.router import router as threat_digest_router
 from src.services.phishing_sandbox.router import router as phishing_sandbox_router
 from src.services.scam_detector.router import router as scam_detector_router
+from src.services.user_store.router import router as user_store_router
 
 load_dotenv()
 
@@ -32,6 +33,7 @@ app.include_router(llm_gateway_router)
 app.include_router(threat_digest_router)
 app.include_router(phishing_sandbox_router)
 app.include_router(scam_detector_router)
+app.include_router(user_store_router)
 
 @app.get("/health")
 async def health_check():

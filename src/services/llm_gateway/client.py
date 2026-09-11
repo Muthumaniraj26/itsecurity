@@ -48,9 +48,9 @@ async def _invoke_single_provider(
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
             res = await client.post(url, json=payload)
             if res.status_code != 200:
-                # Fallback to gemini-2.5-flash-lite if target model experiences demand spikes (503/429)
-                if res.status_code in [503, 429] and target_model != "gemini-2.5-flash-lite":
-                    fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={effective_key}"
+                # Fallback to gemini-1.5-flash if target model experiences demand spikes (503/429)
+                if res.status_code in [503, 429] and target_model != "gemini-1.5-flash":
+                    fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={effective_key}"
                     res = await client.post(fallback_url, json=payload)
                 if res.status_code != 200:
                     raise ValueError(f"Google Gemini API error ({res.status_code}): {res.text}")

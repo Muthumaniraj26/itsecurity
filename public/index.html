@@ -3,680 +3,2464 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SECURITYHELPDESK // Intelligent Security & Compliance Hub</title>
-  <!-- Google Fonts for premium typography -->
+  <title>Security Intelligence | Enterprise AI Threat Platform</title>
+  <meta name="description" content="Enterprise AI-powered security intelligence platform for threat feeds, URL phishing detection, domain risk analysis, and SBOM dependency audits.">
+  <!-- Typography from Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  
-  <div class="app-container">
+
+  <div class="platform-wrapper">
     
-    <!-- Top Header -->
-    <header class="app-header">
-      <div class="brand">
-        <div class="brand-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- ========================================== -->
+    <!-- MAIN NAVIGATION HEADER                     -->
+    <!-- ========================================== -->
+    <header class="platform-header" role="banner">
+      <div class="brand-container" id="nav-brand-btn" role="button" tabindex="0" aria-label="Security Intelligence Home">
+        <div class="brand-icon">
+          <!-- Shield Icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
         <div class="brand-text">
-          <h1>SECURITYHELPDESK</h1>
-          <p class="subtitle">AI-Powered Threat, Phishing & Scam Intelligence Hub</p>
+          <span class="brand-title">Security Intelligence</span>
+          <span class="brand-tagline">AI Threat Operations</span>
         </div>
       </div>
-      <div class="system-status">
-        <span class="status-pulse"></span>
-        <span class="status-label">SYSTEM ONLINE // SECURE ENVIRONMENT</span>
+
+      <!-- Navigation Links -->
+      <nav class="header-nav" id="main-nav" role="navigation" aria-label="Main Navigation">
+        <!-- Public Navigation Items (Shown when logged out) -->
+        <div id="public-nav-links" class="header-nav">
+          <button type="button" class="nav-link active" data-view="home">Home</button>
+          <button type="button" class="nav-link" data-view="tools">Tools</button>
+          <button type="button" class="nav-link" data-view="pricing">Pricing</button>
+          <button type="button" class="nav-link" data-view="about">About</button>
+          <button type="button" class="nav-link" data-view="docs">Documentation</button>
+        </div>
+
+        <!-- Authenticated Navigation Items (Shown when logged in) -->
+        <div id="auth-nav-links" class="header-nav hidden">
+          <button type="button" class="nav-link active" data-view="dashboard">Dashboard</button>
+          <button type="button" class="nav-link" data-view="tools">Tools</button>
+          <button type="button" class="nav-link" data-view="pricing">Pricing</button>
+          <button type="button" class="nav-link" data-view="history">History</button>
+          <button type="button" class="nav-link" data-view="reports">Reports</button>
+          <button type="button" class="nav-link" data-view="docs">Documentation</button>
+          <button type="button" class="nav-link" data-view="about">About</button>
+        </div>
+      </nav>
+
+      <!-- Action Buttons / User Menu -->
+      <div class="header-actions">
+        <!-- Logged Out Actions -->
+        <div id="public-actions" class="header-actions">
+          <button type="button" class="btn btn-outline btn-sm" id="btn-goto-login">Sign In</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-goto-register">Get Started</button>
+        </div>
+
+        <!-- Logged In Actions -->
+        <div id="auth-actions" class="header-actions hidden">
+          <div class="user-profile-badge" id="nav-user-badge">
+            <span class="user-avatar" id="nav-user-avatar">U</span>
+            <span id="nav-user-name">User</span>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-goto-settings" title="Account Settings">Settings</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-logout">Sign Out</button>
+        </div>
+
+        <button type="button" class="mobile-menu-toggle" id="mobile-toggle-btn" aria-label="Toggle Navigation Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
       </div>
     </header>
 
-    <!-- Main Workspace -->
-    <div class="app-workspace">
-      
-      <!-- Left Navigation Sidebar -->
-      <aside class="app-sidebar">
-        <div class="sidebar-header-label">WORKSPACES</div>
-        <nav class="nav-menu">
-          <button class="nav-item active" data-tab="threat-digest">
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.83a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
-            </span>
-            <div class="nav-text">
-              <span class="nav-title">Threat Digest</span>
-              <span class="nav-desc">Security & Compliance Feeds</span>
-            </div>
-          </button>
+    <!-- ========================================== -->
+    <!-- VIEWPORT CONTAINER                         -->
+    <!-- ========================================== -->
+    <main class="main-viewport" id="main-content" role="main">
 
-          <button class="nav-item" data-tab="phishing-sandbox">
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-            </span>
-            <div class="nav-text">
-              <span class="nav-title">Phishing Sandbox</span>
-              <span class="nav-desc">URL Phishing & Threat Analyzer</span>
-            </div>
-          </button>
-
-          <button class="nav-item" data-tab="scam-detector">
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </span>
-            <div class="nav-text">
-              <span class="nav-title">Scam Detector</span>
-              <span class="nav-desc">Website Risk & Trust Auditor</span>
-            </div>
-          </button>
-
-          <button class="nav-item" data-tab="sbom-audit">
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            </span>
-            <div class="nav-text">
-              <span class="nav-title">SBOM Analyzer</span>
-              <span class="nav-desc">Dependency Vulnerability Audit</span>
-            </div>
-          </button>
-
-          <div class="sidebar-header-label margin-top">CONFIGURATION</div>
-
-          <button class="nav-item" data-tab="pricing-plans">
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            </span>
-            <div class="nav-text">
-              <span class="nav-title">Pricing Plans</span>
-              <span class="nav-desc">Subscription & Billing</span>
-            </div>
-          </button>
-
-          <button class="nav-item" data-tab="secret-keys">
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2m2 4l-4 4-2-2-4 4-3-3 7-7 2 2 2-2z"/><circle cx="7.5" cy="16.5" r="4.5"/></svg>
-            </span>
-            <div class="nav-text">
-              <span class="nav-title">Secret Keys</span>
-              <span class="nav-desc">User API Key Configuration</span>
-            </div>
-          </button>
-        </nav>
-
-        <div class="sidebar-footer">
-          <div class="agent-mode-badge">
-            <span class="badge-dot" id="sidebar-agent-dot"></span>
-            <span class="mode-text" id="sidebar-agent-text">AI ENGINE: SERVER DEFAULT</span>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Central Viewport -->
-      <main class="app-viewport">
-        
-        <!-- ===================================== -->
-        <!-- TAB 1: THREAT & COMPLIANCE DIGEST     -->
-        <!-- ===================================== -->
-        <section id="threat-digest" class="tab-content active">
-          
-          <!-- Enterprise Use Case Card -->
-          <div class="usecase-banner-card card">
-            <div class="usecase-header">
-              <div class="usecase-badge">
-                <span class="badge-dot"></span>
-                <span>AUTONOMOUS AI SECURITY ANALYST AGENT // 6-CAPABILITY LIFECYCLE</span>
-              </div>
-              <span class="usecase-tag">HYBRID DETERMINISTIC + LLM ENGINE</span>
-            </div>
-            <h3>Autonomous Threat Ingestion, Zero-Day Correlation &amp; Contextual Risk Reasoning</h3>
-            <p>
-              Rather than passive text summarization, the AI Agent executes a conditional 6-phase investigation workflow: ingesting live bulletins, extracting CVE/IOC entities via regex/NLP, querying CISA KEV catalogs, mapping MITRE ATT&CK TTPs, matching internal company asset exposure, and calculating contextual priority before generating actionable remediation steps.
-            </p>
-            <!-- 6 Agent Capability Steps Diagram -->
-            <div class="agent-lifecycle-stepper">
-              <div class="step-chip active"><span class="step-num">1</span><div class="step-text"><strong class="step-name">Observe</strong><small>Ingest Feed</small></div></div>
-              <div class="stepper-arrow">➔</div>
-              <div class="step-chip active"><span class="step-num">2</span><div class="step-text"><strong class="step-name">Understand</strong><small>Extract CVE/IOC</small></div></div>
-              <div class="stepper-arrow">➔</div>
-              <div class="step-chip active"><span class="step-num">3</span><div class="step-text"><strong class="step-name">Investigate</strong><small>CISA KEV Lookup</small></div></div>
-              <div class="stepper-arrow">➔</div>
-              <div class="step-chip active"><span class="step-num">4</span><div class="step-text"><strong class="step-name">Correlate</strong><small>MITRE ATT&CK Map</small></div></div>
-              <div class="stepper-arrow">➔</div>
-              <div class="step-chip active"><span class="step-num">5</span><div class="step-text"><strong class="step-name">Decide</strong><small>Asset Risk Audit</small></div></div>
-              <div class="stepper-arrow">➔</div>
-              <div class="step-chip active"><span class="step-num">6</span><div class="step-text"><strong class="step-name">Act</strong><small>Action Plan</small></div></div>
-            </div>
+      <!-- ======================================== -->
+      <!-- 1. PUBLIC HOME VIEW                      -->
+      <!-- ======================================== -->
+      <section id="view-home" class="page-view active">
+        <!-- Hero Section with Dynamic Cyber Animation & Telemetry Floating Badges -->
+        <div class="hero-section">
+          <div class="hero-bg-effects">
+            <div class="hero-ambient-glow hero-glow-1"></div>
+            <div class="hero-ambient-glow hero-glow-2"></div>
+            <div class="hero-grid-mesh"></div>
           </div>
 
-          <div class="view-header">
-            <div class="title-area">
-              <h2>Threat &amp; Compliance Ingestion Feed</h2>
-              <p>Aggregated real-time alerts from official databases, zero-day outlets, and security bulletins.</p>
-            </div>
-            <button id="refresh-feeds-btn" class="btn primary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              <span>Refetch Security Feeds</span>
-            </button>
-          </div>
-
-          <div class="threat-hub-layout">
-            <!-- Left: Articles List -->
-            <div class="articles-column card">
-              <div class="column-header">
-                <h3>Ingested Alerts</h3>
-                <span id="alerts-count" class="badge">Loading...</span>
+          <div class="hero-inner-wrap">
+            <!-- Left Floating Telemetry Card (Animated) -->
+            <div class="hero-floating-card hero-float-left">
+              <div class="hero-float-icon pulse-emerald">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
-              <div class="filter-bar">
-                <div class="search-input-wrapper">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                  <input type="text" id="feed-search" placeholder="Filter alerts by title or keywords...">
-                </div>
+              <div class="hero-float-text">
+                <span class="hero-float-label">REAL-TIME RADAR</span>
+                <span class="hero-float-val">CISA KEV &amp; MITRE Ingestion</span>
               </div>
-              <div id="articles-list" class="scrollable-list">
-                <div class="placeholder-loader">
-                  <div class="spinner"></div>
-                  <p>Ingesting real-time threat data...</p>
-                </div>
-              </div>
+              <span class="hero-float-status-dot"></span>
             </div>
 
-            <!-- Right: Detailed AI Analysis Panel -->
-            <div class="analysis-column card" id="threat-details-panel">
-              <div class="panel-placeholder">
-                <div class="placeholder-svg-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.83a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
-                </div>
-                <h3>Select a Threat Alert</h3>
-                <p>Click on any alert from the ingested list to trigger real-time AI security synthesis, CVSS risk scoring, CVE identification, and compliance impact mapping.</p>
+            <!-- Main Central Hero Content -->
+            <div class="hero-content">
+              <div class="hero-pill">
+                <span class="hero-pill-indicator"></span>
+                <span>ENTERPRISE SECURITY INTELLIGENCE PLATFORM</span>
               </div>
-              <div class="panel-content hidden" id="threat-details-content">
-                <!-- Loaded dynamically -->
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===================================== -->
-        <!-- TAB 2: PHISHING SANDBOX               -->
-        <!-- ===================================== -->
-        <section id="phishing-sandbox" class="tab-content">
-          <div class="view-header">
-            <div class="title-area">
-              <h2>URL Phishing Sandbox</h2>
-              <p>Paste suspicious links, credential forms, or login page targets for secure analysis.</p>
-            </div>
-          </div>
-
-          <div class="sandbox-input-card card">
-            <form id="phishing-scan-form" class="scan-form">
-              <div class="input-group">
-                <span class="input-prefix">HTTPS://</span>
-                <input type="text" id="phish-url-input" placeholder="enter-suspicious-domain-or-link.com/verify-login" required>
-              </div>
-              <button type="submit" class="btn danger">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span>Run Phishing Audit</span>
-              </button>
-            </form>
-          </div>
-
-          <div id="phishing-results-area" class="results-container hidden">
-            <!-- Phishing Results Grid -->
-            <div class="results-grid">
-              
-              <!-- Left Column: Metrics & Indicators -->
-              <div class="results-left">
-                <!-- Gauge Card -->
-                <div class="risk-gauge-card card">
-                  <h3>Phishing Probability</h3>
-                  <div class="gauge-wrapper">
-                    <svg viewBox="0 0 100 100" class="risk-gauge">
-                      <circle cx="50" cy="50" r="40" class="gauge-track"></circle>
-                      <circle cx="50" cy="50" r="40" class="gauge-fill" id="phish-gauge-fill" stroke-dasharray="251" stroke-dashoffset="251"></circle>
-                      <text x="50" y="55" class="gauge-value" id="phish-risk-val">0%</text>
-                    </svg>
-                  </div>
-                  <div class="verdict-badge" id="phish-verdict">SAFE</div>
-                </div>
-
-                <!-- Scraping Audit Info -->
-                <div class="audit-details-card card">
-                  <h3>Scraped Metadata Indicators</h3>
-                  <ul class="meta-indicators-list">
-                    <li>
-                      <span class="indicator-label">SSL status:</span>
-                      <span id="phish-indicator-ssl" class="indicator-value">Loading...</span>
-                    </li>
-                    <li>
-                      <span class="indicator-label">Domain age:</span>
-                      <span id="phish-indicator-age" class="indicator-value">Loading...</span>
-                    </li>
-                    <li>
-                      <span class="indicator-label">Password inputs:</span>
-                      <span id="phish-indicator-pass" class="indicator-value">Loading...</span>
-                    </li>
-                    <li>
-                      <span class="indicator-label">Outbound links ratio:</span>
-                      <span id="phish-indicator-links" class="indicator-value">Loading...</span>
-                    </li>
-                  </ul>
-
-                  <!-- ML Phishing Detection Feature Vector (UCI Benchmark) -->
-                  <div class="ml-features-block" style="margin-top: 14px; border-top: 1px solid var(--border-subtle); padding-top: 10px;">
-                    <span class="sidebar-header-label" style="padding-left: 0; margin-bottom: 6px; display: block;">ML HEURISTIC SIGNALS (UCI BENCHMARK)</span>
-                    <div class="ml-feature-chips" id="phish-ml-chips" style="display: flex; flex-wrap: wrap; gap: 6px;">
-                      <span class="usecase-chip">Short URL: Clean</span>
-                      <span class="usecase-chip">@ Symbol: Clean</span>
-                      <span class="usecase-chip">Form Handler: Clean</span>
-                      <span class="usecase-chip">Iframe: Clean</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Right Column: AI Analysis -->
-              <div class="results-right card">
-                <div class="section-title">
-                  <span class="badge red">AI Sandbox Verdict</span>
-                  <h3>Detected Risk Factors</h3>
-                </div>
-                <div id="phish-risk-factors" class="factors-list">
-                  <!-- Loaded dynamically -->
-                </div>
-
-                <hr class="divider">
-
-                <div class="analysis-block">
-                  <h4>HTML Structural Check</h4>
-                  <p id="phish-layout-check" class="code-font">Checking...</p>
-                </div>
-
-                <div class="analysis-block">
-                  <h4>Verdict Justification</h4>
-                  <p id="phish-reasoning">Checking...</p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Sandbox Placeholder -->
-          <div class="sandbox-placeholder" id="phish-placeholder">
-            <div class="placeholder-svg-icon danger-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-            </div>
-            <h3>Sandbox Ready</h3>
-            <p>Input a URL above to perform security page crawling, domain registration age checks, certificate health analysis, and AI risk heuristics.</p>
-          </div>
-        </section>
-
-        <!-- ===================================== -->
-        <!-- TAB 3: SCAM DETECTOR                  -->
-        <!-- ===================================== -->
-        <section id="scam-detector" class="tab-content">
-          <div class="view-header">
-            <div class="title-area">
-              <h2>Website Scam Risk Detector</h2>
-              <p>Audits newly discovered portals, shops, and investment links for fraudulent patterns and low trust factors.</p>
-            </div>
-          </div>
-
-          <div class="sandbox-input-card card">
-            <form id="scam-scan-form" class="scan-form">
-              <div class="input-group">
-                <span class="input-prefix">DOMAIN</span>
-                <input type="text" id="scam-url-input" placeholder="e.g. discount-luxury-outlet.com" required>
-              </div>
-              <button type="submit" class="btn warning">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <span>Audit Trust Score</span>
-              </button>
-            </form>
-          </div>
-
-          <div id="scam-results-area" class="results-container hidden">
-            <div class="results-grid">
-              
-              <!-- Left Column: Trust Gauge -->
-              <div class="results-left">
-                <div class="risk-gauge-card card">
-                  <h3>Trust Score Meter</h3>
-                  <div class="gauge-wrapper">
-                    <svg viewBox="0 0 100 100" class="risk-gauge">
-                      <circle cx="50" cy="50" r="40" class="gauge-track"></circle>
-                      <circle cx="50" cy="50" r="40" class="gauge-fill trust-color" id="scam-gauge-fill" stroke-dasharray="251" stroke-dashoffset="251"></circle>
-                      <text x="50" y="55" class="gauge-value" id="scam-trust-val">100</text>
-                    </svg>
-                  </div>
-                  <div class="verdict-badge warning-bg" id="scam-verdict">EVALUATING</div>
-                </div>
-
-                <div class="audit-details-card card">
-                  <h3>Domain Registration Details</h3>
-                  <ul class="meta-indicators-list">
-                    <li>
-                      <span class="indicator-label">Registrar:</span>
-                      <span id="scam-registrar" class="indicator-value">Unknown</span>
-                    </li>
-                    <li>
-                      <span class="indicator-label">Registered on:</span>
-                      <span id="scam-created-date" class="indicator-value">Unknown</span>
-                    </li>
-                    <li>
-                      <span class="indicator-label">Domain age:</span>
-                      <span id="scam-age-days" class="indicator-value">Unknown</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <!-- Right Column: Audit Signals -->
-              <div class="results-right card">
-                <div class="section-title">
-                  <span class="badge orange">Scam Signals Audit</span>
-                  <h3>Red Flag Indicators</h3>
-                </div>
-                <div id="scam-red-flags" class="factors-list">
-                  <!-- Loaded dynamically -->
-                </div>
-
-                <hr class="divider">
-
-                <div class="analysis-block">
-                  <h4>Claims &amp; Policy Assessment</h4>
-                  <p id="scam-signals-text">Auditing website content...</p>
-                </div>
-
-                <div class="analysis-block">
-                  <h4>Security Recommendation</h4>
-                  <p id="scam-assessment">Checking...</p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Scam Placeholder -->
-          <div class="sandbox-placeholder" id="scam-placeholder">
-            <div class="placeholder-svg-icon warning-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </div>
-            <h3>Trust Audit Ready</h3>
-            <p>Input a website domain name above to trigger background WHOIS checks, policy audits, and content scam pattern recognition.</p>
-          </div>
-        </section>
-
-        <!-- ===================================== -->
-        <!-- TAB: SBOM DEPENDENCY ANALYZER         -->
-        <!-- ===================================== -->
-        <section id="sbom-audit" class="tab-content">
-          <div class="view-header">
-            <div class="title-area">
-              <h2>SBOM Dependency Vulnerability Analyzer</h2>
-              <p>Audit project software bills of materials (requirements.txt, package.json) against live CVE and threat databases.</p>
-            </div>
-          </div>
-
-          <div class="sbom-input-card card">
-            <div class="manifest-quick-actions">
-              <span class="action-label" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">PRELOAD SAMPLE MANIFEST:</span>
-              <button type="button" class="btn secondary sm-btn" id="load-python-sbom-btn">Python requirements.txt</button>
-              <button type="button" class="btn secondary sm-btn" id="load-node-sbom-btn">Node.js package.json</button>
-            </div>
-            <form id="sbom-audit-form">
-              <div class="textarea-group" style="margin-top: 14px;">
-                <textarea id="sbom-manifest-input" rows="8" placeholder="Paste your requirements.txt or package.json dependencies here..." required></textarea>
-              </div>
-              <div class="form-actions" style="margin-top: 14px;">
-                <button type="submit" class="btn primary">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                  <span>Audit Manifest Dependencies</span>
+              <h1 class="hero-title">
+                AI-Powered Security Intelligence
+                <span class="hero-title-accent">&amp; Threat Operations</span>
+              </h1>
+              <p class="hero-desc">
+                Continuous threat correlation, suspicious URL isolation, and multi-LLM explainable security analysis engineered for modern SecOps &amp; compliance teams.
+              </p>
+              <div class="hero-actions">
+                <button type="button" class="btn btn-primary btn-lg btn-glow" id="hero-get-started-btn">
+                  <span>Get Started Free</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <button type="button" class="btn btn-secondary btn-lg" id="hero-explore-tools-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>Explore 5 SOC Tools</span>
                 </button>
               </div>
-            </form>
-          </div>
 
-          <div id="sbom-results-area" class="results-container hidden" style="margin-top: 20px;">
-            <div class="sbom-summary-cards">
-              <div class="card metric-card">
-                <span class="metric-label">Total Packages Audited</span>
-                <span class="metric-val" id="sbom-total-count">0</span>
-              </div>
-              <div class="card metric-card">
-                <span class="metric-label">Vulnerable Dependencies</span>
-                <span class="metric-val text-danger" id="sbom-vuln-count">0</span>
-              </div>
-              <div class="card metric-card">
-                <span class="metric-label">Overall Risk Status</span>
-                <span class="metric-badge" id="sbom-risk-status">SAFE</span>
+              <!-- Hero Live Feature Badges -->
+              <div class="hero-live-features">
+                <div class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Autonomous KEV Ingestion</span>
+                </div>
+                <div class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Sub-Second AI Synthesis</span>
+                </div>
+                <div class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Zero-Trust Sandbox</span>
+                </div>
+                <div class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>NIS2 / SOC 2 Ready</span>
+                </div>
               </div>
             </div>
 
-            <div class="card" style="margin-top: 20px;">
-              <div class="section-title">
-                <span class="badge red">Vulnerability Matches</span>
-                <h3>Identified Security Vulnerabilities</h3>
+            <!-- Right Floating Telemetry Card (Animated) -->
+            <div class="hero-floating-card hero-float-right">
+              <div class="hero-float-icon pulse-cyan">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
               </div>
-              <div id="sbom-vuln-list" class="sbom-vuln-table-wrapper" style="margin-top: 14px;">
-                <!-- Populated dynamically -->
+              <div class="hero-float-text">
+                <span class="hero-float-label">AI INVESTIGATION</span>
+                <span class="hero-float-val">Multi-LLM Ensemble Active</span>
               </div>
-            </div>
-
-            <div class="card" style="margin-top: 20px;">
-              <h4>Verified Clean Dependencies</h4>
-              <div id="sbom-clean-list" class="clean-chips-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
-                <!-- Clean packages tags -->
-              </div>
+              <span class="hero-float-status-dot status-active"></span>
             </div>
           </div>
+        </div>
 
-          <div class="sandbox-placeholder" id="sbom-placeholder">
-            <div class="placeholder-svg-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            </div>
-            <h3>SBOM Analyzer Ready</h3>
-            <p>Paste a requirements.txt or package.json above to discover direct dependency vulnerabilities, CISA KEV zero-day flags, and recommended patch upgrades.</p>
-          </div>
-        </section>
-
-        <!-- ===================================== -->
-        <!-- TAB 4: PRICING PLANS                  -->
-        <!-- ===================================== -->
-        <section id="pricing-plans" class="tab-content">
-          <div class="view-header">
-            <div class="title-area">
-              <h2>Pricing Plans &amp; Billing</h2>
-              <p>Choose the level of threat intelligence, rate limits, and custom integrations that fit your team.</p>
-            </div>
-          </div>
-
-          <div class="pricing-controls card">
-            <div class="control-section">
-              <h4>Select Pricing Currency</h4>
-              <div class="selector-grid" id="currency-selector">
-                <button class="selector-btn active" data-currency="USD">USD ($)</button>
-                <button class="selector-btn" data-currency="EUR">EUR (€)</button>
-                <button class="selector-btn" data-currency="INR">INR (₹)</button>
-                <button class="selector-btn" data-currency="GBP">GBP (£)</button>
-              </div>
-            </div>
-            
-            <div class="control-section">
-              <h4>Choose Preferred Payment Method</h4>
-              <div class="selector-grid" id="payment-selector">
-                <button class="selector-btn active" data-payment="credit_card">Credit Card</button>
-                <button class="selector-btn" data-payment="stripe">Stripe</button>
-                <button class="selector-btn" data-payment="paypal">PayPal</button>
-                <button class="selector-btn" data-payment="crypto">Crypto (BTC/ETH)</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="pricing-grid">
-            <!-- Free Plan -->
-            <div class="pricing-card card">
-              <span class="plan-badge">Basic</span>
-              <h3>Free Plan</h3>
-              <div class="plan-price">
-                <span class="price-symbol" id="free-symbol">$</span><span class="price-amount" id="free-price">0</span>
-                <span class="price-period">/month</span>
-              </div>
-              <p class="plan-desc">Essential scanning for independent developers and personal sites.</p>
-              <ul class="plan-features">
-                <li>10 URL Phishing Scans / day</li>
-                <li>Standard RSS Advisories Feed</li>
-                <li>Simulation AI engine fallback</li>
-                <li>Standard community support</li>
-              </ul>
-              <button class="btn primary plan-btn disabled" disabled>Current Active Plan</button>
-            </div>
-
-            <!-- Pro Plan -->
-            <div class="pricing-card card popular">
-              <span class="plan-badge popular-badge">Most Popular</span>
-              <h3>Pro Plan</h3>
-              <div class="plan-price">
-                <span class="price-symbol" id="pro-symbol">$</span><span class="price-amount" id="pro-price">49</span>
-                <span class="price-period">/month</span>
-              </div>
-              <p class="plan-desc">Advanced real-time sandbox intelligence for active operations teams.</p>
-              <ul class="plan-features">
-                <li>Unlimited URL Phishing Scans</li>
-                <li>Unlimited Domain Scam Audits</li>
-                <li>Live Gemini 2.5 AI API integration</li>
-                <li>Slack / MS Teams webhook alerts</li>
-                <li>Email alerts on critical vulnerabilities</li>
-              </ul>
-              <button class="btn primary plan-btn" id="upgrade-pro-btn">Upgrade Account</button>
-            </div>
-
-            <!-- Custom Plan -->
-            <div class="pricing-card card">
-              <span class="plan-badge">Enterprise</span>
-              <h3>Customized Plan</h3>
-              <div class="plan-price">
-                <span class="price-amount">Custom</span>
-              </div>
-              <p class="plan-desc">Enterprise-grade security scanning, SLAs, and custom integrations.</p>
-              <ul class="plan-features">
-                <li>Everything in Pro Plan</li>
-                <li>Custom threat feeds scraping</li>
-                <li>Private API rate limits</li>
-                <li>SBOM matching for repository code</li>
-                <li>Dedicated support manager</li>
-              </ul>
-              <button class="btn primary plan-btn" id="contact-sales-btn">Contact Desk</button>
-            </div>
-          </div>
+        <!-- Live Threat & Compliance Ingestion Showcase (Welcome Newsroom & Intel Hub - Full Page) -->
+        <section class="home-threat-hub-section">
           
-          <div class="payment-status-card card hidden" id="payment-notification">
-            <span class="status-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            </span>
-            <div>
-              <h4 id="payment-status-title">Stripe Payment Gateway Active</h4>
-              <p id="payment-status-desc">You have selected Stripe as your preferred payment method. Click Upgrade above to proceed.</p>
+          <!-- Radar Banner -->
+          <div class="radar-live-banner">
+            <div class="home-hub-inner">
+              <div class="radar-live-left">
+                <div class="radar-pulse-wrap">
+                  <span class="radar-pulse-dot"></span>
+                  <span class="radar-pulse-ring"></span>
+                </div>
+                <div class="radar-status-text">
+                  <strong>LIVE THREAT &amp; COMPLIANCE RADAR</strong>
+                  <span>&bull; Real-Time Ingestion Active across CISA Alerts, NIST NVD, MSRC &amp; BleepingComputer</span>
+                </div>
+              </div>
+              <div class="radar-live-right">
+                <span class="radar-feed-badge" id="home-live-feed-counter">12 Feeds Monitored</span>
+                <button type="button" class="btn btn-secondary btn-xs" id="btn-home-refresh-feeds" title="Refresh live intelligence feeds">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Sync Intel
+                </button>
+              </div>
             </div>
           </div>
+
+          <!-- Header & Filter Bar -->
+          <div class="home-feed-controls">
+            <div class="home-hub-inner">
+              <div class="home-feed-tabs">
+                <button type="button" class="home-feed-tab active" data-filter="all">All Intelligence</button>
+                <button type="button" class="home-feed-tab" data-filter="cisa">CISA Exploited (KEV)</button>
+                <button type="button" class="home-feed-tab" data-filter="phishing">Phishing &amp; Identity</button>
+                <button type="button" class="home-feed-tab" data-filter="cloud">Cloud &amp; M365</button>
+                <button type="button" class="home-feed-tab" data-filter="compliance">Compliance &amp; Privacy</button>
+              </div>
+              <div class="home-feed-search-wrap">
+                <input type="text" id="home-feed-search-input" class="form-input form-input-sm" placeholder="Filter live news, CVEs, or topics..." style="width: 250px;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Trending Topics Chip Bar -->
+          <div class="trend-chips-bar">
+            <div class="home-hub-inner">
+              <span class="trend-chips-title">TRENDING TOPICS:</span>
+              <button type="button" class="trend-chip-item" data-topic="Passkey">#PasskeyPhishing</button>
+              <button type="button" class="trend-chip-item" data-topic="Microsoft">#M365TokenTheft</button>
+              <button type="button" class="trend-chip-item" data-topic="CISA">#CISA-KEV-Alerts</button>
+              <button type="button" class="trend-chip-item" data-topic="Zero-Day">#ZeroDayExploits</button>
+              <button type="button" class="trend-chip-item" data-topic="Compliance">#NIS2-Compliance</button>
+              <button type="button" class="trend-chip-item" data-topic="Authentication">#FIDO2Migration</button>
+              <button type="button" class="trend-chip-item" data-topic="Ransomware">#RansomwareTTPs</button>
+            </div>
+          </div>
+
+          <!-- Live News & Feed Cards Grid -->
+          <div class="home-threat-grid-wrap">
+            <div class="home-hub-inner">
+              <div id="home-threat-grid" class="home-threat-grid">
+                <div class="loading-state" style="grid-column: 1 / -1; padding: 32px 0;">
+                  <div class="spinner"></div>
+                  <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">Synchronizing real-time security bulletins &amp; trends...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weekly Intelligence Briefing & Digest Card -->
+          <div class="weekly-digest-card">
+            <div class="home-hub-inner weekly-digest-inner">
+              <div class="weekly-digest-left">
+                <div class="weekly-digest-tag">WEEKLY INTEL BRIEFING &bull; SOC EDITION</div>
+                <h3 class="weekly-digest-heading">Autonomous Threat &amp; Regulatory Compliance Digest</h3>
+                <p class="weekly-digest-desc">
+                  Curated security advisory synthesis combining MITRE ATT&amp;CK mapping, CISA KEV exploitation catalogs, and actionable remediation checklists for enterprise SecOps teams.
+                </p>
+                <div class="weekly-digest-metrics">
+                  <div class="weekly-stat-box">
+                    <span class="weekly-stat-val">100%</span>
+                    <span class="weekly-stat-lbl">KEV Correlation</span>
+                  </div>
+                  <div class="weekly-stat-box">
+                    <span class="weekly-stat-val">0.2s</span>
+                    <span class="weekly-stat-lbl">AI Synthesis</span>
+                  </div>
+                  <div class="weekly-stat-box">
+                    <span class="weekly-stat-val">NIS2 / GDPR</span>
+                    <span class="weekly-stat-lbl">Compliance Watch</span>
+                  </div>
+                </div>
+              </div>
+              <div class="weekly-digest-right">
+                <button type="button" class="btn btn-primary" id="btn-home-open-workbench" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <span>Open Threat Operations Workbench</span>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <div style="font-size: 0.76rem; color: #94a3b8; text-align: center; margin-top: 10px;">
+                  Export reports in Markdown &amp; JSON &bull; Interactive AI Analyst Assistant
+                </div>
+              </div>
+            </div>
+          </div>
+
         </section>
 
-        <!-- ===================================== -->
-        <!-- TAB 5: SECRET KEYS MANAGER           -->
-        <!-- ===================================== -->
-        <section id="secret-keys" class="tab-content">
-          <div class="view-header">
-            <div class="title-area">
-              <h2>Secret Keys &amp; Multi-LLM Manager</h2>
-              <p>Connect your own API key for Google Gemini, OpenAI, Anthropic Claude, Groq, or custom LLM endpoints.</p>
+        <!-- Platform Capabilities -->
+        <div class="content-container">
+          <div style="text-align: center; max-width: 600px; margin: 0 auto 32px;">
+            <h2 style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 700; color: var(--primary-900);">Platform Capabilities</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Structured, deterministic investigation tools paired with multi-LLM synthesis.</p>
+          </div>
+
+          <div class="capabilities-grid">
+            <div class="capability-card">
+              <div class="capability-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.83a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+              </div>
+              <h3 class="capability-title">Threat Intelligence</h3>
+              <p class="capability-desc">Ingests security feeds from CISA, BleepingComputer, and ZDI. Correlates CVE entities, CISA KEV exploitation catalogs, and MITRE ATT&amp;CK TTPs.</p>
+            </div>
+
+            <div class="capability-card">
+              <div class="capability-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              </div>
+              <h3 class="capability-title">URL Threat Analysis</h3>
+              <p class="capability-desc">Securely inspects target links for phishing indicators, malicious redirects, abnormal form action handlers, credential traps, and UCI ML benchmark vectors.</p>
+            </div>
+
+            <div class="capability-card">
+              <div class="capability-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <h3 class="capability-title">Website Risk Detection</h3>
+              <p class="capability-desc">Evaluates newly discovered websites, domain RDAP registrar age, commercial policy compliance, and suspicious content patterns to calculate trust scores.</p>
+            </div>
+
+            <div class="capability-card">
+              <div class="capability-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              </div>
+              <h3 class="capability-title">AI-Assisted Security Analysis</h3>
+              <p class="capability-desc">Translates complex vulnerability telemetry into clear executive digests, infrastructure exposure assessments, and actionable step-by-step remediation plans.</p>
+            </div>
+
+            <div class="capability-card">
+              <div class="capability-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <h3 class="capability-title">Security Reports</h3>
+              <p class="capability-desc">Generates structured security advisories exportable in Markdown or JSON format for incident response teams, compliance audits, and management briefs.</p>
+            </div>
+
+            <div class="capability-card">
+              <div class="capability-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <h3 class="capability-title">Analysis History</h3>
+              <p class="capability-desc">Maintains persistent audit logs of past investigations, confidence scores, observed risk factors, and evaluated URLs stored securely in your environment.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- How It Works Pipeline -->
+        <div class="pipeline-section">
+          <div class="content-container">
+            <div style="text-align: center; max-width: 600px; margin: 0 auto 16px;">
+              <h2 style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 700; color: var(--primary-900);">How It Works</h2>
+              <p style="color: var(--text-muted); font-size: 0.95rem;">Predictable, evidence-backed security analysis pipeline.</p>
+            </div>
+
+            <div class="pipeline-stepper">
+              <div class="pipeline-step">
+                <div class="pipeline-step-badge">1</div>
+                <div class="pipeline-step-title">Provide Input</div>
+                <div class="pipeline-step-desc">Target URL, domain, or threat feed item</div>
+              </div>
+              <div class="pipeline-arrow">&rarr;</div>
+              <div class="pipeline-step">
+                <div class="pipeline-step-badge">2</div>
+                <div class="pipeline-step-title">Security Analysis</div>
+                <div class="pipeline-step-desc">DOM crawling, SSL checks, and RDAP lookup</div>
+              </div>
+              <div class="pipeline-arrow">&rarr;</div>
+              <div class="pipeline-step">
+                <div class="pipeline-step-badge">3</div>
+                <div class="pipeline-step-title">Threat Intelligence</div>
+                <div class="pipeline-step-desc">CVE, CISA KEV, and MITRE correlation</div>
+              </div>
+              <div class="pipeline-arrow">&rarr;</div>
+              <div class="pipeline-step">
+                <div class="pipeline-step-badge">4</div>
+                <div class="pipeline-step-title">Risk Assessment</div>
+                <div class="pipeline-step-desc">Explainable multi-LLM synthesis</div>
+              </div>
+              <div class="pipeline-arrow">&rarr;</div>
+              <div class="pipeline-step">
+                <div class="pipeline-step-badge">5</div>
+                <div class="pipeline-step-title">Actionable Results</div>
+                <div class="pipeline-step-desc">Engineering remediations and exportable report</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Philosophy -->
+        <div class="content-container">
+          <div style="text-align: center; max-width: 600px; margin: 0 auto 28px;">
+            <h2 style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 700; color: var(--primary-900);">Security Philosophy</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Principled automation designed to enhance engineering judgment, not replace it.</p>
+          </div>
+
+          <div class="philosophy-grid">
+            <div class="philosophy-item">
+              <h4>Evidence-Based Analysis</h4>
+              <p>Assessments are grounded in verifiable artifacts: HTTP response codes, SSL validity, registrar dates, and authoritative vulnerability databases.</p>
+            </div>
+            <div class="philosophy-item">
+              <h4>Explainable Results</h4>
+              <p>Every risk rating is accompanied by explicit justifications, separating observed empirical data from AI-generated interpretations.</p>
+            </div>
+            <div class="philosophy-item">
+              <h4>Secure Processing</h4>
+              <p>Analyses execute in isolated, non-rendering backend workers. API keys and sensitive parameters are protected and never broadcasted.</p>
+            </div>
+            <div class="philosophy-item">
+              <h4>Responsible Automation</h4>
+              <p>Uncertainty-aware classifications ensure human reviewers are informed when indicators are inconclusive, preventing dangerous overconfidence.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 2. LOGIN VIEW                            -->
+      <!-- ======================================== -->
+      <section id="view-login" class="page-view">
+        <div class="content-container-narrow">
+          <div class="card" style="padding: 36px;">
+            <div style="text-align: center; margin-bottom: 28px;">
+              <div class="brand-icon" style="margin: 0 auto 12px; width: 40px; height: 40px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--primary-900);">Security Intelligence</h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Sign in to your account</p>
+            </div>
+
+            <div id="login-alert" class="hidden error-state" style="margin-bottom: 20px;">
+              <div class="error-state-desc" id="login-alert-text">Invalid credentials.</div>
+            </div>
+
+            <form id="form-login">
+              <div class="form-group">
+                <label for="login-email" class="form-label">Email</label>
+                <input type="email" id="login-email" class="form-input" placeholder="name@organization.com" required autocomplete="username">
+              </div>
+
+              <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label for="login-password" class="form-label" style="margin-bottom: 0;">Password</label>
+                  <a href="#" id="link-forgot-password" style="font-size: 0.8rem;">Forgot password?</a>
+                </div>
+                <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+              </div>
+
+              <div style="margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px;" id="btn-submit-login">Sign In</button>
+              </div>
+            </form>
+
+            <div style="margin-top: 24px; text-align: center; font-size: 0.88rem; color: var(--text-muted); border-top: 1px solid var(--border-default); padding-top: 20px;">
+              Don't have an account? <a href="#" id="link-to-register" style="font-weight: 600;">Create account</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 3. REGISTRATION VIEW                     -->
+      <!-- ======================================== -->
+      <section id="view-register" class="page-view">
+        <div class="content-container-narrow">
+          <div class="card" style="padding: 36px;">
+            <div style="text-align: center; margin-bottom: 28px;">
+              <div class="brand-icon" style="margin: 0 auto 12px; width: 40px; height: 40px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--primary-900);">Create your account</h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Initialize your workspace in the Security Intelligence platform</p>
+            </div>
+
+            <div id="register-alert" class="hidden error-state" style="margin-bottom: 20px;">
+              <div class="error-state-desc" id="register-alert-text">Registration could not be completed.</div>
+            </div>
+
+            <form id="form-register">
+              <div class="form-group">
+                <label for="reg-name" class="form-label">Full Name</label>
+                <input type="text" id="reg-name" class="form-input" placeholder="Alex Morgan" required autocomplete="name">
+              </div>
+
+              <div class="form-group">
+                <label for="reg-email" class="form-label">Email</label>
+                <input type="email" id="reg-email" class="form-input" placeholder="alex@organization.com" required autocomplete="email">
+              </div>
+
+              <div class="form-group">
+                <label for="reg-password" class="form-label">Password</label>
+                <input type="password" id="reg-password" class="form-input" placeholder="Create a strong password" required minlength="8" autocomplete="new-password">
+                <p class="form-helper">Password must be at least 8 characters.</p>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-password-confirm" class="form-label">Confirm Password</label>
+                <input type="password" id="reg-password-confirm" class="form-input" placeholder="Re-enter your password" required minlength="8" autocomplete="new-password">
+              </div>
+
+              <div style="margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px;" id="btn-submit-register">Create Account</button>
+              </div>
+            </form>
+
+            <div style="margin-top: 24px; text-align: center; font-size: 0.88rem; color: var(--text-muted); border-top: 1px solid var(--border-default); padding-top: 20px;">
+              Already have an account? <a href="#" id="link-to-login" style="font-weight: 600;">Sign in</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 4. AUTHENTICATED DASHBOARD VIEW          -->
+      <!-- ======================================== -->
+      <section id="view-dashboard" class="page-view">
+        <div class="content-container">
+          <div class="dashboard-header">
+            <div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.65rem; font-weight: 700; color: var(--primary-900);">Security Overview</h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Real-time intelligence summary and recent telemetry across all analyzed endpoints.</p>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-dashboard-new-analysis">Run Security Analysis</button>
+          </div>
+
+          <!-- Metrics Row -->
+          <div class="metrics-row">
+            <div class="metric-card">
+              <span class="metric-label">Total Analyses</span>
+              <span class="metric-value" id="metric-total-count">0</span>
+              <span class="metric-subtitle">Across all security tools</span>
+            </div>
+            <div class="metric-card critical">
+              <span class="metric-label">High / Critical Risk</span>
+              <span class="metric-value" id="metric-high-count">0</span>
+              <span class="metric-subtitle">Requires immediate triage</span>
+            </div>
+            <div class="metric-card medium">
+              <span class="metric-label">Medium Risk</span>
+              <span class="metric-value" id="metric-medium-count">0</span>
+              <span class="metric-subtitle">Elevated trust signals</span>
+            </div>
+            <div class="metric-card low">
+              <span class="metric-label">Low / Clean</span>
+              <span class="metric-value" id="metric-low-count">0</span>
+              <span class="metric-subtitle">No critical indicators</span>
             </div>
           </div>
 
-          <div class="card secret-keys-card">
-            <div class="key-form-group">
-              <label for="llm-provider-select">Select LLM Provider</label>
-              <select id="llm-provider-select" class="select-input">
-                <option value="google" selected>Google Gemini</option>
-                <option value="openai">OpenAI</option>
-                <option value="anthropic">Anthropic Claude</option>
-                <option value="groq">Groq Cloud</option>
-                <option value="custom">Custom / OpenAI-Compatible (LocalAI / Ollama / OpenRouter)</option>
-              </select>
-            </div>
-
-            <div class="key-form-group">
-              <label for="user-api-key-input" id="key-label">Provider API Key</label>
-              <div class="input-with-button">
-                <input type="password" id="user-api-key-input" placeholder="Paste provider API key..." autocomplete="off">
-                <button type="button" class="btn secondary" id="toggle-key-visibility-btn">Show</button>
+          <!-- Quick Security Tools -->
+          <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Security Tools</h3>
+          <div class="tools-launchpad">
+            <div class="tool-launch-card">
+              <div>
+                <div class="tool-launch-header">
+                  <span class="tool-badge-status">ONLINE</span>
+                  <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-light);">MICROSERVICE</span>
+                </div>
+                <h4 class="tool-launch-title">URL Threat Analysis</h4>
+                <p class="tool-launch-desc">Inspect URLs for phishing characteristics, malicious redirects, and UCI heuristic feature vectors.</p>
               </div>
-              <p class="input-help-text">Your key is saved locally in your browser and passed via secure request headers (<code>x-api-key</code>).</p>
+              <button type="button" class="btn btn-secondary btn-sm" data-switch-tool="phishing">Open URL Scanner</button>
             </div>
 
-            <div class="key-form-group">
-              <label for="llm-model-input">Target Model Name</label>
-              <input type="text" id="llm-model-input" class="select-input" placeholder="e.g. gemini-2.5-flash, gpt-4o-mini, claude-3-5-sonnet-20241022">
-              <p class="input-help-text">Leave blank to use provider's recommended default model.</p>
+            <div class="tool-launch-card">
+              <div>
+                <div class="tool-launch-header">
+                  <span class="tool-badge-status">ONLINE</span>
+                  <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-light);">MICROSERVICE</span>
+                </div>
+                <h4 class="tool-launch-title">Website Scam Risk Detector</h4>
+                <p class="tool-launch-desc">Audit domain RDAP registration age, policy authenticity, and fraudulent commercial patterns.</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" data-switch-tool="scam">Open Scam Auditor</button>
             </div>
 
-            <div class="key-form-group hidden" id="custom-base-url-group">
-              <label for="custom-base-url-input">Custom Base API URL</label>
-              <input type="text" id="custom-base-url-input" class="select-input" placeholder="e.g. http://localhost:11434/v1 or https://openrouter.ai/api/v1">
+            <div class="tool-launch-card">
+              <div>
+                <div class="tool-launch-header">
+                  <span class="tool-badge-status">ONLINE</span>
+                  <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-light);">MICROSERVICE</span>
+                </div>
+                <h4 class="tool-launch-title">Threat Digest</h4>
+                <p class="tool-launch-desc">Aggregate real-time bulletins from CISA, BleepingComputer, and ZDI with CVE/KEV correlation.</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" data-switch-tool="threats">Open Threat Hub</button>
+            </div>
+          </div>
+
+          <!-- Recent Activity Table -->
+          <div class="card" style="margin-top: 12px;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Recent Activity</h3>
+                <p class="card-subtitle">Latest automated investigations recorded in the platform database.</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-view-all-history">View Full History</button>
             </div>
 
-            <div class="key-actions">
-              <button type="button" class="btn primary" id="save-key-btn">Save Configuration</button>
-              <button type="button" class="btn secondary" id="test-key-btn">Test Connection</button>
-              <button type="button" class="btn danger-btn" id="clear-key-btn">Reset Defaults</button>
+            <div id="dashboard-recent-container">
+              <!-- Rendered via JS -->
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <h4 class="empty-state-title">No analyses yet</h4>
+                <p class="empty-state-desc">Run your first security analysis using the tools above to populate activity telemetry.</p>
+                <button type="button" class="btn btn-primary btn-sm" data-switch-tool="phishing">Launch First Analysis</button>
+              </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div class="key-status-display card" id="key-status-box">
-              <span class="key-status-dot" id="key-status-dot"></span>
-              <div class="key-status-text">
-                <h4 id="key-status-title">Checking LLM Configuration...</h4>
-                <p id="key-status-desc">System status initializing.</p>
+      <!-- ======================================== -->
+      <!-- 5. TOOLS VIEW (EXECUTION & RESULTS)      -->
+      <!-- ======================================== -->
+      <section id="view-tools" class="page-view">
+        <div class="content-container">
+          <div class="dashboard-header" style="margin-bottom: 20px;">
+            <div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.65rem; font-weight: 700; color: var(--primary-900);">Security Tools &amp; Sandbox</h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Select a specialized microservice to execute targeted security intelligence workflows.</p>
+            </div>
+          </div>
+
+          <!-- Tool Selector Tabs -->
+          <div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border-default); padding-bottom: 12px; overflow-x: auto;">
+            <button type="button" class="btn btn-secondary btn-sm active" id="tab-btn-url" data-tool-pane="pane-url">URL Threat Analysis</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="tab-btn-scam" data-tool-pane="pane-scam">Website Scam Detector</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="tab-btn-threat" data-tool-pane="pane-threat">Threat Digest Hub</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="tab-btn-sbom" data-tool-pane="pane-sbom">SBOM Analyzer</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="tab-btn-llm" data-tool-pane="pane-llm">LLM &amp; Webhooks</button>
+          </div>
+
+          <!-- PANE 1: URL THREAT ANALYSIS -->
+          <div id="pane-url" class="tool-pane">
+            <div class="execution-card">
+              <div style="margin-bottom: 20px;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-900);">URL Phishing &amp; Threat Analysis</h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
+                  Performs non-rendering HTML inspection, certificate validation, domain registrar checks, and extraction of the UCI Phishing Detection feature vector.
+                </p>
+              </div>
+
+              <form id="form-scan-url">
+                <div class="form-group">
+                  <label for="input-scan-url" class="form-label">Target URL</label>
+                  <div class="input-with-affix">
+                    <span class="input-affix">TARGET</span>
+                    <input type="url" id="input-scan-url" class="form-input" placeholder="https://example.com/login" required>
+                  </div>
+                  <p class="form-helper">Enter a full HTTP or HTTPS URL to audit for potential phishing indicators.</p>
+                </div>
+
+                <div class="sample-chips-row">
+                  <span class="sample-chips-label">Quick Test Presets:</span>
+                  <button type="button" class="sample-chip-btn" data-preset-url="https://play.google.com/store/account/subscriptions/fix?utm_source=gmail&utm_medium=web&utm_campaign=workflow_assist_card_fix_payment&docId=subs:com.google.android.apps.subscriptions.red:g1.2tb.ai.3months_ip_75p.ac">Google Subscriptions (Long URL)</button>
+                  <button type="button" class="sample-chip-btn" data-preset-url="https://secure-login-portal.paypal-verification-update.net/auth">PayPal Phishing Lure (UCI)</button>
+                  <button type="button" class="sample-chip-btn" data-preset-url="http://192.168.1.100/chase-online-login/verify.php?token=928471">Raw IP Banking Phish</button>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary" id="btn-run-url-scan">Run Analysis</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-url">Clear</button>
+                </div>
+              </form>
+
+              <!-- Progress Stage Indicator (Real Backend Processing Stages) -->
+              <div id="url-scan-stages" class="execution-stage-box hidden">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary-800);">Analysis in progress</span>
+                  <span class="spinner" style="width: 18px; height: 18px; margin: 0; border-width: 2px;"></span>
+                </div>
+                <div class="execution-stages-list">
+                  <div class="stage-item in-progress" id="url-stage-1"><span class="stage-dot"></span> Validating target input</div>
+                  <div class="stage-item" id="url-stage-2"><span class="stage-dot"></span> Collecting security information and SSL parameters</div>
+                  <div class="stage-item" id="url-stage-3"><span class="stage-dot"></span> Extracting UCI ML feature vector</div>
+                  <div class="stage-item" id="url-stage-4"><span class="stage-dot"></span> Synthesizing AI risk assessment</div>
+                  <div class="stage-item" id="url-stage-5"><span class="stage-dot"></span> Preparing structured results</div>
+                </div>
               </div>
             </div>
 
-            <!-- Webhook Alert Configuration Card -->
-            <div class="webhook-config-block" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-subtle);">
-              <div class="section-title">
-                <span class="badge blue">Alert Automation</span>
-                <h3 style="font-size: 1.1rem; margin-top: 4px;">Incident Alert Webhooks (Slack / Discord / Teams)</h3>
-              </div>
-              <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; margin-bottom: 14px;">
-                Dispatch real-time notifications to enterprise chat channels whenever CRITICAL threats or active CISA KEV zero-days are identified.
-              </p>
+            <!-- URL Results Container -->
+            <div id="url-results-container" class="hidden">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
 
-              <div class="key-form-group">
-                <label for="webhook-platform-select">Platform Destination</label>
-                <select id="webhook-platform-select" class="select-input">
-                  <option value="slack" selected>Slack Incoming Webhook</option>
-                  <option value="discord">Discord Channel Webhook</option>
+          <!-- PANE 2: WEBSITE SCAM DETECTOR -->
+          <div id="pane-scam" class="tool-pane hidden">
+            <div class="execution-card">
+              <div style="margin-bottom: 20px;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-900);">Website Scam Risk Detector</h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
+                  Audits newly registered portals, shops, and investment links for fraudulent patterns, RDAP registrar youth, and missing business policies.
+                </p>
+              </div>
+
+              <form id="form-scan-scam">
+                <div class="form-group">
+                  <label for="input-scan-scam" class="form-label">Domain or Website URL</label>
+                  <div class="input-with-affix">
+                    <span class="input-affix">DOMAIN</span>
+                    <input type="text" id="input-scan-scam" class="form-input" placeholder="discount-luxury-outlet.com" required>
+                  </div>
+                  <p class="form-helper">Enter the target domain or website URL to inspect for trust signals and fraud flags.</p>
+                </div>
+
+                <div class="sample-chips-row">
+                  <span class="sample-chips-label">Quick Test Presets:</span>
+                  <button type="button" class="sample-chip-btn" data-preset-scam="discount-luxury-deals.top">Fake Luxury Store (.top)</button>
+                  <button type="button" class="sample-chip-btn" data-preset-scam="instant-cloud-btc-mining.biz">Crypto Cloud Miner (.biz)</button>
+                  <button type="button" class="sample-chip-btn" data-preset-scam="github.com">GitHub.com (Established)</button>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary" id="btn-run-scam-audit">Audit Trust Score</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-scam">Clear</button>
+                </div>
+              </form>
+
+              <!-- Progress Stage Indicator -->
+              <div id="scam-scan-stages" class="execution-stage-box hidden">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary-800);">Audit in progress</span>
+                  <span class="spinner" style="width: 18px; height: 18px; margin: 0; border-width: 2px;"></span>
+                </div>
+                <div class="execution-stages-list">
+                  <div class="stage-item in-progress" id="scam-stage-1"><span class="stage-dot"></span> Validating target domain</div>
+                  <div class="stage-item" id="scam-stage-2"><span class="stage-dot"></span> Querying RDAP / WHOIS registry for creation dates</div>
+                  <div class="stage-item" id="scam-stage-3"><span class="stage-dot"></span> Parsing policies, company claims, and contacts</div>
+                  <div class="stage-item" id="scam-stage-4"><span class="stage-dot"></span> Calculating trust score and scam probability</div>
+                  <div class="stage-item" id="scam-stage-5"><span class="stage-dot"></span> Compiling risk assessment</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scam Results Container -->
+            <div id="scam-results-container" class="hidden">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- PANE 3: THREAT DIGEST HUB -->
+          <div id="pane-threat" class="tool-pane hidden">
+            <div class="card" style="margin-bottom: 20px; padding: 20px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div>
+                  <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 600; color: var(--primary-900);">Threat &amp; Compliance Ingestion Feed</h3>
+                  <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 2px;">Official bulletins aggregated from CISA, BleepingComputer, and Zero Day Initiative.</p>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-refresh-feeds">Refetch Security Feeds</button>
+              </div>
+            </div>
+
+            <div class="feed-hub-layout">
+              <!-- Feed Articles Column -->
+              <div class="feed-list-col">
+                <div class="feed-list-header">
+                  <span style="font-weight: 600; font-size: 0.88rem; color: var(--text-primary);">Ingested Advisories</span>
+                  <span class="badge badge-info" id="feed-items-count">Loading...</span>
+                </div>
+                <div style="padding: 10px 14px; border-bottom: 1px solid var(--border-default);">
+                  <input type="text" id="input-feed-search" class="form-input" placeholder="Filter alerts by keyword or CVE..." style="font-size: 0.82rem; padding: 6px 10px;">
+                </div>
+                <div class="feed-items-scroll" id="feed-items-list">
+                  <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p style="font-size: 0.82rem; color: var(--text-muted);">Fetching threat bulletins...</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detailed Threat Analysis Panel -->
+              <div class="feed-detail-col" id="threat-panel-container">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.83a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                  </div>
+                  <h4 class="empty-state-title">Select a Threat Alert</h4>
+                  <p class="empty-state-desc">Click on any security advisory from the left list to perform automated AI threat synthesis, CVE extraction, CISA KEV catalog lookup, and mitigation planning.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 4: SBOM DEPENDENCY ANALYZER -->
+          <div id="pane-sbom" class="tool-pane hidden">
+            <div class="execution-card">
+              <div style="margin-bottom: 16px;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-900);">SBOM Dependency Vulnerability Analyzer</h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">Audit Python requirements.txt or Node.js package.json manifests against live CVE databases and CISA KEV zero-day catalogs.</p>
+              </div>
+
+              <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; align-self: center;">Preload Sample:</span>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-sbom-sample-py">Python requirements.txt</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-sbom-sample-node">Node.js package.json</button>
+              </div>
+
+              <form id="form-scan-sbom">
+                <div class="form-group">
+                  <textarea id="input-sbom-manifest" class="form-textarea" rows="7" placeholder="Paste your dependency manifest here..." style="font-family: var(--font-mono); font-size: 0.85rem;" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" id="btn-run-sbom-audit">Audit Manifest Dependencies</button>
+              </form>
+            </div>
+
+            <div id="sbom-results-container" class="hidden">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- PANE 5: LLM CONFIG & WEBHOOKS -->
+          <div id="pane-llm" class="tool-pane hidden">
+            <div class="card" style="max-width: 800px; margin: 0 auto 24px;">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">LLM Gateway Configuration</h3>
+                  <p class="card-subtitle">Connect custom provider API keys to power security reasoning with Gemini, OpenAI, Claude, or local endpoints.</p>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="select-llm-provider" class="form-label">Selected LLM Provider</label>
+                <select id="select-llm-provider" class="form-select">
+                  <option value="google" selected>Google Gemini</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic Claude</option>
+                  <option value="groq">Groq Cloud</option>
+                  <option value="custom">Custom / OpenAI-Compatible (LocalAI, Ollama, OpenRouter)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="input-llm-key" class="form-label" id="label-llm-key">Google Gemini API Key</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="password" id="input-llm-key" class="form-input" placeholder="Paste API key..." autocomplete="off">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-toggle-key-view">Show</button>
+                </div>
+                <p class="form-helper">Keys are stored locally in your browser and passed exclusively in HTTPS headers to backend endpoints.</p>
+              </div>
+
+              <div class="form-group">
+                <label for="input-llm-model" class="form-label">Target Model Name</label>
+                <input type="text" id="input-llm-model" class="form-input" placeholder="e.g. gemini-2.5-flash">
+              </div>
+
+              <div class="form-group hidden" id="group-custom-base-url">
+                <label for="input-custom-base-url" class="form-label">Custom Base URL</label>
+                <input type="text" id="input-custom-base-url" class="form-input" placeholder="http://localhost:11434/v1">
+              </div>
+
+              <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary btn-sm" id="btn-save-llm-config">Save Configuration</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-test-llm-key">Test Connection</button>
+                <button type="button" class="btn btn-danger btn-sm" id="btn-reset-llm-config">Reset Defaults</button>
+              </div>
+
+              <div id="llm-status-box" style="margin-top: 16px; padding: 12px; background-color: var(--bg-tertiary); border-radius: var(--radius-md); font-size: 0.85rem;">
+                <span id="llm-status-text">LLM Engine: Operating with server default environment or simulation fallback.</span>
+              </div>
+            </div>
+
+            <!-- Incident Alert Webhooks Card -->
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Enterprise Incident Alert Webhooks</h3>
+                  <p class="card-subtitle">Dispatch immediate incident alerts to Slack, Discord, or Microsoft Teams channels when critical vulnerabilities are discovered.</p>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="select-webhook-platform" class="form-label">Platform Connector</label>
+                <select id="select-webhook-platform" class="form-select">
+                  <option value="slack">Slack Incoming Webhook</option>
+                  <option value="discord">Discord Webhook</option>
                   <option value="teams">Microsoft Teams Connector</option>
                 </select>
               </div>
 
-              <div class="key-form-group">
-                <label for="webhook-url-input">Target Webhook URL</label>
-                <input type="text" id="webhook-url-input" class="select-input" placeholder="https://hooks.slack.com/services/... or https://discord.com/api/webhooks/...">
+              <div class="form-group">
+                <label for="input-webhook-url" class="form-label">Webhook Endpoint URL</label>
+                <input type="url" id="input-webhook-url" class="form-input" placeholder="https://hooks.slack.com/services/...">
               </div>
 
-              <div class="key-actions">
-                <button type="button" class="btn primary" id="save-webhook-btn">Save Webhook</button>
-                <button type="button" class="btn secondary" id="test-webhook-btn">Send Test Dispatch</button>
+              <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-primary btn-sm" id="btn-save-webhook">Save Webhook</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-test-webhook">Send Test Dispatch</button>
               </div>
 
-              <div id="webhook-status" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);"></div>
+              <div id="webhook-feedback" style="margin-top: 14px; font-size: 0.85rem; color: var(--text-muted);"></div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-      </main>
+      <!-- ======================================== -->
+      <!-- 6. HISTORY VIEW                          -->
+      <!-- ======================================== -->
+      <section id="view-history" class="page-view">
+        <div class="content-container">
+          <div class="dashboard-header">
+            <div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.65rem; font-weight: 700; color: var(--primary-900);">Analysis History</h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Search, review, and export past security evaluations saved in the platform database.</p>
+            </div>
+          </div>
 
+          <!-- Filter & Search Toolbar -->
+          <div class="card" style="padding: 16px 20px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 240px;">
+                <input type="text" id="input-history-search" class="form-input" placeholder="Search analyses by target, summary, or tool..." style="font-size: 0.85rem; padding: 7px 12px;">
+              </div>
+              <div style="width: 160px;">
+                <select id="select-history-tool-filter" class="form-select" style="font-size: 0.85rem; padding: 7px 12px;">
+                  <option value="all">All Tools</option>
+                  <option value="URL Phishing & Threat Analysis">URL Scanner</option>
+                  <option value="Website Scam Risk Detector">Scam Detector</option>
+                  <option value="Threat Digest">Threat Digest</option>
+                </select>
+              </div>
+              <div style="width: 160px;">
+                <select id="select-history-risk-filter" class="form-select" style="font-size: 0.85rem; padding: 7px 12px;">
+                  <option value="all">All Risk Levels</option>
+                  <option value="CRITICAL">Critical</option>
+                  <option value="HIGH">High</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="LOW">Low</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-refresh-history">Refresh</button>
+            </div>
+          </div>
+
+          <!-- History Table -->
+          <div class="table-wrapper">
+            <table class="data-table" id="table-history">
+              <thead>
+                <tr>
+                  <th>Tool</th>
+                  <th>Target</th>
+                  <th>Risk Level</th>
+                  <th>Confidence</th>
+                  <th>Date &amp; Time</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">Loading analysis records...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 7. REPORTS VIEW                          -->
+      <!-- ======================================== -->
+      <section id="view-reports" class="page-view">
+        <div class="content-container">
+          <div class="dashboard-header">
+            <div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.65rem; font-weight: 700; color: var(--primary-900);">Saved Security Reports</h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Exportable advisories and audited reports preserved for compliance documentation.</p>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table" id="table-reports">
+              <thead>
+                <tr>
+                  <th>Report Name</th>
+                  <th>Target Endpoint</th>
+                  <th>Assessed Risk</th>
+                  <th>Created Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reports-table-body">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 32px; color: var(--text-muted);">Loading saved reports...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 8. SETTINGS VIEW                         -->
+      <!-- ======================================== -->
+      <section id="view-settings" class="page-view">
+        <div class="content-container-narrow">
+          <div class="dashboard-header" style="margin-bottom: 24px;">
+            <div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.65rem; font-weight: 700; color: var(--primary-900);">Platform Settings</h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Manage user profile, security credentials, and data retention policies.</p>
+            </div>
+          </div>
+
+          <!-- Profile Card -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">User Profile</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="settings-profile-name" class="form-input" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="settings-profile-email" class="form-input" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Account Creation Date</label>
+              <input type="text" id="settings-profile-created" class="form-input" readonly>
+            </div>
+          </div>
+
+          <!-- Security Credentials Card -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">Security &amp; Password</h3>
+            </div>
+            <div id="password-alert" class="hidden error-state" style="margin-bottom: 16px;">
+              <div class="error-state-desc" id="password-alert-text">Password update failed.</div>
+            </div>
+            <form id="form-change-password">
+              <div class="form-group">
+                <label for="input-current-password" class="form-label">Current Password</label>
+                <input type="password" id="input-current-password" class="form-input" required autocomplete="current-password">
+              </div>
+              <div class="form-group">
+                <label for="input-new-password" class="form-label">New Password</label>
+                <input type="password" id="input-new-password" class="form-input" required minlength="8" autocomplete="new-password">
+                <p class="form-helper">Must be at least 8 characters.</p>
+              </div>
+              <div class="form-group">
+                <label for="input-confirm-password" class="form-label">Confirm New Password</label>
+                <input type="password" id="input-confirm-password" class="form-input" required minlength="8" autocomplete="new-password">
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm" id="btn-submit-change-password">Update Password</button>
+            </form>
+          </div>
+
+          <!-- Data & Privacy Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Data &amp; Privacy</h3>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px;">
+              Your analysis records and saved advisories are stored in a dedicated SQLite database located in your deployment directory.
+              All API keys for external LLM gateways reside exclusively in your client-side browser storage and are never recorded to central logs.
+            </p>
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-settings-signout">Sign Out of Session</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 9. ABOUT VIEW                            -->
+      <!-- ======================================== -->
+      <section id="view-about" class="page-view">
+        <div class="content-container">
+          <div style="max-width: 820px; margin: 0 auto;">
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 700; color: var(--primary-900); margin-bottom: 12px;">About Security Intelligence</h2>
+            <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 32px;">
+              An enterprise-grade autonomous intelligence platform providing deterministic entity extraction, real-time threat feed aggregation, and explainable AI risk assessments.
+            </p>
+
+            <div class="card" style="margin-bottom: 24px;">
+              <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-900); margin-bottom: 10px;">Purpose of the Platform</h3>
+              <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.65;">
+                Modern security operations teams face immense bulletin volume across vendor advisories, vulnerability catalogs, and suspicious inbound links.
+                Security Intelligence was engineered to automate preliminary data collection, correlate indicators against authoritative catalogs (such as CISA KEV and NIST NVD),
+                and generate concise, uncertainty-aware executive briefs.
+              </p>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px;">
+              <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-900); margin-bottom: 10px;">Evidence-Based &amp; Explainable</h3>
+              <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 12px;">
+                Unlike generic LLM wrappers that fabricate answers, this platform decouples empirical security facts from AI reasoning:
+              </p>
+              <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
+                <li><strong>Observed Evidence:</strong> Direct DOM attributes, SSL certificate parameters, registrar creation stamps, and verified CVE catalogs.</li>
+                <li><strong>AI Interpretation:</strong> Contextual synthesis, infrastructure exposure mapping, and proposed remediation plans.</li>
+              </ul>
+            </div>
+
+            <div class="card" style="border-left: 4px solid var(--primary-600);">
+              <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 600; color: var(--primary-900); margin-bottom: 8px;">Responsible Security Disclaimer</h3>
+              <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;">
+                AI-assisted assessments are intended to accelerate triage and provide structured insights for qualified security analysts.
+                Automated ratings do not replace human verification, official vendor security notices, or formal organizational risk governance.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 10. PRICING VIEW                         -->
+      <!-- ======================================== -->
+      <section id="view-pricing" class="page-view">
+        <div class="content-container">
+          <!-- Pricing Hero -->
+          <div class="pricing-hero">
+            <div class="pricing-pill">TRANSPARENT &amp; SCALABLE TIERS</div>
+            <h1 class="pricing-title">Predictable Pricing for Modern Threat Operations</h1>
+            <p class="pricing-subtitle">
+              Choose the ideal tier for independent security researchers, fast-moving SecOps engineering teams, or mission-critical enterprise SOC centers.
+            </p>
+
+            <!-- Monthly / Annual Toggle Switch -->
+            <div class="pricing-toggle-container">
+              <div class="pricing-toggle-group">
+                <button type="button" class="pricing-toggle-btn active" id="billing-monthly-btn">Monthly Billing</button>
+                <button type="button" class="pricing-toggle-btn" id="billing-annual-btn">Annual Billing</button>
+              </div>
+              <span class="pricing-save-badge">Save 20%</span>
+            </div>
+          </div>
+
+          <!-- Pricing Cards Grid -->
+          <div class="pricing-grid">
+            
+            <!-- Tier 1: Community -->
+            <div class="pricing-card">
+              <h3 class="pricing-tier-name">Community</h3>
+              <p class="pricing-tier-desc">Essential threat analysis tools for individual security researchers, students, and bug bounty hunters.</p>
+              
+              <div class="pricing-price-wrap">
+                <span class="pricing-currency">$</span>
+                <span class="pricing-amount">0</span>
+                <span class="pricing-period">/ month</span>
+              </div>
+              <div class="pricing-annual-note">Free forever &bull; No credit card required</div>
+
+              <ul class="pricing-features-list">
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span><strong>50 scans / day</strong> for URL phishing analysis</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span><strong>25 domain checks / day</strong> with RDAP trust lookups</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>CISA Alerts, KEV catalog, and ZDI live feeds</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Standard 30-point UCI heuristic scoring</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Export advisories to Markdown format</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Local SQLite encrypted investigation storage</span>
+                </li>
+              </ul>
+
+              <button type="button" class="btn btn-outline pricing-card-btn" id="btn-tier-community">Get Started Free</button>
+            </div>
+
+            <!-- Tier 2: Professional (SecOps Analyst) -->
+            <div class="pricing-card">
+              <h3 class="pricing-tier-name">Professional</h3>
+              <p class="pricing-tier-desc">Advanced intelligence pipeline and multi-LLM synthesis designed for active incident responders and analysts.</p>
+              
+              <div class="pricing-price-wrap">
+                <span class="pricing-currency">$</span>
+                <span class="pricing-amount" id="price-val-pro">49</span>
+                <span class="pricing-period" id="price-period-pro">/ month</span>
+              </div>
+              <div class="pricing-annual-note" id="price-note-pro">Billed monthly ($588/yr)</div>
+
+              <ul class="pricing-features-list">
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span><strong>1,500 real-time scans / mo</strong> across all endpoints</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>SBOM dependency analyzer with CVE/KEV correlation</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Multi-LLM synthesis (Gemini 2.5, Claude 3.5, GPT-4o)</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Bring-Your-Own-Key (BYOK) custom model gateways</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Full JSON and Markdown advisory report export</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>REST API access &amp; programmatic webhooks</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Priority email support with 12h turnaround</span>
+                </li>
+              </ul>
+
+              <button type="button" class="btn btn-primary pricing-card-btn" id="btn-tier-pro">Upgrade to Professional</button>
+            </div>
+
+            <!-- Tier 3: Enterprise (SOC Team) -->
+            <div class="pricing-card featured">
+              <span class="pricing-popular-tag">MOST POPULAR &bull; SOC READY</span>
+              <h3 class="pricing-tier-name">Enterprise</h3>
+              <p class="pricing-tier-desc">Complete threat intelligence hub, automated scheduled polling, and SIEM integrations for security operations centers.</p>
+              
+              <div class="pricing-price-wrap">
+                <span class="pricing-currency">$</span>
+                <span class="pricing-amount" id="price-val-ent">199</span>
+                <span class="pricing-period" id="price-period-ent">/ month</span>
+              </div>
+              <div class="pricing-annual-note" id="price-note-ent">Billed monthly ($2,388/yr)</div>
+
+              <ul class="pricing-features-list">
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span><strong>Unlimited scans &amp; automated batch audits</strong></span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Automated 15-minute background feed sync &amp; alerts</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>SIEM streaming integration (Splunk, Elastic, Sentinel)</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Local self-hosted Ollama &amp; vLLM private endpoints</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>10 team seats with Role-Based Access Control (RBAC)</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>CycloneDX and SPDX enterprise SBOM support</span>
+                </li>
+                <li class="pricing-feature-item">
+                  <svg class="pricing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>99.9% guaranteed uptime SLA &amp; dedicated engineer</span>
+                </li>
+              </ul>
+
+              <button type="button" class="btn btn-primary pricing-card-btn" id="btn-tier-enterprise">Start Enterprise Trial</button>
+            </div>
+
+          </div>
+
+          <!-- Enterprise Air-Gapped / Custom Banner -->
+          <div class="pricing-custom-banner">
+            <div>
+              <h3 class="pricing-custom-title">Air-Gapped &amp; On-Premise Deployments</h3>
+              <p class="pricing-custom-desc">
+                Need zero outbound network connectivity, custom internal CVE feed integrations, or strict regulatory compliance (FedRAMP, HIPAA, SOC 2 Type II)?
+                Deploy containerized instances in your private cloud or air-gapped infrastructure.
+              </p>
+            </div>
+            <button type="button" class="btn btn-outline btn-lg" id="btn-tier-custom" style="border-color: #ffffff; color: #ffffff; white-space: nowrap;">
+              Contact Security Architect
+            </button>
+          </div>
+
+          <!-- Feature Comparison Matrix -->
+          <div class="pricing-table-section">
+            <div class="pricing-section-header">
+              <h2 class="pricing-section-title">Detailed Plan Feature Matrix</h2>
+              <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Compare capabilities and technical capabilities across all tiers.</p>
+            </div>
+
+            <div class="pricing-table-wrapper">
+              <table class="pricing-comparison-table">
+                <thead>
+                  <tr>
+                    <th style="width: 40%;">Feature Capability</th>
+                    <th style="width: 20%;">Community</th>
+                    <th style="width: 20%;">Professional</th>
+                    <th style="width: 20%;">Enterprise</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Category: Threat Intelligence -->
+                  <tr class="category-row">
+                    <td colspan="4" class="category-cell">Threat Intelligence &amp; Feeds</td>
+                  </tr>
+                  <tr>
+                    <td>Official Threat Feeds (CISA, KEV, ZDI)</td>
+                    <td><span class="table-check-icon">&check; Standard (Hourly)</span></td>
+                    <td><span class="table-check-icon">&check; Real-time (15 min)</span></td>
+                    <td><span class="table-check-icon">&check; Continuous Streaming</span></td>
+                  </tr>
+                  <tr>
+                    <td>CVE Entity &amp; MITRE ATT&amp;CK Tagging</td>
+                    <td><span class="table-check-icon">&check; Automated</span></td>
+                    <td><span class="table-check-icon">&check; Automated + Depth</span></td>
+                    <td><span class="table-check-icon">&check; Custom TAXII/STIX</span></td>
+                  </tr>
+                  <tr>
+                    <td>Custom RSS &amp; Vulnerability Feed Ingestion</td>
+                    <td><span class="table-cross-icon">&minus;</span></td>
+                    <td><span class="table-check-icon">&check; Up to 5 feeds</span></td>
+                    <td><span class="table-check-icon">&check; Unlimited custom feeds</span></td>
+                  </tr>
+
+                  <!-- Category: Detection Engines -->
+                  <tr class="category-row">
+                    <td colspan="4" class="category-cell">Analysis Sandbox &amp; Scanners</td>
+                  </tr>
+                  <tr>
+                    <td>URL Phishing 30-Vector ML Sandbox</td>
+                    <td><span class="table-check-icon">&check; 50 / day</span></td>
+                    <td><span class="table-check-icon">&check; 1,500 / month</span></td>
+                    <td><span class="table-check-icon">&check; Unlimited Scans</span></td>
+                  </tr>
+                  <tr>
+                    <td>Website Scam &amp; RDAP Registrar Audit</td>
+                    <td><span class="table-check-icon">&check; 25 / day</span></td>
+                    <td><span class="table-check-icon">&check; 1,500 / month</span></td>
+                    <td><span class="table-check-icon">&check; Unlimited Scans</span></td>
+                  </tr>
+                  <tr>
+                    <td>SBOM Dependency Vulnerability Scans</td>
+                    <td><span class="table-cross-icon">&minus;</span></td>
+                    <td><span class="table-check-icon">&check; requirements.txt / JSON</span></td>
+                    <td><span class="table-check-icon">&check; CycloneDX, SPDX, Pipfile</span></td>
+                  </tr>
+
+                  <!-- Category: AI Synthesis -->
+                  <tr class="category-row">
+                    <td colspan="4" class="category-cell">AI Synthesis &amp; LLM Gateway</td>
+                  </tr>
+                  <tr>
+                    <td>Evidence-Based Reasoning Engine</td>
+                    <td><span class="table-check-icon">&check; Heuristic Baseline</span></td>
+                    <td><span class="table-check-icon">&check; Multi-LLM Synthesis</span></td>
+                    <td><span class="table-check-icon">&check; Custom Prompt Rules</span></td>
+                  </tr>
+                  <tr>
+                    <td>Bring-Your-Own-Key (BYOK) Support</td>
+                    <td><span class="table-cross-icon">&minus;</span></td>
+                    <td><span class="table-check-icon">&check; Google / OpenAI / Anthropic</span></td>
+                    <td><span class="table-check-icon">&check; Local Ollama / vLLM / Bedrock</span></td>
+                  </tr>
+                  <tr>
+                    <td>Zero Data Retention Guarantee</td>
+                    <td><span class="table-check-icon">&check; Local Storage</span></td>
+                    <td><span class="table-check-icon">&check; Local Storage</span></td>
+                    <td><span class="table-check-icon">&check; Cryptographic Vault</span></td>
+                  </tr>
+
+                  <!-- Category: Integrations & Compliance -->
+                  <tr class="category-row">
+                    <td colspan="4" class="category-cell">Integrations, Export &amp; Governance</td>
+                  </tr>
+                  <tr>
+                    <td>Advisory Report Export Formats</td>
+                    <td>Markdown only</td>
+                    <td>Markdown, JSON, Raw Telemetry</td>
+                    <td>Markdown, JSON, STIX 2.1, PDF</td>
+                  </tr>
+                  <tr>
+                    <td>REST API &amp; Webhook Triggers</td>
+                    <td><span class="table-cross-icon">&minus;</span></td>
+                    <td><span class="table-check-icon">&check; 60 req/min</span></td>
+                    <td><span class="table-check-icon">&check; Dedicated Rate Tier</span></td>
+                  </tr>
+                  <tr>
+                    <td>SIEM / SOAR Forwarders</td>
+                    <td><span class="table-cross-icon">&minus;</span></td>
+                    <td><span class="table-cross-icon">&minus;</span></td>
+                    <td><span class="table-check-icon">&check; Splunk, Elastic, Sentinel</span></td>
+                  </tr>
+                  <tr>
+                    <td>Support &amp; SLA</td>
+                    <td>Community GitHub</td>
+                    <td>12-Hour Email SLA</td>
+                    <td>24/7 Dedicated Slack/Phone SLA</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pricing FAQ -->
+          <div style="margin-bottom: 32px;">
+            <div class="pricing-section-header">
+              <h2 class="pricing-section-title">Frequently Asked Questions</h2>
+              <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Clear answers about our billing, data privacy, and architecture.</p>
+            </div>
+
+            <div class="pricing-faq-grid">
+              <div class="faq-card">
+                <h4 class="faq-question">How does Bring-Your-Own-Key (BYOK) work?</h4>
+                <p class="faq-answer">
+                  When you use Professional or Enterprise tiers, you can input your own Google Gemini, OpenAI, or Anthropic API keys directly in Account Settings. Keys stay in client storage and are passed via secure ephemeral headers directly to the inference endpoint.
+                </p>
+              </div>
+
+              <div class="faq-card">
+                <h4 class="faq-question">Is my telemetry or target scan data shared with third parties?</h4>
+                <p class="faq-answer">
+                  Never. All scan evidence, WHOIS lookups, and audit histories are committed directly to your deployment's local SQLite database. We do not sell data, nor do we train AI models on your private scan parameters.
+                </p>
+              </div>
+
+              <div class="faq-card">
+                <h4 class="faq-question">Can I switch between monthly and annual billing?</h4>
+                <p class="faq-answer">
+                  Yes, you can toggle between monthly and annual billing at any time. When switching to annual, you receive an immediate 20% discount applied to your account balance.
+                </p>
+              </div>
+
+              <div class="faq-card">
+                <h4 class="faq-question">Can I run this platform inside a disconnected air-gapped network?</h4>
+                <p class="faq-answer">
+                  Yes! Our Enterprise On-Premise container image bundles offline heuristic vectors, local RDAP caching proxies, and interfaces directly with local self-hosted LLM engines like Ollama or vLLM without any public internet access.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 10. ABOUT VIEW                           -->
+      <!-- ======================================== -->
+      <section id="view-about" class="page-view">
+        
+        <!-- About Hero Banner -->
+        <div class="hero-section" style="background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); border-bottom: 1px solid var(--border-default);">
+          <div class="hero-content">
+            <div class="hero-pill">
+              <span>ENTERPRISE CYBERSECURITY &bull; EVIDENCE-BASED THREAT OPS</span>
+            </div>
+            <h1 class="hero-title">About Security Intelligence</h1>
+            <p class="hero-desc">
+              An enterprise-grade autonomous threat operations platform combining deterministic security heuristics, authoritative CVE/KEV intelligence, and explainable multi-LLM synthesis to empower modern SecOps teams.
+            </p>
+            <div class="about-hero-stats">
+              <div class="about-stat-item">
+                <span class="about-stat-num">100%</span>
+                <span class="about-stat-lbl">Air-Gap &amp; Sovereign Ready</span>
+              </div>
+              <div class="about-stat-item">
+                <span class="about-stat-num">5+</span>
+                <span class="about-stat-lbl">Multi-LLM Providers</span>
+              </div>
+              <div class="about-stat-item">
+                <span class="about-stat-num">&lt; 350ms</span>
+                <span class="about-stat-lbl">Deterministic Sandboxing</span>
+              </div>
+              <div class="about-stat-item">
+                <span class="about-stat-num">MITRE &amp; KEV</span>
+                <span class="about-stat-lbl">Native TTP Correlation</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-container">
+
+          <!-- Core Pillars & Security Mission -->
+          <div style="text-align: center; max-width: 640px; margin: 0 auto 28px;">
+            <h2 style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 700; color: var(--primary-900);">Our Mission &amp; Core Pillars</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Eliminating black-box ambiguity with verifiable security evidence and explainable AI.</p>
+          </div>
+
+          <!-- Interactive Pillars Tabs -->
+          <div class="about-pillars-container">
+            <div class="about-pillars-nav" role="tablist">
+              <button type="button" class="pillar-nav-btn active" data-pillar="explainable">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>Explainable AI</span>
+              </button>
+              <button type="button" class="pillar-nav-btn" data-pillar="sovereign">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Sovereign &amp; Air-Gapped</span>
+              </button>
+              <button type="button" class="pillar-nav-btn" data-pillar="threat-intel">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m4.93 19.07 4.24-4.24"/></svg>
+                <span>Threat Convergence</span>
+              </button>
+              <button type="button" class="pillar-nav-btn" data-pillar="compliance">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                <span>Compliance Ready</span>
+              </button>
+            </div>
+
+            <div class="pillar-content-card" id="pillar-card-display">
+              <!-- Default: Explainable AI -->
+              <div class="pillar-panel">
+                <div class="pillar-badge">GROUNDED IN EVIDENCE</div>
+                <h3 class="pillar-heading">Zero-Hallucination Threat Grounding</h3>
+                <p class="pillar-text">
+                  Unlike generic chatbots that guess at vulnerability mechanics, Security Intelligence uses a strict <strong>deterministic sandbox pipeline</strong>. We crawl HTML DOMs, inspect form submission vectors, verify SSL certificate chains, and pull raw RDAP registration telemetry. The AI never invents facts; it translates verified telemetry into structured incident response guidance.
+                </p>
+                <div class="pillar-features-grid">
+                  <div class="pillar-feature-item">
+                    <strong>UCI Machine Learning Vectors:</strong> 12 calibrated phishing indicators (prefix/suffix tricks, @-symbols, suspicious subdomains).
+                  </div>
+                  <div class="pillar-feature-item">
+                    <strong>Cryptographic Inspection:</strong> Validates TLS expiration, issuer reputation, and self-signed certificates.
+                  </div>
+                  <div class="pillar-feature-item">
+                    <strong>Verifiable Reasoning:</strong> Separates observed empirical data from AI-generated analytical commentary.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Pipeline Architecture Inspector -->
+          <div style="margin: 48px 0;">
+            <div style="text-align: center; max-width: 640px; margin: 0 auto 24px;">
+              <h2 style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 700; color: var(--primary-900);">Interactive System Architecture</h2>
+              <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Click any pipeline stage below to inspect its operational mechanics and security controls.</p>
+            </div>
+
+            <div class="arch-inspector-container">
+              <div class="arch-stages-row">
+                <div class="arch-stage-node active" data-stage="ingest">
+                  <div class="arch-node-num">01</div>
+                  <div class="arch-node-title">Target Ingestion</div>
+                  <div class="arch-node-sub">URL / Feed / SBOM</div>
+                </div>
+                <div class="arch-arrow">&rarr;</div>
+                <div class="arch-stage-node" data-stage="sandbox">
+                  <div class="arch-node-num">02</div>
+                  <div class="arch-node-title">Isolated Sandbox</div>
+                  <div class="arch-node-sub">DOM &amp; TLS Parser</div>
+                </div>
+                <div class="arch-arrow">&rarr;</div>
+                <div class="arch-stage-node" data-stage="intel">
+                  <div class="arch-node-num">03</div>
+                  <div class="arch-node-title">Threat Intel Correlation</div>
+                  <div class="arch-node-sub">CISA KEV &amp; MITRE</div>
+                </div>
+                <div class="arch-arrow">&rarr;</div>
+                <div class="arch-stage-node" data-stage="ai">
+                  <div class="arch-node-num">04</div>
+                  <div class="arch-node-title">Multi-LLM Gateway</div>
+                  <div class="arch-node-sub">Local / Cloud AI</div>
+                </div>
+                <div class="arch-arrow">&rarr;</div>
+                <div class="arch-stage-node" data-stage="ops">
+                  <div class="arch-node-num">05</div>
+                  <div class="arch-node-title">SecOps Action Plan</div>
+                  <div class="arch-node-sub">Markdown &amp; JSON</div>
+                </div>
+              </div>
+
+              <div class="arch-stage-detail-card" id="arch-stage-detail">
+                <div class="arch-detail-header">
+                  <span class="arch-detail-badge" id="arch-detail-badge">STAGE 1: TARGET INGESTION</span>
+                  <span class="arch-detail-status">Cryptographically Isolated</span>
+                </div>
+                <h3 class="arch-detail-title" id="arch-detail-title">Target Normalization &amp; Safe Ingestion</h3>
+                <p class="arch-detail-desc" id="arch-detail-desc">
+                  Accepts suspect URLs, domain names, security advisories, or software manifest files (SBOM). Inputs are sanitized, normalized against RFC 3986 standards, and passed to non-rendering sandboxes with strict timeout boundaries to prevent SSRF and local network traversal.
+                </p>
+                <div class="arch-detail-specs" id="arch-detail-specs">
+                  <div class="arch-spec-item"><strong>Max Input Timeout:</strong> 8.0 seconds</div>
+                  <div class="arch-spec-item"><strong>Network Isolation:</strong> Private IP loopback blocking</div>
+                  <div class="arch-spec-item"><strong>Supported Formats:</strong> URLs, Domains, RSS 2.0/Atom, pip/npm manifests</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Matrix: Traditional Tools vs Security Intelligence -->
+          <div style="margin: 48px 0;">
+            <div style="text-align: center; max-width: 640px; margin: 0 auto 24px;">
+              <h2 style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 700; color: var(--primary-900);">Why Security Intelligence?</h2>
+              <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">How deterministic telemetry and multi-LLM synthesis compares to traditional black-box scanners.</p>
+            </div>
+
+            <div class="matrix-card">
+              <table class="about-comparison-table">
+                <thead>
+                  <tr>
+                    <th>Capability</th>
+                    <th>Legacy Black-Box Scanners</th>
+                    <th>Security Intelligence Platform</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Explainability</strong></td>
+                    <td>Opaque risk scores (e.g. "Score: 78/100") with no reasoning.</td>
+                    <td><span class="matrix-check">Verifiable justification</span> breaking down DOM indicators, CVE mechanics, and KEV catalog status.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Air-Gapped &amp; Local LLMs</strong></td>
+                    <td>Cloud-only dependencies; forces internal telemetry into external clouds.</td>
+                    <td><span class="matrix-check">100% Local Inference</span> with Ollama, vLLM, or self-hosted open-weights models (Llama 3, Mistral).</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Interactive Analyst Assistant</strong></td>
+                    <td>Static PDF/HTML exports with no follow-up capabilities.</td>
+                    <td><span class="matrix-check">Live AI Security Analyst</span> ready to generate custom SIEM queries, firewall rules, and patch plans.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Threat Intelligence Convergence</strong></td>
+                    <td>Siloed databases requiring manual cross-referencing.</td>
+                    <td><span class="matrix-check">Unified ingestion</span> combining CISA KEV, NIST NVD CVSS v3.1, MITRE ATT&amp;CK, and live security bulletins.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Software Supply Chain (SBOM)</strong></td>
+                    <td>Standalone tools with complex license requirements.</td>
+                    <td><span class="matrix-check">Built-in dependency auditor</span> scanning Python <code>requirements.txt</code> and Node.js <code>package.json</code>.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Standards & Compliance Badges -->
+          <div style="margin: 48px 0;">
+            <div style="text-align: center; max-width: 640px; margin: 0 auto 24px;">
+              <h2 style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 700; color: var(--primary-900);">Standards &amp; Regulatory Alignments</h2>
+              <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;">Engineered to support modern regulatory reporting and governance requirements.</p>
+            </div>
+
+            <div class="standards-grid">
+              <div class="standard-card">
+                <div class="standard-badge">CISA KEV</div>
+                <h4>Known Exploited Vulnerabilities</h4>
+                <p>Native catalog lookup flagging threats actively exploited in the wild by nation-state and cybercrime adversaries.</p>
+              </div>
+              <div class="standard-card">
+                <div class="standard-badge">MITRE ATT&amp;CK</div>
+                <h4>Enterprise Tactics &amp; TTPs</h4>
+                <p>Maps every evaluated threat directly to standardized adversary Tactics, Techniques, and Procedures.</p>
+              </div>
+              <div class="standard-card">
+                <div class="standard-badge">NIS2 &amp; GDPR</div>
+                <h4>EU Cyber &amp; Privacy Directives</h4>
+                <p>Provides standardized timeline and exposure records required for 72-hour incident notification workflows.</p>
+              </div>
+              <div class="standard-card">
+                <div class="standard-badge">NIST CSF 2.0</div>
+                <h4>Identify, Protect, Detect, Respond</h4>
+                <p>Structured analysis outputs directly map to the NIST Cybersecurity Framework response guidelines.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive FAQ Accordion -->
+          <div style="margin: 48px 0 24px;">
+            <div style="text-align: center; max-width: 640px; margin: 0 auto 24px;">
+              <h2 style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 700; color: var(--primary-900);">Frequently Asked Questions</h2>
+              <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Technical answers regarding deployment, cryptographic privacy, and multi-model configuration.</p>
+            </div>
+
+            <div class="about-faq-container">
+              <div class="about-faq-item">
+                <button type="button" class="about-faq-question">
+                  <span>How does Security Intelligence protect my API keys and analyzed URLs?</span>
+                  <svg class="faq-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="about-faq-answer">
+                  <p>User-provided API keys and custom model configurations are stored securely in your local browser's <code>localStorage</code> or local environment variables. They are transmitted solely via encrypted HTTPS request headers directly to the target LLM providers and are never logged, cached, or persisted on our servers.</p>
+                </div>
+              </div>
+
+              <div class="about-faq-item">
+                <button type="button" class="about-faq-question">
+                  <span>Can I run the platform in an air-gapped or offline environment?</span>
+                  <svg class="faq-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="about-faq-answer">
+                  <p>Yes. The platform is designed with an <strong>Offline First</strong> architecture. By configuring the custom LLM endpoint to point to a local Ollama or vLLM instance (e.g. <code>http://localhost:11434/v1</code>) and setting <code>OFFLINE_MODE=true</code>, all analysis, heuristics, and reasoning execute entirely on-premises without external network egress.</p>
+                </div>
+              </div>
+
+              <div class="about-faq-item">
+                <button type="button" class="about-faq-question">
+                  <span>Which AI models and providers are supported?</span>
+                  <svg class="faq-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="about-faq-answer">
+                  <p>The platform includes native clients for <strong>Google Gemini (Gemini 2.5 Flash / 1.5 Pro)</strong>, <strong>OpenAI (GPT-4o, GPT-4o-mini)</strong>, <strong>Anthropic (Claude 3.5 Sonnet)</strong>, <strong>Groq (Llama 3.3 70B Versatile)</strong>, and any <strong>OpenAI-compatible Custom / Local Server</strong> (Ollama, vLLM, LMStudio, LocalAI).</p>
+                </div>
+              </div>
+
+              <div class="about-faq-item">
+                <button type="button" class="about-faq-question">
+                  <span>How does the AI Security Analyst generate specific remediation plans?</span>
+                  <svg class="faq-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="about-faq-answer">
+                  <p>The assistant receives real-time context from the active advisory: the CVE ID, CVSS score, weakness category (CWE), CISA KEV exploitation records, and affected system inventory. It synthesizes this context into structured technical checklists, KQL hunt queries, and firewall rule matrices tailored specifically to the infrastructure mentioned in the advisory.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom CTA Banner -->
+          <div class="about-cta-card">
+            <h3 style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 700; color: #ffffff;">Ready to modernize your threat operations?</h3>
+            <p style="color: #cbd5e1; font-size: 0.92rem; margin: 8px 0 20px; max-width: 580px;">Start analyzing live security feeds, URLs, domains, and SBOM manifests today with full explainability.</p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary" id="btn-about-goto-tools">Explore Security Tools</button>
+              <button type="button" class="btn btn-secondary" id="btn-about-goto-docs" style="background-color: rgba(255,255,255,0.12); color: #ffffff; border-color: rgba(255,255,255,0.2);">Read Documentation</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ======================================== -->
+      <!-- 11. DOCUMENTATION VIEW                   -->
+      <!-- ======================================== -->
+      <section id="view-docs" class="page-view">
+        <div class="content-container">
+          <div class="doc-layout">
+            
+            <!-- Documentation Sidebar Navigation -->
+            <aside class="doc-sidebar">
+              <!-- Live Search Filter Input -->
+              <div class="doc-search-box">
+                <svg class="doc-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="doc-search-input" class="doc-search-input" placeholder="Search documentation..." autocomplete="off">
+              </div>
+
+              <!-- Nav Group 1: Quick Start -->
+              <div class="doc-category-group">
+                <div class="doc-category-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Quick Start
+                </div>
+                <ul class="doc-nav-list">
+                  <li class="doc-nav-item active"><a href="#doc-getting-started">Platform Overview</a></li>
+                  <li class="doc-nav-item"><a href="#doc-quickstart">3-Minute Quickstart</a></li>
+                  <li class="doc-nav-item"><a href="#doc-architecture">Pipeline Architecture</a></li>
+                </ul>
+              </div>
+
+              <!-- Nav Group 2: Core Engines -->
+              <div class="doc-category-group">
+                <div class="doc-category-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Core Security Engines
+                </div>
+                <ul class="doc-nav-list">
+                  <li class="doc-nav-item"><a href="#doc-threat-digest">Threat Digest Hub</a></li>
+                  <li class="doc-nav-item"><a href="#doc-url-phishing">URL Phishing &amp; 30-Vector ML</a></li>
+                  <li class="doc-nav-item"><a href="#doc-scam-risk">Scam Detector &amp; RDAP Trust</a></li>
+                  <li class="doc-nav-item"><a href="#doc-sbom-audit">SBOM Dependency Auditor</a></li>
+                </ul>
+              </div>
+
+              <!-- Nav Group 3: AI & Evidence -->
+              <div class="doc-category-group">
+                <div class="doc-category-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                  AI &amp; Telemetry
+                </div>
+                <ul class="doc-nav-list">
+                  <li class="doc-nav-item"><a href="#doc-evidence-vs-ai">Evidence vs. AI Reasoning</a></li>
+                  <li class="doc-nav-item"><a href="#doc-multi-llm">Multi-LLM Configuration</a></li>
+                  <li class="doc-nav-item"><a href="#doc-confidence-scores">Confidence Mathematics</a></li>
+                </ul>
+              </div>
+
+              <!-- Nav Group 4: Developer REST API -->
+              <div class="doc-category-group">
+                <div class="doc-category-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                  REST API Reference
+                </div>
+                <ul class="doc-nav-list">
+                  <li class="doc-nav-item"><a href="#doc-api-overview">Authentication &amp; Headers</a></li>
+                  <li class="doc-nav-item"><a href="#doc-api-phishing">Endpoint: /analyze/url</a></li>
+                  <li class="doc-nav-item"><a href="#doc-api-scam">Endpoint: /analyze/scam</a></li>
+                  <li class="doc-nav-item"><a href="#doc-api-threats">Endpoint: /threats/feeds</a></li>
+                  <li class="doc-nav-item"><a href="#doc-api-code-samples">cURL &amp; Python Code</a></li>
+                </ul>
+              </div>
+
+              <!-- Nav Group 5: Triage & Classification -->
+              <div class="doc-category-group">
+                <div class="doc-category-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+                  Triage &amp; Playbooks
+                </div>
+                <ul class="doc-nav-list">
+                  <li class="doc-nav-item"><a href="#doc-risk-levels">Severity Rating Matrix</a></li>
+                  <li class="doc-nav-item"><a href="#doc-triage-playbooks">Incident Response Playbooks</a></li>
+                </ul>
+              </div>
+
+              <!-- Nav Group 6: Compliance & Storage -->
+              <div class="doc-category-group">
+                <div class="doc-category-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Privacy &amp; Air-Gap
+                </div>
+                <ul class="doc-nav-list">
+                  <li class="doc-nav-item"><a href="#doc-account-privacy">Encrypted Local Storage</a></li>
+                  <li class="doc-nav-item"><a href="#doc-offline-deployment">Air-Gapped Setup</a></li>
+                </ul>
+              </div>
+
+            </aside>
+
+            <!-- Documentation Content Articles -->
+            <div class="doc-content" id="doc-articles-container">
+              
+              <!-- 1. Getting Started -->
+              <article id="doc-getting-started">
+                <h2>Platform Overview</h2>
+                <p>
+                  <strong>Security Intelligence</strong> is an enterprise autonomous threat analysis platform engineered to accelerate security investigations, correlate raw threat feeds, inspect suspicious target links, and produce deterministic, evidence-backed security advisories.
+                </p>
+                <div class="doc-callout doc-callout-info">
+                  <strong>Core Philosophy:</strong> Decouple verifiable empirical facts (DOM scraping, SSL certificate properties, RDAP registration age) from probabilistic LLM reasoning. Security analysts always receive transparent telemetry alongside AI recommendations.
+                </div>
+                <h3>Key Capabilities</h3>
+                <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px;">
+                  <li><strong>Threat Digest Hub:</strong> Continuous ingestion of official vulnerability feeds from CISA, BleepingComputer, and ZDI with automated CVE and MITRE ATT&amp;CK tagging.</li>
+                  <li><strong>URL Phishing Sandbox:</strong> Comprehensive inspection of web links against the 30-factor University of California Irvine (UCI) heuristic benchmark.</li>
+                  <li><strong>Website Scam Risk Detector:</strong> Automated RDAP/WHOIS domain registration audits, policy compliance scans, and commercial fraud pattern detection.</li>
+                  <li><strong>SBOM Dependency Scanner:</strong> Manifest vulnerability auditing (requirements.txt, package.json) cross-referenced against the CISA Known Exploited Vulnerabilities (KEV) catalog.</li>
+                </ul>
+              </article>
+
+              <!-- 2. 3-Minute Quickstart -->
+              <article id="doc-quickstart">
+                <h2>3-Minute Quickstart</h2>
+                <p>Follow these steps to analyze your first suspicious target URL or evaluate a vulnerability bulletin:</p>
+                
+                <h4>Step 1: Sign in or Create an Analyst Session</h4>
+                <p>Navigate to <strong>Sign In</strong> or <strong>Get Started</strong>. All analyses initiated while logged in are automatically recorded in your local encrypted SQLite database for audit trails.</p>
+
+                <h4>Step 2: Choose Your Investigation Tool</h4>
+                <p>Open the <strong>Tools</strong> tab in the navigation bar. Select between:</p>
+                <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px;">
+                  <li><strong>Threat Intelligence:</strong> Browse the live feed drawer, filter by severity, and inspect CVE intelligence.</li>
+                  <li><strong>URL Threat Analysis:</strong> Paste any full HTTP/HTTPS URL to trigger the 30-point phishing vector sandbox.</li>
+                  <li><strong>Website Scam Detector:</strong> Enter any domain name (e.g., <code>target-brand-shop.biz</code>) to audit domain age and policy indicators.</li>
+                  <li><strong>SBOM Auditor:</strong> Paste software dependencies to detect known exploited CVEs.</li>
+                </ul>
+
+                <h4>Step 3: Export and Share Advisories</h4>
+                <p>Click <strong>Export Markdown</strong> or <strong>Export JSON</strong> to download formatted security advisories ready for ticketing systems like Jira, ServiceNow, or Slack.</p>
+              </article>
+
+              <!-- 3. Pipeline Architecture -->
+              <article id="doc-architecture">
+                <h2>Pipeline Architecture</h2>
+                <p>The platform operates on a strictly decoupled microservices architecture written in asynchronous Python (FastAPI) and clean Vanilla JavaScript:</p>
+                
+                <table class="doc-table">
+                  <thead>
+                    <tr>
+                      <th>Component</th>
+                      <th>Service Module</th>
+                      <th>Primary Function</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>FastAPI Gateway</code></td>
+                      <td><code>server.py</code></td>
+                      <td>Mounts all sub-routers, serves frontend static bundles, and handles CORS.</td>
+                    </tr>
+                    <tr>
+                      <td><code>Threat Digest Hub</code></td>
+                      <td><code>src/services/threat_digest</code></td>
+                      <td>Asynchronous feed fetcher, XML/RSS parser, CVE regex extractor, KEV cross-referencer.</td>
+                    </tr>
+                    <tr>
+                      <td><code>Phishing Sandbox</code></td>
+                      <td><code>src/services/phishing_sandbox</code></td>
+                      <td>Headless DOM scraper, UCI 30-feature heuristic calculator, form action auditor.</td>
+                    </tr>
+                    <tr>
+                      <td><code>Scam Detector</code></td>
+                      <td><code>src/services/scam_detector</code></td>
+                      <td>ICANN RDAP client, WHOIS lifecycle analyzer, heuristic commercial trust scorer.</td>
+                    </tr>
+                    <tr>
+                      <td><code>LLM Multi-Gateway</code></td>
+                      <td><code>src/services/llm_gateway</code></td>
+                      <td>Provider router (Google Gemini, OpenAI, Claude, Ollama) with strict prompt guards.</td>
+                    </tr>
+                    <tr>
+                      <td><code>User &amp; Audit Store</code></td>
+                      <td><code>src/services/user_store</code></td>
+                      <td>SQLite storage with PBKDF2/SHA-256 password salting and token authorization.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </article>
+
+              <!-- 4. Threat Digest Hub -->
+              <article id="doc-threat-digest">
+                <h2>Threat Digest &amp; Feed Ingestion Hub</h2>
+                <p>
+                  The Threat Digest Hub continuously ingests official feeds from cybersecurity authorities and organizes bulletins into structured intelligence records.
+                </p>
+                
+                <h3>Supported Ingestion Feeds</h3>
+                <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px;">
+                  <li><strong>CISA Cybersecurity Advisories:</strong> Official United States Cybersecurity and Infrastructure Security Agency urgent alerts.</li>
+                  <li><strong>CISA Known Exploited Vulnerabilities (KEV):</strong> Catalogs vulnerabilities confirmed to be under active in-the-wild exploitation.</li>
+                  <li><strong>BleepingComputer News:</strong> Real-time ransomware, malware, and data breach disclosures.</li>
+                  <li><strong>Zero Day Initiative (ZDI):</strong> Unpatched and coordinated zero-day vulnerability disclosures from Trend Micro ZDI.</li>
+                </ul>
+
+                <h3>Automated Entity Correlation</h3>
+                <p>
+                  When a feed article is ingested, the engine applies regular expression parsers to extract CVE identifiers (e.g., <code>CVE-2024-38077</code>), calculates base CVSS scores, maps corresponding MITRE ATT&amp;CK tactics (such as <em>Initial Access</em>, <em>Defense Evasion</em>, or <em>Privilege Escalation</em>), and generates an executive triage brief.
+                </p>
+              </article>
+
+              <!-- 5. URL Phishing & 30-Vector ML -->
+              <article id="doc-url-phishing">
+                <h2>URL Phishing &amp; 30-Vector Heuristic Engine</h2>
+                <p>
+                  Our phishing sandbox inspects target links across 30 deterministic heuristic signals derived from the University of California Irvine (UCI) Machine Learning Phishing Dataset.
+                </p>
+
+                <div class="doc-callout doc-callout-warning">
+                  <strong>Safe Inspection Guarantee:</strong> The sandbox executes requests inside isolated network workers without executing malicious browser binaries or dangerous client scripts.
+                </div>
+
+                <h3>Evaluated Heuristic Vectors</h3>
+                <table class="doc-table">
+                  <thead>
+                    <tr>
+                      <th>Vector</th>
+                      <th>Heuristic Rule</th>
+                      <th>Risk Indication</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>having_IP_Address</code></td>
+                      <td>Host uses raw IPv4/IPv6 address instead of DNS hostname</td>
+                      <td>Common in fast-flux phishing landing pages</td>
+                    </tr>
+                    <tr>
+                      <td><code>URL_Length</code></td>
+                      <td>URL character length &gt; 75 characters</td>
+                      <td>Obfuscation and encoded token smuggling</td>
+                    </tr>
+                    <tr>
+                      <td><code>Shortining_Service</code></td>
+                      <td>Uses bit.ly, tinyurl.com, t.co, or ow.ly redirectors</td>
+                      <td>Hiding true malicious destination host</td>
+                    </tr>
+                    <tr>
+                      <td><code>having_At_Symbol</code></td>
+                      <td>URL contains "@" character before hostname</td>
+                      <td>Browser URL userinfo spoofing trick</td>
+                    </tr>
+                    <tr>
+                      <td><code>double_slash_redirecting</code></td>
+                      <td>"//" occurs after position 7 in path</td>
+                      <td>Redirect parameter exploitation</td>
+                    </tr>
+                    <tr>
+                      <td><code>Prefix_Suffix</code></td>
+                      <td>Domain contains hyphen (e.g. <code>paypal-verify.com</code>)</td>
+                      <td>Brand impersonation and typosquatting</td>
+                    </tr>
+                    <tr>
+                      <td><code>Sub_Domain</code></td>
+                      <td>More than 3 subdomain dots present in host</td>
+                      <td>Multi-layered subdomain cloaking</td>
+                    </tr>
+                    <tr>
+                      <td><code>SSLfinal_State</code></td>
+                      <td>Invalid certificate, expired issuer, or self-signed cert</td>
+                      <td>Untrusted TLS communication</td>
+                    </tr>
+                    <tr>
+                      <td><code>Abnormal_URL</code></td>
+                      <td>Host does not match WHOIS identity / missing hostname</td>
+                      <td>Mismatched registration identity</td>
+                    </tr>
+                    <tr>
+                      <td><code>SFH (Server Form Handler)</code></td>
+                      <td>HTML <code>&lt;form action&gt;</code> points to external domain or "about:blank"</td>
+                      <td>Credential harvesting form exfiltration</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </article>
+
+              <!-- 6. Scam Detector & RDAP Trust -->
+              <article id="doc-scam-risk">
+                <h2>Website Scam Risk &amp; RDAP Trust Auditor</h2>
+                <p>
+                  The Scam Risk Detector investigates e-commerce stores, newly registered domains, and investment portals to assess the likelihood of commercial fraud or identity theft.
+                </p>
+
+                <h3>Investigation Methodology</h3>
+                <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px;">
+                  <li><strong>RDAP Domain Age Verification:</strong> Performs authoritative Registration Data Access Protocol lookups against TLD registry servers. Domains younger than 30 days are automatically flagged with elevated suspicion.</li>
+                  <li><strong>Policy Compliance Inspection:</strong> Audits DOM text for mandatory legal agreements (Terms of Service, Return &amp; Refund Policy, Physical Address Disclosures, GDPR/CCPA Privacy Notices).</li>
+                  <li><strong>Social &amp; Payment Signals:</strong> Verifies whether listed payment processors are standard (Stripe, PayPal) versus irreversible payment methods (crypto addresses, Western Union, direct gift cards).</li>
+                </ul>
+              </article>
+
+              <!-- 7. SBOM Dependency Auditor -->
+              <article id="doc-sbom-audit">
+                <h2>SBOM Dependency Vulnerability Auditor</h2>
+                <p>
+                  Software Bill of Materials (SBOM) auditing scans project dependencies, extracts version constraints, and cross-references every package against public vulnerability catalogs and CISA KEV.
+                </p>
+
+                <div class="doc-code-block">
+                  <div class="doc-code-header">
+                    <span>Sample SBOM Manifest (requirements.txt)</span>
+                    <button type="button" class="doc-copy-btn">Copy</button>
+                  </div>
+                  <pre class="doc-code-content"><code>urllib3==1.26.4
+requests==2.25.0
+flask==1.1.2
+jinja2==2.11.2
+cryptography==3.3.1</code></pre>
+                </div>
+
+                <p>
+                  The scanner identifies vulnerable sub-dependencies, maps CVSS v3.1 scores, alerts if any library is present on CISA KEV, and outputs explicit minimum upgrade versions (e.g. <em>Upgrade <code>jinja2</code> to &gt;= 3.1.4 to remediate CVE-2024-34064</em>).
+                </p>
+              </article>
+
+              <!-- 8. Evidence vs. AI Reasoning -->
+              <article id="doc-evidence-vs-ai">
+                <h2>Evidence vs. AI Reasoning</h2>
+                <p>
+                  A critical security requirement in enterprise environments is verifiable auditability. Our system maintains a strict barrier between <strong>Observed Telemetry</strong> and <strong>AI Synthesis</strong>:
+                </p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0 24px;">
+                  <div class="card" style="margin-bottom: 0; border-top: 3px solid #0284c7;">
+                    <h4 style="color: #0369a1; margin-top: 0;">1. Observed Evidence (Deterministic)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
+                      Empirical data points obtained directly from network sockets, DNS resolvers, and DOM parsers:
+                    </p>
+                    <ul style="font-size: 0.82rem; color: var(--text-secondary); padding-left: 16px;">
+                      <li>Exact HTTP response status codes &amp; headers</li>
+                      <li>Domain creation date &amp; registrar handle</li>
+                      <li>SSL certificate expiration &amp; issuer CN</li>
+                      <li>Matched CVE numbers in NVD database</li>
+                    </ul>
+                  </div>
+
+                  <div class="card" style="margin-bottom: 0; border-top: 3px solid #7c3aed;">
+                    <h4 style="color: #6d28d9; margin-top: 0;">2. AI Synthesis (Probabilistic)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
+                      Synthesized analysis provided by LLM reasoning models:
+                    </p>
+                    <ul style="font-size: 0.82rem; color: var(--text-secondary); padding-left: 16px;">
+                      <li>Executive impact summary</li>
+                      <li>Contextual threat actor motivations</li>
+                      <li>Mitigation steps tailored to stack</li>
+                      <li>Confidence bounds estimation</li>
+                    </ul>
+                  </div>
+                </div>
+              </article>
+
+              <!-- 9. Multi-LLM Configuration -->
+              <article id="doc-multi-llm">
+                <h2>Multi-LLM Gateway Configuration</h2>
+                <p>
+                  The platform supports hot-swapping between frontier commercial models and on-premise open-weights models through standard HTTP headers or Account Settings:
+                </p>
+
+                <table class="doc-table">
+                  <thead>
+                    <tr>
+                      <th>Provider</th>
+                      <th>Identifier</th>
+                      <th>Recommended Model</th>
+                      <th>Privacy Profile</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Google Gemini</strong></td>
+                      <td><code>google</code></td>
+                      <td><code>gemini-2.5-flash</code> / <code>gemini-1.5-pro</code></td>
+                      <td>BYOK &bull; High throughput &bull; Low latency</td>
+                    </tr>
+                    <tr>
+                      <td><strong>OpenAI</strong></td>
+                      <td><code>openai</code></td>
+                      <td><code>gpt-4o</code> / <code>gpt-4o-mini</code></td>
+                      <td>BYOK &bull; Structured JSON outputs</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Anthropic</strong></td>
+                      <td><code>anthropic</code></td>
+                      <td><code>claude-3-5-sonnet</code></td>
+                      <td>BYOK &bull; In-depth reasoning</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Local Ollama / vLLM</strong></td>
+                      <td><code>custom</code></td>
+                      <td><code>llama3:8b</code> / <code>mistral:7b</code></td>
+                      <td>100% On-Premise &bull; Zero external calls</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </article>
+
+              <!-- 10. Confidence Mathematics -->
+              <article id="doc-confidence-scores">
+                <h2>Confidence Mathematics &amp; Uncertainty Bounds</h2>
+                <p>
+                  Every generated report includes a statistical confidence score (between 0.00 and 1.00) measuring data completeness:
+                </p>
+
+                <div class="doc-code-block">
+                  <div class="doc-code-header">
+                    <span>Confidence Calculation Formula</span>
+                  </div>
+                  <pre class="doc-code-content"><code>Confidence = 0.40 * (Features_Retrieved / Total_Possible_Features)
+           + 0.30 * (RDAP_Data_Completeness)
+           + 0.30 * (Vulnerability_Database_Confirmation)</code></pre>
+                </div>
+                <p>
+                  If a target domain blocks WHOIS queries or obscures DNS responses, the system lowers the confidence score and displays an alert indicating that additional telemetry is required for a conclusive rating.
+                </p>
+              </article>
+
+              <!-- 11. REST API Reference -->
+              <article id="doc-api-overview">
+                <h2>REST API Reference &amp; Authentication</h2>
+                <p>
+                  All platform microservices expose RESTful JSON endpoints. Requests should include <code>Content-Type: application/json</code> and an optional <code>Authorization: Bearer &lt;TOKEN&gt;</code> header.
+                </p>
+
+                <div class="doc-callout doc-callout-info">
+                  <strong>LLM Override Headers:</strong> You can pass custom API keys per request using <code>x-llm-provider: google</code> and <code>x-api-key: your-api-key</code>.
+                </div>
+              </article>
+
+              <!-- 12. Endpoint: /analyze/url -->
+              <article id="doc-api-phishing">
+                <h2>Phishing Sandbox API Endpoint</h2>
+                <div class="doc-endpoint-badge">
+                  <span class="doc-method-post">POST</span>
+                  <span>/api/v1/analyze/url</span>
+                </div>
+
+                <h4>Request Payload</h4>
+                <div class="doc-code-block">
+                  <div class="doc-code-header">
+                    <span>JSON Request</span>
+                    <button type="button" class="doc-copy-btn">Copy</button>
+                  </div>
+                  <pre class="doc-code-content"><code>{
+  "url": "https://secure-login-portal.verification-update.net/auth",
+  "deep_scan": true
+}</code></pre>
+                </div>
+
+                <h4>Success Response (200 OK)</h4>
+                <div class="doc-code-block">
+                  <div class="doc-code-header">
+                    <span>JSON Response</span>
+                    <button type="button" class="doc-copy-btn">Copy</button>
+                  </div>
+                  <pre class="doc-code-content"><code>{
+  "status": "COMPLETED",
+  "target_url": "https://secure-login-portal.verification-update.net/auth",
+  "risk_level": "CRITICAL",
+  "confidence": 0.94,
+  "heuristics": {
+    "having_IP_Address": 0,
+    "URL_Length": 1,
+    "Prefix_Suffix": 1,
+    "having_Sub_Domain": 1,
+    "SFH": 1
+  },
+  "evidence": [
+    "Subdomain count exceeds 3 levels",
+    "Form submission target routes to unverified external domain",
+    "Domain registered less than 4 days ago"
+  ],
+  "ai_assessment": {
+    "summary": "High-confidence credential harvesting lure targeting organizational single-sign-on credentials.",
+    "recommended_actions": [
+      "Block domain at perimeter DNS resolver",
+      "Revoke active sessions for users who received matching email lures"
+    ]
+  }
+}</code></pre>
+                </div>
+              </article>
+
+              <!-- 13. Endpoint: /analyze/scam -->
+              <article id="doc-api-scam">
+                <h2>Scam Detector API Endpoint</h2>
+                <div class="doc-endpoint-badge">
+                  <span class="doc-method-post">POST</span>
+                  <span>/api/v1/analyze/scam</span>
+                </div>
+
+                <h4>Request Payload</h4>
+                <div class="doc-code-block">
+                  <div class="doc-code-header">
+                    <span>JSON Request</span>
+                    <button type="button" class="doc-copy-btn">Copy</button>
+                  </div>
+                  <pre class="doc-code-content"><code>{
+  "domain": "discount-luxury-deals.top"
+}</code></pre>
+                </div>
+              </article>
+
+              <!-- 14. Endpoint: /threats/feeds -->
+              <article id="doc-api-threats">
+                <h2>Threat Feeds API Endpoint</h2>
+                <div class="doc-endpoint-badge">
+                  <span class="doc-method-get">GET</span>
+                  <span>/api/v1/threats/feeds?limit=25&amp;severity=CRITICAL</span>
+                </div>
+
+                <p>Retrieves parsed and prioritized vulnerability bulletins with attached CVE records and MITRE ATT&amp;CK mappings.</p>
+              </article>
+
+              <!-- 15. Code Samples (cURL & Python) -->
+              <article id="doc-api-code-samples">
+                <h2>Developer Integration Code Samples</h2>
+                <p>Easily incorporate security intelligence scans into your automated CI/CD pipelines, SOAR playbooks, or custom Python tools.</p>
+
+                <h4>Python Integration Example</h4>
+                <div class="doc-code-block">
+                  <div class="doc-code-header">
+                    <span>python_scanner.py</span>
+                    <button type="button" class="doc-copy-btn">Copy</button>
+                  </div>
+                  <pre class="doc-code-content"><code>import requests
+
+API_URL = "http://localhost:8000/api/v1/analyze/url"
+headers = {
+    "Content-Type": "application/json",
+    "x-llm-provider": "google"
+}
+
+payload = {
+    "url": "https://suspicious-domain.xyz/login"
+}
+
+response = requests.post(API_URL, json=payload, headers=headers)
+data = response.json()
+
+print(f"Risk Rating: {data.get('risk_level')}")
+print(f"Confidence: {data.get('confidence') * 100}%")
+for item in data.get("evidence", []):
+    print(f" - [Evidence] {item}")
+</code></pre>
+                </div>
+
+                <h4>cURL Command Line Example</h4>
+                <div class="doc-code-block">
+                  <div class="doc-code-header">
+                    <span>terminal cURL</span>
+                    <button type="button" class="doc-copy-btn">Copy</button>
+                  </div>
+                  <pre class="doc-code-content"><code>curl -X POST "http://localhost:8000/api/v1/analyze/url" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "http://192.168.1.100/admin/update"}'
+</code></pre>
+                </div>
+              </article>
+
+              <!-- 16. Severity Rating Matrix -->
+              <article id="doc-risk-levels">
+                <h2>Severity Rating Matrix &amp; Criteria</h2>
+                <p>Standardized enterprise priority ratings mapped across observable risk factors:</p>
+
+                <table class="doc-table">
+                  <thead>
+                    <tr>
+                      <th>Severity</th>
+                      <th>Qualifying Observable Indicators</th>
+                      <th>Target SLA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="badge badge-critical"><span class="badge-dot"></span>CRITICAL</span></td>
+                      <td>Listed on CISA KEV catalog, confirmed RCE vulnerability, active credential harvesting form.</td>
+                      <td>Immediate (&lt; 15 mins)</td>
+                    </tr>
+                    <tr>
+                      <td><span class="badge badge-high"><span class="badge-dot"></span>HIGH</span></td>
+                      <td>Impersonation domain with brand typosquatting, invalid SSL certificate, abnormal form handler.</td>
+                      <td>&lt; 2 hours</td>
+                    </tr>
+                    <tr>
+                      <td><span class="badge badge-medium"><span class="badge-dot"></span>MEDIUM</span></td>
+                      <td>Domain registered within past 14 days, missing physical policies, URL obfuscation detected.</td>
+                      <td>&lt; 24 hours</td>
+                    </tr>
+                    <tr>
+                      <td><span class="badge badge-low"><span class="badge-dot"></span>LOW</span></td>
+                      <td>Minor heuristic anomaly detected on established, well-reputed domain with valid certificate.</td>
+                      <td>Routine audit</td>
+                    </tr>
+                    <tr>
+                      <td><span class="badge badge-info"><span class="badge-dot"></span>INFO</span></td>
+                      <td>Informational security notice or routine vendor advisory with no immediate exposure.</td>
+                      <td>Informational</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </article>
+
+              <!-- 17. Incident Response Playbooks -->
+              <article id="doc-triage-playbooks">
+                <h2>Incident Response Triage Playbooks</h2>
+                <p>When an audit returns Critical or High severity, execute the following remediation sequence:</p>
+                <ol style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px;">
+                  <li><strong>Isolate Network Egress:</strong> Blacklist the flagged domain or IP on enterprise perimeter firewalls and recursive DNS resolvers (e.g., Pi-hole, Cisco Umbrella, Cloudflare Gateway).</li>
+                  <li><strong>Export Advisory:</strong> Click <strong>Export Markdown</strong> to obtain the full SHA-256 evidence digest and attach it to your incident ticket.</li>
+                  <li><strong>Audit User Inbound Logs:</strong> Search mail gateway logs (Microsoft 365 / Google Workspace) for matching domain strings to identify users who clicked or submitted credentials.</li>
+                  <li><strong>Credential Rotation:</strong> Trigger mandatory multi-factor authentication reset for exposed accounts.</li>
+                </ol>
+              </article>
+
+              <!-- 18. Encrypted Local Storage & Privacy -->
+              <article id="doc-account-privacy">
+                <h2>Encrypted Local Storage &amp; Privacy</h2>
+                <p>
+                  Privacy and operational security are built into the core design of Security Intelligence.
+                </p>
+                <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px;">
+                  <li><strong>No Centralized Telemetry:</strong> Analyses, scan histories, and saved reports reside exclusively in your local SQLite database file located in the application directory.</li>
+                  <li><strong>Zero Key Retention:</strong> External model keys (Gemini, OpenAI, Anthropic) reside in browser <code>localStorage</code> and are never written to database tables or server logs.</li>
+                  <li><strong>Salted Password Hashes:</strong> User credentials are protected using salted SHA-256 hashes with individual cryptographic salts per account.</li>
+                </ul>
+              </article>
+
+              <!-- 19. Air-Gapped Setup -->
+              <article id="doc-offline-deployment">
+                <h2>Air-Gapped &amp; Offline Deployments</h2>
+                <p>
+                  To deploy the platform in isolated environments without public internet access:
+                </p>
+                <div class="doc-code-block">
+                  <div class="doc-code-header">
+                    <span>Air-Gapped Environment Configuration (.env)</span>
+                    <button type="button" class="doc-copy-btn">Copy</button>
+                  </div>
+                  <pre class="doc-code-content"><code>OFFLINE_MODE=true
+LOCAL_RDAP_PROXY=http://192.168.1.50:8080/rdap
+LOCAL_CVE_MIRROR=http://192.168.1.50:8080/nvd-mirror
+DEFAULT_LLM_PROVIDER=custom
+CUSTOM_LLM_BASE_URL=http://localhost:11434/v1
+CUSTOM_LLM_MODEL=llama3:8b</code></pre>
+                </div>
+                <p>
+                  In this mode, the platform routes all inference queries to local Ollama/vLLM servers and uses internal mirrors for CVE and RDAP lookups.
+                </p>
+              </article>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- ONBOARDING MODAL                           -->
+    <!-- ========================================== -->
+    <div id="modal-onboarding" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="brand-icon" style="width: 24px; height: 24px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3 id="onboarding-title" style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 600; color: var(--primary-900);">Platform Walkthrough</h3>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-skip-onboarding" style="padding: 3px 8px; font-size: 0.75rem;">Skip</button>
+        </div>
+
+        <div class="modal-body" id="onboarding-body">
+          <!-- Populated dynamically per step -->
+        </div>
+
+        <div class="modal-footer">
+          <div class="onboarding-steps-indicator" id="onboarding-indicator">
+            <span class="onboarding-dot active"></span>
+            <span class="onboarding-dot"></span>
+            <span class="onboarding-dot"></span>
+            <span class="onboarding-dot"></span>
+            <span class="onboarding-dot"></span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-onboarding-prev">Previous</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-onboarding-next">Next</button>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- ========================================== -->
+    <!-- REPORT DETAIL MODAL                        -->
+    <!-- ========================================== -->
+    <div id="modal-report-detail" class="modal-overlay hidden" role="dialog" aria-modal="true">
+      <div class="modal-card" style="max-width: 720px;">
+        <div class="modal-header">
+          <h3 id="modal-report-title" style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 600;">Report Details</h3>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-close-report-modal">Close</button>
+        </div>
+        <div class="modal-body" id="modal-report-body" style="max-height: 70vh; overflow-y: auto;">
+          <!-- Populated via JS -->
+        </div>
+        <div class="modal-footer">
+          <div id="modal-report-actions"></div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-close-report-modal-2">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- FOOTER                                     -->
+    <!-- ========================================== -->
+    <footer class="platform-footer" role="contentinfo">
+      <div class="footer-content">
+        <div>
+          <strong>Security Intelligence</strong> &bull; Enterprise AI Threat Operations &bull; Evidence-based analysis
+        </div>
+        <div class="footer-links">
+          <a href="#" data-footer-nav="docs">Documentation</a>
+          <a href="#" data-footer-nav="pricing">Pricing</a>
+          <a href="#" data-footer-nav="about">About</a>
+          <a href="#" data-footer-nav="tools">Tools</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   </div>
 
+  <!-- Application Logic -->
   <script src="app.js"></script>
 </body>
 </html>
