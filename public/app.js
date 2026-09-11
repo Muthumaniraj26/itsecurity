@@ -1759,16 +1759,24 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    feedItemsList.innerHTML = items.map((item, idx) => `
-      <div class="feed-item-card ${selectedFeedItem && selectedFeedItem.link === item.link ? 'selected' : ''}" data-feed-idx="${idx}">
-        <div class="feed-item-source-row">
-          <span>${item.source || 'Advisory'}</span>
-          <span>${formatDateTime(item.pubDate)}</span>
+    feedItemsList.innerHTML = items.map((item, idx) => {
+      const imgUrl = item.imageUrl || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80';
+      return `
+        <div class="feed-item-card ${selectedFeedItem && selectedFeedItem.link === item.link ? 'selected' : ''}" data-feed-idx="${idx}">
+          <div class="feed-item-flex">
+            <img src="${escapeHtml(imgUrl)}" alt="" class="feed-item-thumb" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80'">
+            <div class="feed-item-info">
+              <div class="feed-item-source-row">
+                <span>${escapeHtml(item.source || 'Advisory')}</span>
+                <span>${formatDateTime(item.pubDate)}</span>
+              </div>
+              <div class="feed-item-title">${escapeHtml(item.title)}</div>
+            </div>
+          </div>
+          <div class="feed-item-desc">${escapeHtml(item.description || 'No summary text provided.')}</div>
         </div>
-        <div class="feed-item-title">${item.title}</div>
-        <div class="feed-item-desc">${item.description || 'No summary text provided.'}</div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Attach click listener
     feedItemsList.querySelectorAll('.feed-item-card').forEach(card => {
@@ -1855,13 +1863,13 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(item)
       });
 
-      if (!res.ok) throw new Error('AI threat assessment agent reported error.');
+      if (!res.ok) throw new Error('Failed to analyze advisory.');
       const data = await res.json();
-      const analysis = data.analysis;
+      const analysis = data.analysis || data;
 
-      // Auto-record in history
+      // Automatically store in history if user is logged in
       try {
-        await fetch('/api/user/history', {
+        await fetch('/api/user/analyses', {
           method: 'POST',
           headers: getHeaders(true, false),
           body: JSON.stringify({
@@ -1911,8 +1919,20 @@ document.addEventListener('DOMContentLoaded', () => {
       ? 'CONFIRMED ACTIVE EXPLOITATION IN THE WILD (Zero-Day)'
       : (hasCve ? 'No active exploitation recorded in CISA KEV catalog.' : 'Security incident evaluated against Threat & Breach taxonomy.');
 
+    const imgUrl = item.imageUrl || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80';
+
     threatPanelContainer.innerHTML = `
       <div>
+        <!-- Featured Threat Banner -->
+        <div class="threat-detail-hero">
+          <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(item.title)}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80'">
+          <div class="threat-detail-hero-gradient"></div>
+          <div class="threat-detail-hero-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>${escapeHtml(analysis.incidentCategory || (hasCve ? 'Vulnerability Intelligence' : 'Security Advisory'))}</span>
+          </div>
+        </div>
+
         <div style="display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--border-default); padding-bottom: 16px; margin-bottom: 20px; gap: 16px; flex-wrap: wrap;">
           <div>
             ${getRiskBadge(analysis.severity)}
