@@ -6,5 +6,13 @@
     "cweId": "CWE-863",
     "cweName": "Security Weakness Enumeration",
     "source": "live_nvd_api"
+  },
+  "CVE-2026-85102": {
+    "cvssScore": 9.8,
+    "cvssSeverity": "CRITICAL",
+    "cvssVector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cweId": "CWE-295",
+    "cweName": "Security Weakness Enumeration",
+    "source": "live_nvd_api"
   }
 }

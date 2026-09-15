@@ -1,0 +1,39 @@
+To expose your local application (running on port 8000) via ngrok, use the following commands:
+
+1. Set Up Your Auth Token (First-Time Only)
+If you haven't authenticated ngrok yet:
+
+powershell
+
+
+ngrok config add-authtoken <YOUR_AUTHTOKEN>
+
+
+2. Start Your Application Server
+Ensure your backend server is running on port 8000:
+
+powershell
+
+python server.py
+
+
+3. Expose Port 8000 via ngrok
+In a separate terminal, run:
+
+powershell
+
+
+ngrok http 8000
+
+
+Tip (Host Header Rewrite): If you need standard host headers preserved:
+
+powershell
+
+
+ngrok http --host-header=rewrite 8000
+
+
+Once started, ngrok will display your public URL (e.g. https://xxxx.ngrok-free.app) pointing directly to your local server at http://localhost:8000.
+
+12:24 PM

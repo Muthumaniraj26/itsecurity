@@ -6,7 +6,7 @@ from typing import Optional, Dict, Any, List
 
 from src.services.threat_digest.feed_collector import aggregate_security_feeds
 from src.services.threat_digest.analyzer import analyze_threat_feed_item
-from src.services.threat_digest.sbom import audit_sbom_dependencies
+from src.services.threat_digest.sbom import audit_sbom_dependencies, audit_sbom_dependencies_async
 from src.services.threat_digest.exporter import (
     generate_threat_markdown_advisory,
     generate_phishing_markdown_report,
@@ -57,9 +57,9 @@ def extract_llm_headers(request: Request) -> dict:
     }
 
 @router.get("/feeds")
-async def get_feeds():
+async def get_feeds(refresh: bool = False):
     try:
-        feeds = await aggregate_security_feeds()
+        feeds = await aggregate_security_feeds(force_refresh=refresh)
         return feeds
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to aggregate feeds: {str(e)}")
@@ -77,11 +77,12 @@ async def analyze_feed(item: FeedItemSchema, request: Request):
         raise HTTPException(status_code=500, detail=f"AI Threat analysis failed: {str(e)}")
 
 @router.post("/sbom/audit")
-async def audit_sbom(data: SbomAuditSchema):
-    """Audit project dependency manifest against threat feeds and known CVE catalogs."""
+async def audit_sbom(data: SbomAuditSchema, request: Request):
+    """Audit project dependency manifest across any programming language using Multi-LLM intelligence & live CVE/OSV catalogs."""
     try:
         feeds = await aggregate_security_feeds()
-        result = audit_sbom_dependencies(data.manifest, active_feeds=feeds)
+        opts = extract_llm_headers(request)
+        result = await audit_sbom_dependencies_async(data.manifest, active_feeds=feeds, **opts)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"SBOM audit failed: {str(e)}")

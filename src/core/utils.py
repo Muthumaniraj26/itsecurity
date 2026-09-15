@@ -15,16 +15,17 @@ def parse_json_response(text: str) -> dict:
         raise ValueError(f"LLM did not return valid JSON: {str(e)}")
 
 def parse_date_to_iso(date_str: str) -> str:
-    """Parse RFC 2822 or ISO dates into ISO 8601 string."""
+    """Parse RFC 2822 or ISO dates into normalized UTC ISO 8601 string."""
+    from datetime import timezone
     if not date_str:
-        return datetime.utcnow().isoformat() + "Z"
+        return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
         parsed_dt = email.utils.parsedate_to_datetime(date_str)
-        return parsed_dt.isoformat().replace('+00:00', 'Z')
+        return parsed_dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     except Exception:
         try:
             cleaned_date = date_str.replace('Z', '+00:00')
             parsed_dt = datetime.fromisoformat(cleaned_date)
-            return parsed_dt.isoformat().replace('+00:00', 'Z')
+            return parsed_dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         except Exception:
-            return datetime.utcnow().isoformat() + "Z"
+            return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

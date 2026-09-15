@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=3.5">
 </head>
 <body>
 
@@ -228,9 +228,41 @@
           <div class="home-threat-grid-wrap">
             <div class="home-hub-inner">
               <div id="home-threat-grid" class="home-threat-grid">
-                <div class="loading-state" style="grid-column: 1 / -1; padding: 32px 0;">
-                  <div class="spinner"></div>
-                  <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">Synchronizing real-time security bulletins &amp; trends...</p>
+                <div class="news-feed-skeleton-card">
+                  <div class="skeleton-shimmer skeleton-img"></div>
+                  <div class="skeleton-body">
+                    <div class="skeleton-shimmer skeleton-line skeleton-line-meta"></div>
+                    <div class="skeleton-shimmer skeleton-line skeleton-line-title"></div>
+                    <div class="skeleton-shimmer skeleton-line" style="width: 95%;"></div>
+                    <div class="skeleton-shimmer skeleton-line" style="width: 70%;"></div>
+                  </div>
+                </div>
+                <div class="news-feed-skeleton-card">
+                  <div class="skeleton-shimmer skeleton-img"></div>
+                  <div class="skeleton-body">
+                    <div class="skeleton-shimmer skeleton-line skeleton-line-meta"></div>
+                    <div class="skeleton-shimmer skeleton-line skeleton-line-title"></div>
+                    <div class="skeleton-shimmer skeleton-line" style="width: 90%;"></div>
+                    <div class="skeleton-shimmer skeleton-line" style="width: 65%;"></div>
+                  </div>
+                </div>
+                <div class="news-feed-skeleton-card">
+                  <div class="skeleton-shimmer skeleton-img"></div>
+                  <div class="skeleton-body">
+                    <div class="skeleton-shimmer skeleton-line skeleton-line-meta"></div>
+                    <div class="skeleton-shimmer skeleton-line skeleton-line-title"></div>
+                    <div class="skeleton-shimmer skeleton-line" style="width: 92%;"></div>
+                    <div class="skeleton-shimmer skeleton-line" style="width: 80%;"></div>
+                  </div>
+                </div>
+                <div class="news-feed-skeleton-card">
+                  <div class="skeleton-shimmer skeleton-img"></div>
+                  <div class="skeleton-body">
+                    <div class="skeleton-shimmer skeleton-line skeleton-line-meta"></div>
+                    <div class="skeleton-shimmer skeleton-line skeleton-line-title"></div>
+                    <div class="skeleton-shimmer skeleton-line" style="width: 88%;"></div>
+                    <div class="skeleton-shimmer skeleton-line" style="width: 60%;"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -282,7 +314,7 @@
           </div>
 
           <div class="capabilities-grid">
-            <div class="capability-card">
+            <div class="capability-card" data-action-tool="pane-threat" style="cursor: pointer;">
               <div class="capability-icon-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.83a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
               </div>
@@ -290,15 +322,15 @@
               <p class="capability-desc">Ingests security feeds from CISA, BleepingComputer, and ZDI. Correlates CVE entities, CISA KEV exploitation catalogs, and MITRE ATT&amp;CK TTPs.</p>
             </div>
 
-            <div class="capability-card">
+            <div class="capability-card" data-action-tool="pane-url" style="cursor: pointer;">
               <div class="capability-icon-wrap">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="2"/></svg>
               </div>
               <h3 class="capability-title">URL Threat Analysis</h3>
               <p class="capability-desc">Securely inspects target links for phishing indicators, malicious redirects, abnormal form action handlers, credential traps, and UCI ML benchmark vectors.</p>
             </div>
 
-            <div class="capability-card">
+            <div class="capability-card" data-action-tool="pane-scam" style="cursor: pointer;">
               <div class="capability-icon-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </div>
@@ -306,7 +338,7 @@
               <p class="capability-desc">Evaluates newly discovered websites, domain RDAP registrar age, commercial policy compliance, and suspicious content patterns to calculate trust scores.</p>
             </div>
 
-            <div class="capability-card">
+            <div class="capability-card" data-action-tool="pane-llm" style="cursor: pointer;">
               <div class="capability-icon-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
               </div>
@@ -314,7 +346,7 @@
               <p class="capability-desc">Translates complex vulnerability telemetry into clear executive digests, infrastructure exposure assessments, and actionable step-by-step remediation plans.</p>
             </div>
 
-            <div class="capability-card">
+            <div class="capability-card" data-action-view="reports" style="cursor: pointer;">
               <div class="capability-icon-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               </div>
@@ -322,7 +354,7 @@
               <p class="capability-desc">Generates structured security advisories exportable in Markdown or JSON format for incident response teams, compliance audits, and management briefs.</p>
             </div>
 
-            <div class="capability-card">
+            <div class="capability-card" data-action-view="history" style="cursor: pointer;">
               <div class="capability-icon-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
@@ -600,163 +632,126 @@
         </div>
       </section>
 
-      <!-- ======================================== -->
-      <!-- 5. TOOLS VIEW (EXECUTION & RESULTS)      -->
-      <!-- ======================================== -->
       <section id="view-tools" class="page-view">
         <div class="content-container">
-          <div class="dashboard-header" style="margin-bottom: 20px;">
-            <div>
-              <h2 style="font-family: var(--font-heading); font-size: 1.65rem; font-weight: 700; color: var(--primary-900);">Security Tools &amp; Sandbox</h2>
-              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 2px;">Select a specialized microservice to execute targeted security intelligence workflows.</p>
-            </div>
-          </div>
-
-          <!-- Tool Selector Tabs -->
-          <div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border-default); padding-bottom: 12px; overflow-x: auto;">
-            <button type="button" class="btn btn-secondary btn-sm active" id="tab-btn-url" data-tool-pane="pane-url">URL Threat Analysis</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="tab-btn-scam" data-tool-pane="pane-scam">Website Scam Detector</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="tab-btn-threat" data-tool-pane="pane-threat">Threat Digest Hub</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="tab-btn-sbom" data-tool-pane="pane-sbom">SBOM Analyzer</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="tab-btn-llm" data-tool-pane="pane-llm">LLM &amp; Webhooks</button>
-          </div>
-
-          <!-- PANE 1: URL THREAT ANALYSIS -->
-          <div id="pane-url" class="tool-pane">
-            <div class="execution-card">
-              <div style="margin-bottom: 20px;">
-                <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-900);">URL Phishing &amp; Threat Analysis</h3>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
-                  Performs non-rendering HTML inspection, certificate validation, domain registrar checks, and extraction of the UCI Phishing Detection feature vector.
-                </p>
-              </div>
-
-              <form id="form-scan-url">
-                <div class="form-group">
-                  <label for="input-scan-url" class="form-label">Target URL</label>
-                  <div class="input-with-affix">
-                    <span class="input-affix">TARGET</span>
-                    <input type="url" id="input-scan-url" class="form-input" placeholder="https://example.com/login" required>
-                  </div>
-                  <p class="form-helper">Enter a full HTTP or HTTPS URL to audit for potential phishing indicators.</p>
+          <!-- Cyber Command Header Banner -->
+          <div class="sec-tools-header-banner">
+            <div class="sec-tools-header-content">
+              <div class="sec-tools-header-title-wrap">
+                <div class="sec-tools-header-icon">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/><path d="M12 8v-1"/><path d="M12 15v-1"/></svg>
                 </div>
-
-                <div class="sample-chips-row">
-                  <span class="sample-chips-label">Quick Test Presets:</span>
-                  <button type="button" class="sample-chip-btn" data-preset-url="https://play.google.com/store/account/subscriptions/fix?utm_source=gmail&utm_medium=web&utm_campaign=workflow_assist_card_fix_payment&docId=subs:com.google.android.apps.subscriptions.red:g1.2tb.ai.3months_ip_75p.ac">Google Subscriptions (Long URL)</button>
-                  <button type="button" class="sample-chip-btn" data-preset-url="https://secure-login-portal.paypal-verification-update.net/auth">PayPal Phishing Lure (UCI)</button>
-                  <button type="button" class="sample-chip-btn" data-preset-url="http://192.168.1.100/chase-online-login/verify.php?token=928471">Raw IP Banking Phish</button>
-                </div>
-
-                <div style="display: flex; gap: 12px; align-items: center; margin-top: 16px;">
-                  <button type="submit" class="btn btn-primary" id="btn-run-url-scan">Run Analysis</button>
-                  <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-url">Clear</button>
-                </div>
-              </form>
-
-              <!-- Progress Stage Indicator (Real Backend Processing Stages) -->
-              <div id="url-scan-stages" class="execution-stage-box hidden">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary-800);">Analysis in progress</span>
-                  <span class="spinner" style="width: 18px; height: 18px; margin: 0; border-width: 2px;"></span>
-                </div>
-                <div class="execution-stages-list">
-                  <div class="stage-item in-progress" id="url-stage-1"><span class="stage-dot"></span> Validating target input</div>
-                  <div class="stage-item" id="url-stage-2"><span class="stage-dot"></span> Collecting security information and SSL parameters</div>
-                  <div class="stage-item" id="url-stage-3"><span class="stage-dot"></span> Extracting UCI ML feature vector</div>
-                  <div class="stage-item" id="url-stage-4"><span class="stage-dot"></span> Synthesizing AI risk assessment</div>
-                  <div class="stage-item" id="url-stage-5"><span class="stage-dot"></span> Preparing structured results</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- URL Results Container -->
-            <div id="url-results-container" class="hidden">
-              <!-- Rendered via JS -->
-            </div>
-          </div>
-
-          <!-- PANE 2: WEBSITE SCAM DETECTOR -->
-          <div id="pane-scam" class="tool-pane hidden">
-            <div class="execution-card">
-              <div style="margin-bottom: 20px;">
-                <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-900);">Website Scam Risk Detector</h3>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">
-                  Audits newly registered portals, shops, and investment links for fraudulent patterns, RDAP registrar youth, and missing business policies.
-                </p>
-              </div>
-
-              <form id="form-scan-scam">
-                <div class="form-group">
-                  <label for="input-scan-scam" class="form-label">Domain or Website URL</label>
-                  <div class="input-with-affix">
-                    <span class="input-affix">DOMAIN</span>
-                    <input type="text" id="input-scan-scam" class="form-input" placeholder="discount-luxury-outlet.com" required>
-                  </div>
-                  <p class="form-helper">Enter the target domain or website URL to inspect for trust signals and fraud flags.</p>
-                </div>
-
-                <div class="sample-chips-row">
-                  <span class="sample-chips-label">Quick Test Presets:</span>
-                  <button type="button" class="sample-chip-btn" data-preset-scam="discount-luxury-deals.top">Fake Luxury Store (.top)</button>
-                  <button type="button" class="sample-chip-btn" data-preset-scam="instant-cloud-btc-mining.biz">Crypto Cloud Miner (.biz)</button>
-                  <button type="button" class="sample-chip-btn" data-preset-scam="github.com">GitHub.com (Established)</button>
-                </div>
-
-                <div style="display: flex; gap: 12px; align-items: center; margin-top: 16px;">
-                  <button type="submit" class="btn btn-primary" id="btn-run-scam-audit">Audit Trust Score</button>
-                  <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-scam">Clear</button>
-                </div>
-              </form>
-
-              <!-- Progress Stage Indicator -->
-              <div id="scam-scan-stages" class="execution-stage-box hidden">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary-800);">Audit in progress</span>
-                  <span class="spinner" style="width: 18px; height: 18px; margin: 0; border-width: 2px;"></span>
-                </div>
-                <div class="execution-stages-list">
-                  <div class="stage-item in-progress" id="scam-stage-1"><span class="stage-dot"></span> Validating target domain</div>
-                  <div class="stage-item" id="scam-stage-2"><span class="stage-dot"></span> Querying RDAP / WHOIS registry for creation dates</div>
-                  <div class="stage-item" id="scam-stage-3"><span class="stage-dot"></span> Parsing policies, company claims, and contacts</div>
-                  <div class="stage-item" id="scam-stage-4"><span class="stage-dot"></span> Calculating trust score and scam probability</div>
-                  <div class="stage-item" id="scam-stage-5"><span class="stage-dot"></span> Compiling risk assessment</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Scam Results Container -->
-            <div id="scam-results-container" class="hidden">
-              <!-- Rendered via JS -->
-            </div>
-          </div>
-
-          <!-- PANE 3: THREAT DIGEST HUB -->
-          <div id="pane-threat" class="tool-pane hidden">
-            <div class="card" style="margin-bottom: 20px; padding: 20px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                 <div>
-                  <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 600; color: var(--primary-900);">Threat &amp; Compliance Ingestion Feed</h3>
-                  <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 2px;">Official bulletins aggregated from CISA, BleepingComputer, and Zero Day Initiative.</p>
+                  <h2 class="sec-tools-header-title">Security Tools &amp; Intelligence Sandbox</h2>
+                  <p class="sec-tools-header-desc">Specialized AI microservices, zero-day scanners, and live telemetry auditors.</p>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-refresh-feeds">Refetch Security Feeds</button>
               </div>
+              <div class="sec-tools-telemetry-badges">
+                <span class="telemetry-chip"><span class="telemetry-dot-pulse"></span> 10 Security Feeds Active</span>
+                <span class="telemetry-chip">Live OSV &amp; CISA Catalogs</span>
+                <span class="telemetry-chip">UCI ML 11-Feature Sandbox</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Elevated Tool Command Hub Switcher Grid -->
+          <div class="sec-tool-switcher-nav" role="tablist">
+            <!-- Tool 1 -->
+            <div class="sec-tool-nav-card active" id="tab-btn-threat" data-tool-pane="pane-threat" role="tab" tabindex="0">
+              <div class="sec-tool-card-top">
+                <div class="sec-tool-card-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <span class="sec-tool-card-badge">LIVE FEED</span>
+              </div>
+              <div class="sec-tool-card-title">Threat Digest Hub</div>
+              <div class="sec-tool-card-sub">CISA KEV, NIST &amp; MITRE Correlation</div>
+            </div>
+
+            <!-- Tool 2 -->
+            <div class="sec-tool-nav-card" id="tab-btn-url" data-tool-pane="pane-url" role="tab" tabindex="0">
+              <div class="sec-tool-card-top">
+                <div class="sec-tool-card-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <span class="sec-tool-card-badge">SANDBOX</span>
+              </div>
+              <div class="sec-tool-card-title">URL Threat Analysis</div>
+              <div class="sec-tool-card-sub">UCI Phishing ML Vector Analysis</div>
+            </div>
+
+            <!-- Tool 3 -->
+            <div class="sec-tool-nav-card" id="tab-btn-scam" data-tool-pane="pane-scam" role="tab" tabindex="0">
+              <div class="sec-tool-card-top">
+                <div class="sec-tool-card-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <span class="sec-tool-card-badge">TRUST AUDIT</span>
+              </div>
+              <div class="sec-tool-card-title">Website Scam Detector</div>
+              <div class="sec-tool-card-sub">RDAP Age &amp; Fraud Risk Modeling</div>
+            </div>
+
+            <!-- Tool 4 -->
+            <div class="sec-tool-nav-card" id="tab-btn-sbom" data-tool-pane="pane-sbom" role="tab" tabindex="0">
+              <div class="sec-tool-card-top">
+                <div class="sec-tool-card-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                </div>
+                <span class="sec-tool-card-badge">REAL-TIME</span>
+              </div>
+              <div class="sec-tool-card-title">SBOM Analyzer</div>
+              <div class="sec-tool-card-sub">Live OSV &amp; Supply Chain Scanner</div>
+            </div>
+
+            <!-- Tool 5 -->
+            <div class="sec-tool-nav-card" id="tab-btn-llm" data-tool-pane="pane-llm" role="tab" tabindex="0">
+              <div class="sec-tool-card-top">
+                <div class="sec-tool-card-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                </div>
+                <span class="sec-tool-card-badge">GATEWAY</span>
+              </div>
+              <div class="sec-tool-card-title">LLM &amp; Webhooks</div>
+              <div class="sec-tool-card-sub">Multi-Model Gateway &amp; Alerts</div>
+            </div>
+          </div>
+
+          <!-- PANE 1: THREAT DIGEST HUB -->
+          <div id="pane-threat" class="tool-pane">
+            <div class="sec-tool-hero-box">
+              <div class="sec-tool-hero-left">
+                <div class="sec-tool-hero-icon-lg">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                  <h3 class="sec-tool-hero-title">Threat &amp; Compliance Ingestion Stream</h3>
+                  <p class="sec-tool-hero-desc">Aggregated cyber intelligence feeds from CISA, BleepingComputer, The Hacker News, and Zero Day Initiative with automated MITRE ATT&amp;CK &amp; NIST NVD enrichment.</p>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-refresh-feeds">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Sync Feeds Now
+              </button>
             </div>
 
             <div class="feed-hub-layout">
               <!-- Feed Articles Column -->
               <div class="feed-list-col">
                 <div class="feed-list-header">
-                  <span style="font-weight: 600; font-size: 0.88rem; color: var(--text-primary);">Ingested Advisories</span>
+                  <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #2563eb;"></span>
+                    Ingested Advisories
+                  </span>
                   <span class="badge badge-info" id="feed-items-count">Loading...</span>
                 </div>
-                <div style="padding: 10px 14px; border-bottom: 1px solid var(--border-default);">
-                  <input type="text" id="input-feed-search" class="form-input" placeholder="Filter alerts by keyword or CVE..." style="font-size: 0.82rem; padding: 6px 10px;">
+                <div style="padding: 10px 14px; border-bottom: 1px solid var(--border-default); background: #ffffff;">
+                  <input type="text" id="input-feed-search" class="form-input" placeholder="Search advisories by CVE, product, actor..." style="font-size: 0.84rem; padding: 7px 12px; border-radius: 6px;">
                 </div>
                 <div class="feed-items-scroll" id="feed-items-list">
                   <div class="loading-state">
                     <div class="spinner"></div>
-                    <p style="font-size: 0.82rem; color: var(--text-muted);">Fetching threat bulletins...</p>
+                    <p style="font-size: 0.84rem; color: var(--text-muted);">Fetching real-time threat bulletins...</p>
                   </div>
                 </div>
               </div>
@@ -767,32 +762,221 @@
                   <div class="empty-state-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.83a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
                   </div>
-                  <h4 class="empty-state-title">Select a Threat Alert</h4>
-                  <p class="empty-state-desc">Click on any security advisory from the left list to perform automated AI threat synthesis, CVE extraction, CISA KEV catalog lookup, and mitigation planning.</p>
+                  <h4 class="empty-state-title">Select a Threat Advisory</h4>
+                  <p class="empty-state-desc">Click on any security advisory from the left feed list to launch automated AI threat synthesis, NIST NVD metrics, CISA KEV exploitation audit, and actionable mitigation planning.</p>
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- PANE 2: URL THREAT ANALYSIS -->
+          <div id="pane-url" class="tool-pane hidden">
+            <div class="sec-tool-hero-box">
+              <div class="sec-tool-hero-left">
+                <div class="sec-tool-hero-icon-lg">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <div>
+                  <h3 class="sec-tool-hero-title">URL Phishing &amp; Deep Sandbox Inspection</h3>
+                  <p class="sec-tool-hero-desc">Executes non-rendering DOM inspection, SSL certificate verification, RDAP registration age auditing, and extracts the 11-dimensional UCI Machine Learning Phishing feature vector.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="execution-card" style="margin-bottom: 24px;">
+              <form id="form-scan-url">
+                <div class="form-group">
+                  <label for="input-scan-url" class="form-label" style="font-weight: 700; color: var(--primary-900);">Target URL or Phishing Lure</label>
+                  <div class="input-with-affix">
+                    <span class="input-affix" style="font-weight: 700; background: #1e293b; color: #93c5fd;">AUDIT TARGET</span>
+                    <input type="url" id="input-scan-url" class="form-input" placeholder="https://example.com/login" style="font-size: 0.92rem; padding: 10px 14px;" required>
+                  </div>
+                  <p class="form-helper">Enter any suspicious web address to audit across DNS, SSL, content traits, and ML vector parameters.</p>
+                </div>
+
+                <div class="sec-preset-bar">
+                  <span class="sec-preset-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Quick Lure Presets:
+                  </span>
+                  <button type="button" class="sec-preset-btn" data-preset-url="https://secure-login-portal.paypal-verification-update.net/auth">
+                    PayPal Credential Lure <span class="preset-tag">UCI High-Risk</span>
+                  </button>
+                  <button type="button" class="sec-preset-btn" data-preset-url="http://192.168.1.100/chase-online-login/verify.php?token=928471">
+                    Raw IP Banking Lure <span class="preset-tag">IP Phish</span>
+                  </button>
+                  <button type="button" class="sec-preset-btn" data-preset-url="https://play.google.com/store/account/subscriptions/fix?utm_source=gmail&utm_medium=web&utm_campaign=workflow_assist_card_fix_payment&docId=subs:com.google.android.apps.subscriptions.red:g1.2tb.ai.3months_ip_75p.ac">
+                    Google Play Subscriptions <span class="preset-tag">Legitimate</span>
+                  </button>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; margin-top: 18px;">
+                  <button type="submit" class="btn btn-primary" id="btn-run-url-scan">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Run Sandbox Analysis
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-url">Clear Input</button>
+                </div>
+              </form>
+
+              <!-- Progress Stage Stepper Indicator -->
+              <div id="url-scan-stages" class="sec-stepper-box hidden">
+                <div class="sec-stepper-header">
+                  <span style="font-weight: 700; font-size: 0.9rem; color: var(--primary-900); display: flex; align-items: center; gap: 8px;">
+                    <span class="telemetry-dot-pulse"></span>
+                    Live Sandbox Telemetry in Progress
+                  </span>
+                  <span class="spinner" style="width: 18px; height: 18px; margin: 0; border-width: 2px;"></span>
+                </div>
+                <div class="sec-stepper-list">
+                  <div class="sec-step-row in-progress" id="url-stage-1"><span class="sec-step-indicator">1</span> Sanitizing and validating target URL parameters</div>
+                  <div class="sec-step-row" id="url-stage-2"><span class="sec-step-indicator">2</span> Inspecting SSL/TLS certificates and WHOIS registration age</div>
+                  <div class="sec-step-row" id="url-stage-3"><span class="sec-step-indicator">3</span> Extracting 11-parameter UCI Phishing ML feature vector</div>
+                  <div class="sec-step-row" id="url-stage-4"><span class="sec-step-indicator">4</span> Synthesizing AI Cybersecurity risk reasoning</div>
+                  <div class="sec-step-row" id="url-stage-5"><span class="sec-step-indicator">5</span> Compiling exportable security advisory report</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- URL Results Container -->
+            <div id="url-results-container" class="hidden">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- PANE 3: WEBSITE SCAM DETECTOR & DOMAIN TARGET INTELLIGENCE -->
+          <div id="pane-scam" class="tool-pane hidden">
+            <div class="sec-tool-hero-box">
+              <div class="sec-tool-hero-left">
+                <div class="sec-tool-hero-icon-lg">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                </div>
+                <div>
+                  <h3 class="sec-tool-hero-title">Domain Target &amp; Website Scam Intelligence Engine</h3>
+                  <p class="sec-tool-hero-desc">Comprehensive 10-module deep audit: RDAP/WHOIS age, DNS records (A, MX, NS, TXT, SOA), email spoofing protections (SPF, DMARC, DKIM), deep TLS certificate inspection, security headers, typosquatting radar, open port scans, and AI threat correlation.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="execution-card" style="margin-bottom: 24px;">
+              <form id="form-scan-scam">
+                <div class="form-group">
+                  <label for="input-scan-scam" class="form-label" style="font-weight: 700; color: var(--primary-900);">Target Domain or Website</label>
+                  <div class="input-with-affix">
+                    <span class="input-affix" style="font-weight: 700; background: #1e293b; color: #93c5fd;">DOMAIN TARGET</span>
+                    <input type="text" id="input-scan-scam" class="form-input" placeholder="e.g. apple.com, paypal-verify.top, discount-store.shop" style="font-size: 0.92rem; padding: 10px 14px;" required>
+                  </div>
+                  <p class="form-helper">Enter target domain to compute a weighted 6-pillar risk score (0-100) and full intelligence dossier.</p>
+                </div>
+
+                <div class="sec-preset-bar">
+                  <span class="sec-preset-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Test Target Presets:
+                  </span>
+                  <button type="button" class="sec-preset-btn" data-preset-scam="apple.com">
+                    Apple.com <span class="preset-tag">Verified Safe</span>
+                  </button>
+                  <button type="button" class="sec-preset-btn" data-preset-scam="paypal-verify-billing.top">
+                    PayPal Phishing <span class="preset-tag">.top Brand Spoof</span>
+                  </button>
+                  <button type="button" class="sec-preset-btn" data-preset-scam="discount-luxury-deals.shop">
+                    Fake Discount Store <span class="preset-tag">.shop Deceptive</span>
+                  </button>
+                  <button type="button" class="sec-preset-btn" data-preset-scam="instant-btc-profit-mining.biz">
+                    Crypto Mining Fraud <span class="preset-tag">.biz Scheme</span>
+                  </button>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; margin-top: 18px;">
+                  <button type="submit" class="btn btn-primary" id="btn-run-scam-audit">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Audit Domain Intelligence
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-scam">Clear Input</button>
+                </div>
+              </form>
+
+              <!-- Progress Stage Stepper Indicator -->
+              <div id="scam-scan-stages" class="sec-stepper-box hidden">
+                <div class="sec-stepper-header">
+                  <span style="font-weight: 700; font-size: 0.9rem; color: var(--primary-900); display: flex; align-items: center; gap: 8px;">
+                    <span class="telemetry-dot-pulse"></span>
+                    Live 10-Module Domain Risk Audit in Progress
+                  </span>
+                  <span class="spinner" style="width: 18px; height: 18px; margin: 0; border-width: 2px;"></span>
+                </div>
+                <div class="sec-stepper-list">
+                  <div class="sec-step-row in-progress" id="scam-stage-1"><span class="sec-step-indicator">1</span> Querying DNS records (A, AAAA, MX, NS, TXT, SOA) &amp; subdomains</div>
+                  <div class="sec-step-row" id="scam-stage-2"><span class="sec-step-indicator">2</span> Interrogating ICANN RDAP / WHOIS for registration age &amp; registrar</div>
+                  <div class="sec-step-row" id="scam-stage-3"><span class="sec-step-indicator">3</span> Deep TLS cryptographic certificate inspection &amp; HTTP security headers</div>
+                  <div class="sec-step-row" id="scam-stage-4"><span class="sec-step-indicator">4</span> Scanning open ports, IP geolocation, and SPF/DMARC email defenses</div>
+                  <div class="sec-step-row" id="scam-stage-5"><span class="sec-step-indicator">5</span> Generating typosquatting radar, blacklist checks, and AI threat report</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scam Results Container -->
+            <div id="scam-results-container" class="hidden">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
           <!-- PANE 4: SBOM DEPENDENCY ANALYZER -->
           <div id="pane-sbom" class="tool-pane hidden">
-            <div class="execution-card">
-              <div style="margin-bottom: 16px;">
-                <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-900);">SBOM Dependency Vulnerability Analyzer</h3>
-                <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 4px;">Audit Python requirements.txt or Node.js package.json manifests against live CVE databases and CISA KEV zero-day catalogs.</p>
+            <div class="sec-tool-hero-box">
+              <div class="sec-tool-hero-left">
+                <div class="sec-tool-hero-icon-lg">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                </div>
+                <div>
+                  <h3 class="sec-tool-hero-title">SBOM &amp; Supply Chain Vulnerability Auditor</h3>
+                  <p class="sec-tool-hero-desc">Real-time dependency auditing across Python, Node.js, Java, Go, Rust, and CycloneDX/SPDX manifests correlated with live OSV database and CISA KEV catalogs.</p>
+                </div>
               </div>
+            </div>
 
-              <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
-                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; align-self: center;">Preload Sample:</span>
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-sbom-sample-py">Python requirements.txt</button>
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-sbom-sample-node">Node.js package.json</button>
+            <div class="execution-card" style="margin-bottom: 24px;">
+              <div class="sec-preset-bar">
+                <span class="sec-preset-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Preload Ecosystem Manifests:
+                </span>
+                <button type="button" class="sec-preset-btn" id="btn-sbom-sample-py">
+                  Python <span class="preset-tag">requirements.txt</span>
+                </button>
+                <button type="button" class="sec-preset-btn" id="btn-sbom-sample-node">
+                  Node.js <span class="preset-tag">package.json</span>
+                </button>
+                <button type="button" class="sec-preset-btn" id="btn-sbom-sample-cyclonedx">
+                  CycloneDX <span class="preset-tag">JSON SBOM</span>
+                </button>
+                <button type="button" class="sec-preset-btn" id="btn-sbom-sample-spring">
+                  Java <span class="preset-tag">Spring Boot</span>
+                </button>
               </div>
 
               <form id="form-scan-sbom">
                 <div class="form-group">
-                  <textarea id="input-sbom-manifest" class="form-textarea" rows="7" placeholder="Paste your dependency manifest here..." style="font-family: var(--font-mono); font-size: 0.85rem;" required></textarea>
+                  <div class="sec-code-container">
+                    <div class="sec-code-header">
+                      <div class="sec-code-dots">
+                        <span class="sec-code-dot red"></span>
+                        <span class="sec-code-dot yellow"></span>
+                        <span class="sec-code-dot green"></span>
+                      </div>
+                      <span class="sec-code-title">MANIFEST EDITOR (ANY LANGUAGE / FORMAT)</span>
+                      <span style="font-size: 0.72rem; color: #94a3b8;">UTF-8</span>
+                    </div>
+                    <textarea id="input-sbom-manifest" class="sec-code-textarea" rows="8" placeholder="Paste your dependency manifest here (requirements.txt, package.json, CycloneDX JSON, SPDX, go.mod, Cargo.toml, pom.xml)..." required></textarea>
+                  </div>
                 </div>
-                <button type="submit" class="btn btn-primary" id="btn-run-sbom-audit">Audit Manifest Dependencies</button>
+                <div style="display: flex; gap: 12px; align-items: center; margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary" id="btn-run-sbom-audit">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    Audit Manifest in Real Time
+                  </button>
+                </div>
               </form>
             </div>
 
@@ -803,84 +987,101 @@
 
           <!-- PANE 5: LLM CONFIG & WEBHOOKS -->
           <div id="pane-llm" class="tool-pane hidden">
-            <div class="card" style="max-width: 800px; margin: 0 auto 24px;">
-              <div class="card-header">
+            <div class="sec-llm-gateway-grid">
+              <!-- Column 1: LLM Gateway Configuration -->
+              <div class="sec-gateway-card">
                 <div>
-                  <h3 class="card-title">LLM Gateway Configuration</h3>
-                  <p class="card-subtitle">Connect custom provider API keys to power security reasoning with Gemini, OpenAI, Claude, or local endpoints.</p>
+                  <div class="sec-gateway-header">
+                    <div class="sec-gateway-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                    </div>
+                    <div>
+                      <h3 class="sec-gateway-title">LLM Gateway Engine</h3>
+                      <p class="sec-gateway-desc">Connect Gemini, OpenAI, Claude, Groq, or Local Ollama credentials.</p>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="select-llm-provider" class="form-label" style="font-weight: 600;">Active AI Provider</label>
+                    <select id="select-llm-provider" class="form-select">
+                      <option value="google" selected>Google Gemini (Official)</option>
+                      <option value="openai">OpenAI (GPT-4o)</option>
+                      <option value="anthropic">Anthropic Claude 3.5</option>
+                      <option value="groq">Groq Cloud (Llama 3.3)</option>
+                      <option value="custom">Custom / Local Endpoint (Ollama, vLLM)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="input-llm-key" class="form-label" id="label-llm-key" style="font-weight: 600;">Google Gemini API Key</label>
+                    <div style="display: flex; gap: 8px;">
+                      <input type="password" id="input-llm-key" class="form-input" placeholder="Paste custom API key..." autocomplete="off">
+                      <button type="button" class="btn btn-secondary btn-sm" id="btn-toggle-key-view">Show</button>
+                    </div>
+                    <p class="form-helper">Keys are kept client-side and sent directly via secure request headers.</p>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="input-llm-model" class="form-label" style="font-weight: 600;">Model Identifier Override</label>
+                    <input type="text" id="input-llm-model" class="form-input" placeholder="e.g. gemini-2.5-flash">
+                  </div>
+
+                  <div class="form-group hidden" id="group-custom-base-url">
+                    <label for="input-custom-base-url" class="form-label" style="font-weight: 600;">Custom Base URL</label>
+                    <input type="text" id="input-custom-base-url" class="form-input" placeholder="http://localhost:11434/v1">
+                  </div>
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label for="select-llm-provider" class="form-label">Selected LLM Provider</label>
-                <select id="select-llm-provider" class="form-select">
-                  <option value="google" selected>Google Gemini</option>
-                  <option value="openai">OpenAI</option>
-                  <option value="anthropic">Anthropic Claude</option>
-                  <option value="groq">Groq Cloud</option>
-                  <option value="custom">Custom / OpenAI-Compatible (LocalAI, Ollama, OpenRouter)</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="input-llm-key" class="form-label" id="label-llm-key">Google Gemini API Key</label>
-                <div style="display: flex; gap: 8px;">
-                  <input type="password" id="input-llm-key" class="form-input" placeholder="Paste API key..." autocomplete="off">
-                  <button type="button" class="btn btn-secondary btn-sm" id="btn-toggle-key-view">Show</button>
-                </div>
-                <p class="form-helper">Keys are stored locally in your browser and passed exclusively in HTTPS headers to backend endpoints.</p>
-              </div>
-
-              <div class="form-group">
-                <label for="input-llm-model" class="form-label">Target Model Name</label>
-                <input type="text" id="input-llm-model" class="form-input" placeholder="e.g. gemini-2.5-flash">
-              </div>
-
-              <div class="form-group hidden" id="group-custom-base-url">
-                <label for="input-custom-base-url" class="form-label">Custom Base URL</label>
-                <input type="text" id="input-custom-base-url" class="form-input" placeholder="http://localhost:11434/v1">
-              </div>
-
-              <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-primary btn-sm" id="btn-save-llm-config">Save Configuration</button>
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-test-llm-key">Test Connection</button>
-                <button type="button" class="btn btn-danger btn-sm" id="btn-reset-llm-config">Reset Defaults</button>
-              </div>
-
-              <div id="llm-status-box" style="margin-top: 16px; padding: 12px; background-color: var(--bg-tertiary); border-radius: var(--radius-md); font-size: 0.85rem;">
-                <span id="llm-status-text">LLM Engine: Operating with server default environment or simulation fallback.</span>
-              </div>
-            </div>
-
-            <!-- Incident Alert Webhooks Card -->
-            <div class="card" style="max-width: 800px; margin: 0 auto;">
-              <div class="card-header">
                 <div>
-                  <h3 class="card-title">Enterprise Incident Alert Webhooks</h3>
-                  <p class="card-subtitle">Dispatch immediate incident alerts to Slack, Discord, or Microsoft Teams channels when critical vulnerabilities are discovered.</p>
+                  <div style="display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-save-llm-config">Save Settings</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-test-llm-key">Test Connection</button>
+                    <button type="button" class="btn btn-danger btn-sm" id="btn-reset-llm-config">Reset</button>
+                  </div>
+
+                  <div id="llm-status-box" style="margin-top: 14px; padding: 10px 12px; background-color: var(--bg-tertiary); border-radius: var(--radius-md); font-size: 0.82rem; border-left: 3px solid var(--primary-600);">
+                    <span id="llm-status-text">LLM Engine: Operating with server default configuration.</span>
+                  </div>
                 </div>
               </div>
 
-              <div class="form-group">
-                <label for="select-webhook-platform" class="form-label">Platform Connector</label>
-                <select id="select-webhook-platform" class="form-select">
-                  <option value="slack">Slack Incoming Webhook</option>
-                  <option value="discord">Discord Webhook</option>
-                  <option value="teams">Microsoft Teams Connector</option>
-                </select>
-              </div>
+              <!-- Column 2: Webhooks Dispatcher -->
+              <div class="sec-gateway-card">
+                <div>
+                  <div class="sec-gateway-header">
+                    <div class="sec-gateway-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </div>
+                    <div>
+                      <h3 class="sec-gateway-title">Incident Alert Webhooks</h3>
+                      <p class="sec-gateway-desc">Automated threat notification dispatch to Slack, Discord, or Microsoft Teams.</p>
+                    </div>
+                  </div>
 
-              <div class="form-group">
-                <label for="input-webhook-url" class="form-label">Webhook Endpoint URL</label>
-                <input type="url" id="input-webhook-url" class="form-input" placeholder="https://hooks.slack.com/services/...">
-              </div>
+                  <div class="form-group">
+                    <label for="select-webhook-platform" class="form-label" style="font-weight: 600;">Notification Platform</label>
+                    <select id="select-webhook-platform" class="form-select">
+                      <option value="slack">Slack Incoming Webhook</option>
+                      <option value="discord">Discord Channel Webhook</option>
+                      <option value="teams">Microsoft Teams Connector</option>
+                    </select>
+                  </div>
 
-              <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button type="button" class="btn btn-primary btn-sm" id="btn-save-webhook">Save Webhook</button>
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-test-webhook">Send Test Dispatch</button>
-              </div>
+                  <div class="form-group">
+                    <label for="input-webhook-url" class="form-label" style="font-weight: 600;">Webhook Target URL</label>
+                    <input type="url" id="input-webhook-url" class="form-input" placeholder="https://hooks.slack.com/services/..." style="font-family: var(--font-mono); font-size: 0.82rem;">
+                    <p class="form-helper">Enter the incoming webhook endpoint provided by your collaboration app.</p>
+                  </div>
+                </div>
 
-              <div id="webhook-feedback" style="margin-top: 14px; font-size: 0.85rem; color: var(--text-muted);"></div>
+                <div>
+                  <div style="display: flex; gap: 8px; margin-top: 20px;">
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-save-webhook">Save Webhook</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-test-webhook">Dispatch Test Alert</button>
+                  </div>
+                  <div id="webhook-feedback" style="margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2461,6 +2662,6 @@ CUSTOM_LLM_MODEL=llama3:8b</code></pre>
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js"></script>
+  <script src="app.js?v=3.5"></script>
 </body>
 </html>

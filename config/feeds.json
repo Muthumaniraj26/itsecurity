@@ -1,9 +1,9 @@
 [
   {
-    "id": "cisa",
-    "name": "CISA Cybersecurity Advisories",
-    "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml",
-    "category": "Advisories"
+    "id": "thn",
+    "name": "The Hacker News",
+    "url": "https://feeds.feedburner.com/TheHackersNews",
+    "category": "Breaking News"
   },
   {
     "id": "bleepingcomputer",
@@ -12,9 +12,51 @@
     "category": "News"
   },
   {
+    "id": "cisa",
+    "name": "CISA Cybersecurity Advisories",
+    "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+    "category": "Advisories"
+  },
+  {
+    "id": "darkreading",
+    "name": "Dark Reading Threat Intel",
+    "url": "https://www.darkreading.com/rss.xml",
+    "category": "Enterprise Intel"
+  },
+  {
     "id": "zdi",
     "name": "Zero Day Initiative Advisories",
     "url": "https://www.zerodayinitiative.com/rss/published/",
     "category": "Vulnerabilities"
+  },
+  {
+    "id": "krebs",
+    "name": "Krebs on Security",
+    "url": "https://krebsonsecurity.com/feed/",
+    "category": "Investigations"
+  },
+  {
+    "id": "sans",
+    "name": "SANS Internet Storm Center",
+    "url": "https://isc.sans.edu/rssfeed.xml",
+    "category": "Network Defense"
+  },
+  {
+    "id": "cyberscoop",
+    "name": "CyberScoop",
+    "url": "https://cyberscoop.com/feed/",
+    "category": "Policy & Threat"
+  },
+  {
+    "id": "gbhackers",
+    "name": "GBHackers Security News",
+    "url": "https://gbhackers.com/feed/",
+    "category": "Vulnerabilities"
+  },
+  {
+    "id": "securityaffairs",
+    "name": "Security Affairs",
+    "url": "https://securityaffairs.com/feed",
+    "category": "Cyber Warfare"
   }
 ]

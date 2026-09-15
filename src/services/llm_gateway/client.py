@@ -1,5 +1,8 @@
 import os
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_configured_providers() -> list:
     """Detect which LLM providers have active credentials or local endpoints."""
@@ -41,21 +44,67 @@ async def _invoke_single_provider(
     if not effective_key and effective_provider != "custom":
         raise ValueError(f"No API key configured for {effective_provider.upper()}.")
 
-    async with httpx.AsyncClient(timeout=httpx.Timeout(8.0, connect=3.0)) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=10.0)) as client:
         if effective_provider == "google":
-            target_model = model_name.strip() if (model_name and model_name.strip()) else "gemini-2.5-flash"
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent?key={effective_key}"
-            payload = {"contents": [{"parts": [{"text": prompt}]}]}
-            res = await client.post(url, json=payload)
-            if res.status_code != 200:
-                # Fallback to gemini-1.5-flash if target model experiences demand spikes (503/429)
-                if res.status_code in [503, 429] and target_model != "gemini-1.5-flash":
-                    fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={effective_key}"
-                    res = await client.post(fallback_url, json=payload)
-                if res.status_code != 200:
-                    raise ValueError(f"Google Gemini API error ({res.status_code}): {res.text}")
-            data = res.json()
-            return data["candidates"][0]["content"]["parts"][0]["text"]
+            models_to_try = []
+            if model_name and model_name.strip():
+                models_to_try.append(model_name.strip())
+            models_to_try.extend(["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"])
+            # Deduplicate while preserving order
+            models_to_try = list(dict.fromkeys(models_to_try))
+
+            keys_to_try = [effective_key] if effective_key else []
+            env_key = os.getenv("GEMINI_API_KEY")
+            if env_key and env_key not in keys_to_try:
+                keys_to_try.append(env_key)
+
+            if not keys_to_try:
+                raise ValueError("No Gemini API key available.")
+
+            last_gemini_err = None
+            for try_key in keys_to_try:
+                auth_failed = False
+                for g_model in models_to_try:
+                    # Try 1: Query parameter ?key=
+                    try:
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/{g_model}:generateContent?key={try_key}"
+                        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+                        res = await client.post(url, json=payload)
+                        if res.status_code == 200:
+                            data = res.json()
+                            candidates = data.get("candidates", [])
+                            if candidates and "content" in candidates[0] and "parts" in candidates[0]["content"]:
+                                return candidates[0]["content"]["parts"][0].get("text", "")
+                        last_gemini_err = f"Status {res.status_code}: {res.text}"
+                        if res.status_code in [401, 403] or "API_KEY_SERVICE_BLOCKED" in res.text or "API_KEY_INVALID" in res.text:
+                            auth_failed = True
+                    except Exception as g_err:
+                        last_gemini_err = str(g_err)
+
+                    # Try 2: Header Authorization: Bearer (for OAuth / gcloud / session tokens)
+                    if not auth_failed:
+                        try:
+                            url_bearer = f"https://generativelanguage.googleapis.com/v1beta/models/{g_model}:generateContent"
+                            headers_bearer = {
+                                "Authorization": f"Bearer {try_key}",
+                                "Content-Type": "application/json"
+                            }
+                            payload = {"contents": [{"parts": [{"text": prompt}]}]}
+                            res_bearer = await client.post(url_bearer, json=payload, headers=headers_bearer)
+                            if res_bearer.status_code == 200:
+                                data = res_bearer.json()
+                                candidates = data.get("candidates", [])
+                                if candidates and "content" in candidates[0] and "parts" in candidates[0]["content"]:
+                                    return candidates[0]["content"]["parts"][0].get("text", "")
+                            last_gemini_err = f"Status {res_bearer.status_code}: {res_bearer.text}"
+                        except Exception as gb_err:
+                            last_gemini_err = str(gb_err)
+                            continue
+
+                    if auth_failed:
+                        break
+
+            raise ValueError(f"Google Gemini API error across models and auth modes: {last_gemini_err}")
 
         elif effective_provider in ["openai", "groq", "custom"]:
             default_model = "gpt-4o-mini" if effective_provider == "openai" else ("llama-3.3-70b-versatile" if effective_provider == "groq" else "default")

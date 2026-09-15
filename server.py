@@ -28,6 +28,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def add_no_cache_headers(request, call_next):
+    response = await call_next(request)
+    if request.url.path.endswith(".css") or request.url.path.endswith(".js") or request.url.path == "/" or request.url.path.endswith(".html"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 # Mount Microservice Routers
 app.include_router(llm_gateway_router)
 app.include_router(threat_digest_router)
@@ -47,6 +56,13 @@ async def health_check():
             "scraper"
         ]
     }
+
+@app.on_event("startup")
+async def on_startup():
+    import asyncio
+    from src.services.threat_digest.feed_collector import aggregate_security_feeds
+    # Pre-warm feed cache asynchronously without blocking startup
+    asyncio.create_task(aggregate_security_feeds(force_refresh=True))
 
 # Serve Static Frontend Files
 public_dir = os.path.join(os.path.dirname(__file__), "public")

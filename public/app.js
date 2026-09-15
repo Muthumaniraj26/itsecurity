@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // NAVIGATION & VIEW SWITCHER
+  // NAVIGATION & VIEW SWITCHER (NON-BLOCKING & RESILIENT)
   // ==========================================================================
   const allPageViews = document.querySelectorAll('.page-view');
   const allNavLinks = document.querySelectorAll('.nav-link');
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function navigateTo(viewId) {
     activeView = viewId;
 
-    // Toggle active view
+    // Toggle active view instantaneously
     allPageViews.forEach(view => {
       if (view.id === `view-${viewId}`) {
         view.classList.add('active');
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Handle view-specific initializations
+    // Handle view-specific non-blocking background initializations
     if (viewId === 'dashboard') {
       loadDashboardData();
     } else if (viewId === 'history') {
@@ -318,8 +318,37 @@ document.addEventListener('DOMContentLoaded', () => {
       loadSavedReports();
     } else if (viewId === 'settings') {
       populateSettingsProfile();
-    } else if (viewId === 'tools' && threatFeeds.length === 0) {
-      loadThreatFeeds();
+    } else if (viewId === 'tools') {
+      // If no tool pane is currently visible, activate default threat pane
+      const visiblePane = document.querySelector('#view-tools .tool-pane:not(.hidden)');
+      if (!visiblePane) {
+        activateToolPane('pane-threat');
+      }
+      if (threatFeeds.length === 0) {
+        loadThreatFeeds(false);
+      }
+    }
+  }
+
+  // Universal helper for button actions (handles both views and tool shortcuts)
+  function switchView(target) {
+    if (target === 'threats' || target === 'threat_digest') {
+      navigateTo('tools');
+      activateToolPane('pane-threat');
+    } else if (target === 'phishing' || target === 'url') {
+      navigateTo('tools');
+      activateToolPane('pane-url');
+    } else if (target === 'scam' || target === 'scam_detector') {
+      navigateTo('tools');
+      activateToolPane('pane-scam');
+    } else if (target === 'sbom' || target === 'dependencies') {
+      navigateTo('tools');
+      activateToolPane('pane-sbom');
+    } else if (target === 'llm' || target === 'gateway') {
+      navigateTo('tools');
+      activateToolPane('pane-llm');
+    } else {
+      navigateTo(target);
     }
   }
 
@@ -376,6 +405,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Capability cards navigation
+  document.querySelectorAll('.capability-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const toolPane = card.getAttribute('data-action-tool');
+      const targetView = card.getAttribute('data-action-view');
+      if (toolPane) {
+        navigateTo('tools');
+        activateToolPane(toolPane);
+      } else if (targetView) {
+        navigateTo(targetView);
+      }
+    });
+  });
+
   // Switch tool buttons
   document.querySelectorAll('[data-switch-tool]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -412,7 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function checkSession() {
     if (!authToken) {
       updateAuthStateUI();
-      navigateTo('home');
+      if (['dashboard', 'history', 'reports', 'settings'].includes(activeView)) {
+        navigateTo('home');
+      }
       return;
     }
 
@@ -424,7 +469,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
         currentUser = data.user;
         updateAuthStateUI();
-        navigateTo('dashboard');
+        if (activeView === 'login' || activeView === 'register') {
+          navigateTo('dashboard');
+        }
 
         // Check if onboarding is needed
         if (currentUser && !currentUser.onboardingCompleted) {
@@ -436,11 +483,15 @@ document.addEventListener('DOMContentLoaded', () => {
         authToken = null;
         currentUser = null;
         updateAuthStateUI();
-        navigateTo('home');
+        if (['dashboard', 'history', 'reports', 'settings'].includes(activeView)) {
+          navigateTo('home');
+        }
       }
     } catch (e) {
       updateAuthStateUI();
-      navigateTo('home');
+      if (['dashboard', 'history', 'reports', 'settings'].includes(activeView)) {
+        navigateTo('home');
+      }
     }
   }
 
@@ -850,9 +901,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // TOOL PANES SWITCHER
   // ==========================================================================
   const toolPaneButtons = [
+    { btnId: 'tab-btn-threat', paneId: 'pane-threat' },
     { btnId: 'tab-btn-url', paneId: 'pane-url' },
     { btnId: 'tab-btn-scam', paneId: 'pane-scam' },
-    { btnId: 'tab-btn-threat', paneId: 'pane-threat' },
     { btnId: 'tab-btn-sbom', paneId: 'pane-sbom' },
     { btnId: 'tab-btn-llm', paneId: 'pane-llm' }
   ];
@@ -877,7 +928,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   toolPaneButtons.forEach(({ btnId, paneId }) => {
     const btn = document.getElementById(btnId);
-    if (btn) btn.addEventListener('click', () => activateToolPane(paneId));
+    if (btn) {
+      btn.addEventListener('click', () => activateToolPane(paneId));
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          activateToolPane(paneId);
+        }
+      });
+    }
   });
 
   // ==========================================================================
@@ -919,19 +978,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-
-  const btnClearScam = document.getElementById('btn-clear-scam');
-  if (btnClearScam) {
-    btnClearScam.addEventListener('click', () => {
-      const scamInput = document.getElementById('input-scan-scam');
-      if (scamInput) {
-        scamInput.value = '';
-        scamInput.focus();
-      }
-      const scamResults = document.getElementById('scam-results-container');
-      if (scamResults) scamResults.classList.add('hidden');
-    });
-  }
 
   function advanceUrlStages(stageNum) {
     for (let i = 1; i <= 5; i++) {
@@ -1266,23 +1312,42 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // TOOL 2: WEBSITE SCAM RISK DETECTOR
+  // TOOL 2: ENTERPRISE DOMAIN TARGET & WEBSITE SCAM INTELLIGENCE
   // ==========================================================================
   const formScanScam = document.getElementById('form-scan-scam');
   const inputScanScam = document.getElementById('input-scan-scam');
   const scamScanStages = document.getElementById('scam-scan-stages');
   const scamResultsContainer = document.getElementById('scam-results-container');
 
+  // Bind Preset Buttons
+  document.querySelectorAll('[data-preset-scam]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const presetDomain = btn.getAttribute('data-preset-scam');
+      if (inputScanScam) {
+        inputScanScam.value = presetDomain;
+        if (formScanScam) formScanScam.dispatchEvent(new Event('submit'));
+      }
+    });
+  });
+
+  const btnClearScam = document.getElementById('btn-clear-scam');
+  if (btnClearScam && inputScanScam) {
+    btnClearScam.addEventListener('click', () => {
+      inputScanScam.value = '';
+      if (scamResultsContainer) scamResultsContainer.classList.add('hidden');
+    });
+  }
+
   function advanceScamStages(stageNum) {
     for (let i = 1; i <= 5; i++) {
       const stageEl = document.getElementById(`scam-stage-${i}`);
       if (!stageEl) continue;
       if (i < stageNum) {
-        stageEl.className = 'stage-item completed';
+        stageEl.className = 'sec-step-row completed';
       } else if (i === stageNum) {
-        stageEl.className = 'stage-item in-progress';
+        stageEl.className = 'sec-step-row in-progress';
       } else {
-        stageEl.className = 'stage-item';
+        stageEl.className = 'sec-step-row';
       }
     }
   }
@@ -1299,35 +1364,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         advanceScamStages(2);
-        const stageTimer = setTimeout(() => advanceScamStages(3), 600);
+        const stageTimer3 = setTimeout(() => advanceScamStages(3), 500);
+        const stageTimer4 = setTimeout(() => advanceScamStages(4), 1000);
 
         const res = await fetch('/api/detect-scam', {
           method: 'POST',
           headers: getHeaders(true, true),
           body: JSON.stringify({ url: domain })
         });
-        clearTimeout(stageTimer);
 
-        advanceScamStages(4);
+        clearTimeout(stageTimer3);
+        clearTimeout(stageTimer4);
+        advanceScamStages(5);
+
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           throw new Error(errData.detail || 'Service unavailable or domain audit failed.');
         }
 
         const data = await res.json();
-        advanceScamStages(5);
-
-        // Determine risk level
-        const scamProb = data.analysis.scamProbability || 0;
-        let riskLevel = 'Low';
-        let uncertaintyLabel = 'No significant scam indicators detected';
-        if (scamProb >= 60) {
-          riskLevel = 'High';
-          uncertaintyLabel = 'Potential Scam (High probability)';
-        } else if (scamProb >= 25) {
-          riskLevel = 'Medium';
-          uncertaintyLabel = 'Elevated Risk (Low Trust Factors)';
-        }
 
         // Auto-record analysis in user store history
         try {
@@ -1335,18 +1390,18 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: getHeaders(true, false),
             body: JSON.stringify({
-              tool: 'Website Scam Risk Detector',
-              target: domain,
-              riskLevel: riskLevel,
-              confidence: Math.max(65, Math.min(95, scamProb + 10)),
-              summary: data.analysis.assessmentText || 'Scam audit completed.',
+              tool: 'Domain Security & Scam Intelligence',
+              target: data.domain || domain,
+              riskLevel: data.riskLevel || 'LOW',
+              confidence: data.aiReport?.confidenceScore || 90,
+              summary: data.aiReport?.executiveSummary || data.threatClassification || 'Domain security audit completed.',
               resultJson: data
             })
           });
         } catch (saveErr) {}
 
-        // Render Results
-        renderScamResults(data, domain, riskLevel, uncertaintyLabel);
+        // Render Comprehensive Enterprise Results
+        renderScamResults(data, domain);
         if (scamScanStages) scamScanStages.classList.add('hidden');
         if (scamResultsContainer) scamResultsContainer.classList.remove('hidden');
 
@@ -1355,7 +1410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (scamResultsContainer) {
           scamResultsContainer.innerHTML = `
             <div class="error-state">
-              <h4 class="error-state-title">Audit could not be completed</h4>
+              <h4 class="error-state-title">Domain Security Audit Failed</h4>
               <p class="error-state-desc">${err.message}</p>
               <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 12px;" onclick="document.getElementById('form-scan-scam').dispatchEvent(new Event('submit'))">Retry Audit</button>
             </div>
@@ -1366,141 +1421,545 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function renderScamResults(data, domain, riskLevel, uncertaintyLabel) {
-    const scraped = data.scraped || {};
-    const domainInfo = scraped.domainInfo || {};
-    const analysis = data.analysis || {};
+  function renderScamResults(data, inputTarget) {
+    const domain = data.domain || inputTarget;
+    const riskScore = data.riskScore ?? 50;
+    const trustScore = data.trustScore ?? (100 - riskScore);
+    const riskLevel = (data.riskLevel || 'MEDIUM').toUpperCase();
+    const threatClass = data.threatClassification || 'General Web Target';
 
-    const trustScore = analysis.trustScore || 50;
-    const scamProb = analysis.scamProbability || (100 - trustScore);
-    const meterClass = scamProb >= 60 ? 'critical' : (scamProb >= 25 ? 'medium' : 'low');
+    const domainInfo = data.domainIntelligence || {};
+    const dnsInfo = data.dnsIntelligence || {};
+    const sslInfo = data.sslIntelligence || {};
+    const webSec = data.webSecurity || {};
+    const emailSec = data.emailSecurity || {};
+    const geoInfo = data.infrastructure || {};
+    const phishingRadar = data.phishingRadar || {};
+    const threatIntel = data.threatIntelligence || {};
+    const contentInfo = data.contentAnalysis || {};
+    const aiReport = data.aiReport || {};
+    const breakdown = data.breakdown || [];
+    const openPorts = data.openPorts || [];
+    const subdomains = data.subdomains || [];
+
+    // Meter class
+    const meterClass = riskScore >= 70 ? 'critical' : (riskScore >= 40 ? 'warning' : 'good');
 
     scamResultsContainer.innerHTML = `
       <div class="results-card">
-        <!-- Header Banner -->
-        <div class="results-header-banner">
-          <div class="target-info">
-            <div class="report-badge-pill">Website Scam Risk &amp; Trust Audit</div>
-            <div class="target-url-box">
-              <span class="target-url-text" id="scam-target-display" title="${domain}">${domain}</span>
-              <button type="button" class="btn-copy-target" data-copy-target="${domain}">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copy Domain
-              </button>
+        <!-- Enterprise Header Banner -->
+        <div class="domain-dossier-hero">
+          <div class="domain-dossier-top">
+            <div>
+              <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; margin-bottom: 4px;">
+                INTELLIGENCE TARGET DOSSIER
+              </div>
+              <div class="domain-target-header-title">${domain}</div>
+              <div class="domain-dossier-badges">
+                <span class="dossier-chip">
+                  <span class="telemetry-dot-pulse" style="background: ${riskScore >= 70 ? '#ef4444' : (riskScore >= 40 ? '#f59e0b' : '#10b981')};"></span>
+                  <strong>${threatClass}</strong>
+                </span>
+                <span class="dossier-chip">Audited: ${data.scannedAt || new Date().toLocaleTimeString()}</span>
+                <span class="dossier-chip">IP: <strong>${geoInfo.ip || (dnsInfo.A && dnsInfo.A[0]) || 'Unknown'}</strong></span>
+                <span class="dossier-chip">Location: <strong>${geoInfo.country || 'Global'} (${geoInfo.countryCode || 'UN'})</strong></span>
+              </div>
             </div>
-            <div class="results-meta-row">
-              <span class="results-meta-item">Classification: <strong>${uncertaintyLabel}</strong></span>
-              <span class="results-meta-item">Audited: <strong>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
+            <div>
+              ${getRiskBadge(riskLevel)}
             </div>
           </div>
-          <div>
-            ${getRiskBadge(riskLevel)}
+
+          <!-- Dual Gauge: Risk vs Trust -->
+          <div class="threat-meter-container" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: var(--radius-md); padding: 14px 18px;">
+            <div class="threat-meter-bar-wrap">
+              <div class="threat-meter-labels" style="color: #e2e8f0;">
+                <span><strong>DOMAIN RISK ENGINE (WEIGHTED)</strong></span>
+                <span><strong>Risk Score: ${riskScore}/100</strong> &bull; Trust Rating: ${trustScore}/100</span>
+              </div>
+              <div class="threat-meter-track" style="background: #334155; height: 9px;">
+                <div class="threat-meter-fill ${meterClass}" style="width: ${Math.max(4, riskScore)}%;"></div>
+              </div>
+            </div>
+            <div style="font-size: 0.78rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+              <span>Registrar: <strong style="color: #ffffff;">${domainInfo.registrar || 'Unknown'}</strong></span>
+              <span>Domain Age: <strong style="color: #60a5fa;">${domainInfo.ageDays !== null ? `${domainInfo.ageDays} days` : 'Unverified'}</strong></span>
+              <span>TLS Health: <strong style="color: ${sslInfo.health === 'HEALTHY' ? '#34d399' : '#fbbf24'};">${sslInfo.health || 'ACTIVE'}</strong></span>
+            </div>
+          </div>
+
+          <!-- 6-Pillar Risk Engine Grid Breakdown -->
+          <div class="pillar-breakdown-grid">
+            ${breakdown.map(p => {
+              const statusClass = (p.status || 'Good').toLowerCase();
+              const fillClass = statusClass === 'critical' ? 'critical' : (statusClass === 'warning' ? 'warning' : 'good');
+              const fillPct = (p.score / p.maxScore) * 100;
+              return `
+                <div class="pillar-card">
+                  <div class="pillar-header">
+                    <span class="pillar-title">${p.pillar}</span>
+                    <span class="pillar-score ${fillClass}">${p.score}/${p.maxScore}</span>
+                  </div>
+                  <div class="pillar-bar-track">
+                    <div class="pillar-bar-fill ${fillClass}" style="width: ${Math.max(6, fillPct)}%;"></div>
+                  </div>
+                  <div class="pillar-desc">${p.summary}</div>
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
 
-        <!-- Trust & Risk Meter -->
-        <div class="threat-meter-container">
-          <div class="threat-meter-bar-wrap">
-            <div class="threat-meter-labels">
-              <span>COMMERCIAL TRUST METER</span>
-              <span><strong>Trust Score: ${trustScore}/100</strong> &bull; Scam Prob: ${scamProb}%</span>
-            </div>
-            <div class="threat-meter-track">
-              <div class="threat-meter-fill ${meterClass}" style="width: ${Math.max(5, scamProb)}%;"></div>
-            </div>
-          </div>
-          <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
-            <span>REGISTRAR STATUS:</span>
-            <strong style="color: var(--primary-900); font-size: 0.85rem;">${domainInfo.registrar || 'Active'}</strong>
-          </div>
+        <!-- Tabbed Navigation Bar -->
+        <div class="dossier-tab-nav" role="tablist">
+          <button type="button" class="dossier-tab-btn active" data-dossier-tab="tab-ai-overview">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            AI Assessment &amp; Overview
+          </button>
+          <button type="button" class="dossier-tab-btn" data-dossier-tab="tab-dns-email">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            DNS &amp; Email Protections
+          </button>
+          <button type="button" class="dossier-tab-btn" data-dossier-tab="tab-ssl-tls">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            SSL/TLS Cryptography
+          </button>
+          <button type="button" class="dossier-tab-btn" data-dossier-tab="tab-headers-ports">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Headers &amp; Open Ports
+          </button>
+          <button type="button" class="dossier-tab-btn" data-dossier-tab="tab-phishing-typos">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Phishing &amp; Typosquat Radar
+          </button>
+          <button type="button" class="dossier-tab-btn" data-dossier-tab="tab-infra-geo">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Infrastructure &amp; Geo
+          </button>
         </div>
 
-        <div class="results-summary-grid">
-          <div class="summary-metric-box">
-            <div class="label">Trust Score</div>
-            <div class="value" style="color: ${trustScore >= 70 ? 'var(--severity-low-text)' : (trustScore >= 35 ? 'var(--severity-medium-text)' : 'var(--severity-critical-text)')};">
-              ${trustScore} / 100
-            </div>
-          </div>
-          <div class="summary-metric-box">
-            <div class="label">Registrar</div>
-            <div class="value" style="font-size: 1.05rem;">${domainInfo.registrar || 'Unknown'}</div>
-          </div>
-          <div class="summary-metric-box">
-            <div class="label">Registration Date</div>
-            <div class="value" style="font-size: 1.05rem;">${domainInfo.createdDate ? new Date(domainInfo.createdDate).toLocaleDateString() : 'N/A'}</div>
-          </div>
-          <div class="summary-metric-box">
-            <div class="label">Domain Age</div>
-            <div class="value">${domainInfo.ageDays !== null ? `${domainInfo.ageDays} days` : 'Unknown'}</div>
-          </div>
-        </div>
+        <!-- TAB 1: AI ASSESSMENT & EXECUTIVE OVERVIEW -->
+        <div id="tab-ai-overview" class="dossier-tab-pane">
+          <div class="dossier-grid-2">
+            <!-- AI Security Analyst Card -->
+            <div class="dossier-box" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-color: #bfdbfe;">
+              <div class="dossier-box-title" style="color: #1e3a8a;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                AI Security Analyst Synthesis
+              </div>
+              <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.6; margin-bottom: 12px;">
+                ${aiReport.executiveSummary || 'Domain intelligence synthesis generated.'}
+              </p>
+              
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px;">
+                <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Technical Verdict</div>
+                <div style="font-size: 0.88rem; font-weight: 600; color: ${riskScore >= 70 ? 'var(--severity-critical-text)' : 'var(--primary-800)'};">
+                  ${aiReport.technicalVerdict || threatClass}
+                </div>
+              </div>
 
-        <!-- Strict Separation: Observed Evidence vs AI Assessment -->
-        <div class="analysis-dual-panel">
-          
-          <div class="panel-evidence">
-            <div class="panel-heading">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
-              <span>Observed Evidence</span>
+              <div>
+                <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Correlated Evidence Points</div>
+                <ul style="padding-left: 18px; margin: 0; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.55;">
+                  ${(aiReport.keyCorrelatedFindings || data.redFlags || []).map(f => `<li>${f}</li>`).join('')}
+                </ul>
+              </div>
             </div>
-            <table class="evidence-table">
-              <tbody>
-                <tr>
-                  <td class="prop-name">Target URL</td>
-                  <td class="prop-val">${scraped.url || domain}</td>
-                </tr>
-                <tr>
-                  <td class="prop-name">Domain Age Flag</td>
-                  <td class="prop-val">${domainInfo.ageDays !== null && domainInfo.ageDays < 90 ? '<span style="color: var(--severity-high-text); font-weight:600;">Young Domain (<90 days)</span>' : 'Established'}</td>
-                </tr>
-                <tr>
-                  <td class="prop-name">HTTPS Verified</td>
-                  <td class="prop-val">${scraped.isHttps ? 'Yes (TLS Active)' : '<span style="color: var(--severity-critical-text);">No (Insecure HTTP)</span>'}</td>
-                </tr>
-                <tr>
-                  <td class="prop-name">Page Title</td>
-                  <td class="prop-val">${scraped.pageMetadata ? scraped.pageMetadata.title || 'Untitled' : 'Untitled'}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
 
-          <div class="panel-ai">
-            <div class="panel-heading">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-              <span>AI Assessment &amp; Content Audit</span>
-            </div>
-            <p class="ai-reasoning-text"><strong>Claims &amp; Policies:</strong> ${analysis.riskSignalsText || 'Policy statements evaluated.'}</p>
-            <p class="ai-reasoning-text"><strong>Trust Recommendation:</strong> ${analysis.assessmentText || 'Assessment concluded.'}</p>
-            
-            <div style="margin-top: 14px;">
-              <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Commercial Red Flags</strong>
-              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
-                ${analysis.redFlags && analysis.redFlags.length > 0
-                  ? analysis.redFlags.map(f => `<div style="font-size: 0.84rem; color: var(--severity-high-text); background: var(--severity-high-bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--severity-high-border);">${f}</div>`).join('')
-                  : `<div style="font-size: 0.84rem; color: var(--severity-low-text); background: var(--severity-low-bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--severity-low-border);">No critical commercial red flags found.</div>`
-                }
+            <!-- Domain Registration & Verification Card -->
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Domain Ownership &amp; Longevity
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Target Domain</span>
+                <span class="dossier-prop-value font-mono">${domain}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Registrar</span>
+                <span class="dossier-prop-value">${domainInfo.registrar || 'Unknown'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Registration Date</span>
+                <span class="dossier-prop-value">${domainInfo.createdDate || 'Unverified'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Domain Age</span>
+                <span class="dossier-prop-value" style="color: ${domainInfo.ageDays < 30 ? 'var(--severity-critical-text)' : 'var(--severity-low-text)'};">
+                  ${domainInfo.ageDays !== null ? `${domainInfo.ageDays} days` : 'Unknown'}
+                </span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Expiry Date</span>
+                <span class="dossier-prop-value">${domainInfo.expiresDate || 'N/A'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Privacy Protected</span>
+                <span class="dossier-prop-value">${domainInfo.privacyProtected ? 'Yes (WhoisGuard / Masked)' : 'Direct Public Registration'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">DNSSEC Validation</span>
+                <span class="dossier-prop-value">${dnsInfo.hasDnssec ? '<span class="badge badge-low">Signed</span>' : '<span class="badge badge-info">Unsigned</span>'}</span>
               </div>
             </div>
           </div>
 
+          <!-- Prescriptive Defense Steps -->
+          <div class="dossier-box">
+            <div class="dossier-box-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Recommended Countermeasures &amp; Mitigation Guidance
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+              ${(aiReport.recommendedActions || [
+                'Do not input sensitive credentials or credit card details.',
+                'Enforce strict SPF, DKIM, and DMARC policies at the DNS boundary.',
+                'Inspect TLS certificates for expiration and domain mismatch.'
+              ]).map((act, idx) => `
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px 14px;">
+                  <span style="font-weight: 700; font-size: 0.78rem; color: var(--primary-700); text-transform: uppercase;">Step ${idx + 1}</span>
+                  <p style="font-size: 0.85rem; color: var(--text-primary); margin-top: 4px; line-height: 1.45;">${act}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: DNS & EMAIL SECURITY -->
+        <div id="tab-dns-email" class="dossier-tab-pane hidden">
+          <div class="dossier-grid-2">
+            <!-- Email Security Posture -->
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/></svg>
+                Email Spoofing &amp; Anti-Phishing Defenses
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">SPF Record</span>
+                <span class="dossier-prop-value">${emailSec.spf?.deployed ? `<span class="badge badge-low">${emailSec.spf.policy}</span>` : '<span class="badge badge-critical">Missing SPF</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">DMARC Enforcement</span>
+                <span class="dossier-prop-value">${emailSec.dmarc?.deployed ? `<span class="badge badge-low">p=${emailSec.dmarc.policy}</span>` : '<span class="badge badge-critical">No DMARC</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">DKIM Selectors</span>
+                <span class="dossier-prop-value">${emailSec.dkim?.deployed ? `<span class="badge badge-low">${emailSec.dkim.discoveredSelectors?.join(', ')}</span>` : '<span class="badge badge-info">Standard Selectors Unsigned</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">MX Mail Route</span>
+                <span class="dossier-prop-value">${emailSec.mxVerification?.hasMx ? `${emailSec.mxVerification.mxCount} Mail Servers Active` : 'No Mail Servers'}</span>
+              </div>
+              ${emailSec.spf?.raw ? `
+                <div style="margin-top: 10px; background: var(--bg-tertiary); padding: 8px 10px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.74rem; word-break: break-all;">
+                  <strong>Raw SPF:</strong> ${emailSec.spf.raw}
+                </div>
+              ` : ''}
+              ${emailSec.dmarc?.raw ? `
+                <div style="margin-top: 6px; background: var(--bg-tertiary); padding: 8px 10px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.74rem; word-break: break-all;">
+                  <strong>Raw DMARC:</strong> ${emailSec.dmarc.raw}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- DNS Records Dump -->
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                Core DNS Records (Zone Dump)
+              </div>
+              <div style="margin-bottom: 8px;">
+                <strong style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase;">A Records (IPv4):</strong>
+                <div>${(dnsInfo.A || []).map(ip => `<span class="dns-record-badge">${ip}</span>`).join('') || '<span style="font-size:0.8rem; color:var(--text-muted);">None</span>'}</div>
+              </div>
+              <div style="margin-bottom: 8px;">
+                <strong style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase;">MX Records (Mail Exchangers):</strong>
+                <div>${(dnsInfo.MX || []).map(m => `<span class="dns-record-badge">Pri ${m.priority}: ${m.host}</span>`).join('') || '<span style="font-size:0.8rem; color:var(--text-muted);">None</span>'}</div>
+              </div>
+              <div style="margin-bottom: 8px;">
+                <strong style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase;">Nameservers (NS):</strong>
+                <div>${(dnsInfo.NS || []).map(ns => `<span class="dns-record-badge">${ns}</span>`).join('') || '<span style="font-size:0.8rem; color:var(--text-muted);">None</span>'}</div>
+              </div>
+              <div>
+                <strong style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase;">TXT Verification Records:</strong>
+                <div style="max-height: 100px; overflow-y: auto;">
+                  ${(dnsInfo.TXT || []).map(t => `<div class="dns-record-badge" style="display:block; margin: 2px 0;">${t}</div>`).join('') || '<span style="font-size:0.8rem; color:var(--text-muted);">None</span>'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Subdomains -->
+          <div class="dossier-box">
+            <div class="dossier-box-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Discovered Active Subdomains (${subdomains.length})
+            </div>
+            ${subdomains.length > 0 ? `
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${subdomains.map(s => `<span class="dns-record-badge" style="background: #ffffff; border-color: var(--primary-300); color: var(--primary-900);"><strong>${s.subdomain}</strong> &rarr; ${s.ip}</span>`).join('')}
+              </div>
+            ` : `<p style="font-size: 0.84rem; color: var(--text-muted);">No common active public subdomains discovered during passive query.</p>`}
+          </div>
+        </div>
+
+        <!-- TAB 3: SSL/TLS CRYPTOGRAPHY -->
+        <div id="tab-ssl-tls" class="dossier-tab-pane hidden">
+          <div class="dossier-grid-2">
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                TLS Certificate Hierarchy &amp; Parameters
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Certificate Issuer</span>
+                <span class="dossier-prop-value">${sslInfo.issuer?.organization || 'Unknown CA'} (${sslInfo.issuer?.commonName || 'N/A'})</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Subject Common Name</span>
+                <span class="dossier-prop-value font-mono">${sslInfo.subject?.commonName || domain}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Valid From</span>
+                <span class="dossier-prop-value">${sslInfo.validFrom || 'N/A'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Valid Until</span>
+                <span class="dossier-prop-value">${sslInfo.validTo || 'N/A'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Days Remaining</span>
+                <span class="dossier-prop-value" style="color: ${sslInfo.daysRemaining < 15 ? 'var(--severity-critical-text)' : 'var(--severity-low-text)'};">
+                  ${sslInfo.daysRemaining !== null ? `${sslInfo.daysRemaining} days` : 'N/A'}
+                </span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Key Architecture</span>
+                <span class="dossier-prop-value">${sslInfo.keyType || 'RSA'} ${sslInfo.keySize || 2048}-bit</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Signature Algorithm</span>
+                <span class="dossier-prop-value font-mono">${sslInfo.signatureAlgorithm || 'sha256WithRSAEncryption'}</span>
+              </div>
+            </div>
+
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Subject Alternative Names (SANs) &amp; Trust Flags
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Self-Signed Check</span>
+                <span class="dossier-prop-value">${sslInfo.isSelfSigned ? '<span class="badge badge-critical">SELF SIGNED</span>' : '<span class="badge badge-low">Public CA</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Domain Mismatch</span>
+                <span class="dossier-prop-value">${sslInfo.domainMismatch ? '<span class="badge badge-critical">MISMATCH</span>' : '<span class="badge badge-low">Valid Match</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Fresh Issuance (<14d)</span>
+                <span class="dossier-prop-value">${sslInfo.isFreshlyIssued ? '<span class="badge badge-high">Fresh Cert</span>' : 'Standard Baseline'}</span>
+              </div>
+              <div style="margin-top: 12px;">
+                <strong style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase;">Authorized SANs List:</strong>
+                <div style="max-height: 120px; overflow-y: auto; margin-top: 6px;">
+                  ${(sslInfo.sans || []).map(s => `<span class="dns-record-badge">${s}</span>`).join('') || '<span style="font-size:0.8rem; color:var(--text-muted);">None</span>'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: HEADERS & OPEN PORTS -->
+        <div id="tab-headers-ports" class="dossier-tab-pane hidden">
+          <div class="dossier-grid-2">
+            <!-- Security Headers -->
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                HTTP Security Headers &bull; Grade ${webSec.securityHeaders?.grade || 'F'}
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Strict-Transport-Security (HSTS)</span>
+                <span class="dossier-prop-value">${webSec.securityHeaders?.hsts?.present ? '<span class="badge badge-low">Enforced</span>' : '<span class="badge badge-critical">Missing</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Content-Security-Policy (CSP)</span>
+                <span class="dossier-prop-value">${webSec.securityHeaders?.csp?.present ? '<span class="badge badge-low">Active</span>' : '<span class="badge badge-critical">Missing</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">X-Frame-Options (Clickjack)</span>
+                <span class="dossier-prop-value">${webSec.securityHeaders?.xFrameOptions?.present ? '<span class="badge badge-low">Active</span>' : '<span class="badge badge-high">Missing</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">X-Content-Type-Options</span>
+                <span class="dossier-prop-value">${webSec.securityHeaders?.xContentTypeOptions?.present ? '<span class="badge badge-low">nosniff</span>' : '<span class="badge badge-high">Missing</span>'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Server Fingerprint</span>
+                <span class="dossier-prop-value">${webSec.serverHeader || 'Hidden / WAF'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">CMS / Web Stack</span>
+                <span class="dossier-prop-value">${(webSec.techStack || []).join(', ') || 'Custom Application'}</span>
+              </div>
+            </div>
+
+            <!-- Open Ports Table -->
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                Perimeter Open Port Scan Results
+              </div>
+              ${openPorts.length > 0 ? `
+                <table class="typosquat-table">
+                  <thead>
+                    <tr>
+                      <th>Port</th>
+                      <th>Service</th>
+                      <th>Status</th>
+                      <th>Risk Level</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${openPorts.map(p => `
+                      <tr>
+                        <td class="font-mono" style="font-weight:700;">${p.port}</td>
+                        <td>${p.service}</td>
+                        <td><span class="badge badge-low">OPEN</span></td>
+                        <td><span class="badge badge-${p.risk === 'Critical' ? 'critical' : (p.risk === 'High' ? 'high' : 'info')}">${p.risk}</span></td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              ` : `<p style="font-size: 0.84rem; color: var(--text-muted);">All standard perimeter non-web ports are filtered or closed.</p>`}
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: PHISHING & TYPOSQUATTING RADAR -->
+        <div id="tab-phishing-typos" class="dossier-tab-pane hidden">
+          <div class="dossier-grid-2">
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Brand Abuse &amp; Phishing Heuristics
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Brand Impersonation Target</span>
+                <span class="dossier-prop-value" style="color: ${phishingRadar.isBrandImpersonation ? 'var(--severity-critical-text)' : 'inherit'};">
+                  ${phishingRadar.impersonatedBrand || 'None (Authentic or Unclaimed)'}
+                </span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Suspicious Phishing Tokens</span>
+                <span class="dossier-prop-value">${phishingRadar.suspiciousTokensFound?.join(', ') || 'Zero Security Lures'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Homoglyphs / Punycode</span>
+                <span class="dossier-prop-value">${phishingRadar.hasHomoglyphs ? '<span class="badge badge-critical">PUNYCODE ACTIVE</span>' : 'Standard ASCII'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">TLD Abuse Rate</span>
+                <span class="dossier-prop-value">${threatIntel.tldRisk || 'Low'} (${threatIntel.tld || '.com'})</span>
+              </div>
+            </div>
+
+            <!-- Typosquatting Generated Lookalikes -->
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                Typosquatting &amp; Homoglyph Radar Variants
+              </div>
+              <div style="max-height: 200px; overflow-y: auto;">
+                <table class="typosquat-table">
+                  <thead>
+                    <tr>
+                      <th>Lookalike Domain</th>
+                      <th>Technique</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${(phishingRadar.lookalikeVariants || []).map(v => `
+                      <tr>
+                        <td class="font-mono">${v.domain}</td>
+                        <td style="color: var(--text-muted);">${v.technique}</td>
+                      </tr>
+                    `).join('') || `<tr><td colspan="2">No variants generated.</td></tr>`}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 6: INFRASTRUCTURE & GEO -->
+        <div id="tab-infra-geo" class="dossier-tab-pane hidden">
+          <div class="dossier-grid-2">
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Hosting &amp; ASN Coordinates
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Primary IP Address</span>
+                <span class="dossier-prop-value font-mono">${geoInfo.ip || 'Unresolved'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Autonomous System (ASN)</span>
+                <span class="dossier-prop-value font-mono">${geoInfo.asn || 'Unknown ASN'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Hosting Provider / Org</span>
+                <span class="dossier-prop-value">${geoInfo.org || geoInfo.isp || 'Unknown'}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Hosting Datacenter Flag</span>
+                <span class="dossier-prop-value">${geoInfo.isHosting ? '<span class="badge badge-info">Datacenter / Cloud</span>' : 'Standard ISP / Dedicated'}</span>
+              </div>
+            </div>
+
+            <div class="dossier-box">
+              <div class="dossier-box-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Physical Geolocation
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">Country</span>
+                <span class="dossier-prop-value">${geoInfo.country || 'Global'} (${geoInfo.countryCode || 'N/A'})</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">City / Region</span>
+                <span class="dossier-prop-value">${geoInfo.city || 'Unknown'}, ${geoInfo.region || ''}</span>
+              </div>
+              <div class="dossier-prop-row">
+                <span class="dossier-prop-name">GPS Coordinates</span>
+                <span class="dossier-prop-value font-mono">${geoInfo.latitude ? `${geoInfo.latitude}, ${geoInfo.longitude}` : 'N/A'}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Action Buttons -->
-        <div style="display: flex; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-default); flex-wrap: wrap;">
-          <button type="button" class="btn btn-primary btn-sm" id="btn-save-scam-report">Save Report</button>
+        <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-default); flex-wrap: wrap;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save-scam-report">Save Dossier Report</button>
           <button type="button" class="btn btn-secondary btn-sm" id="btn-export-scam-md">Export Markdown</button>
           <button type="button" class="btn btn-secondary btn-sm" id="btn-export-scam-json">Export JSON</button>
         </div>
       </div>
     `;
 
-    // Bind copy button
-    scamResultsContainer.querySelectorAll('[data-copy-target]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const val = btn.getAttribute('data-copy-target');
-        copyToClipboard(val, 'Domain copied to clipboard!');
+    // Bind Dossier Tab Switching
+    scamResultsContainer.querySelectorAll('[data-dossier-tab]').forEach(tabBtn => {
+      tabBtn.addEventListener('click', () => {
+        const targetTabId = tabBtn.getAttribute('data-dossier-tab');
+        scamResultsContainer.querySelectorAll('.dossier-tab-btn').forEach(b => b.classList.remove('active'));
+        scamResultsContainer.querySelectorAll('.dossier-tab-pane').forEach(p => p.classList.add('hidden'));
+
+        tabBtn.classList.add('active');
+        const targetPane = document.getElementById(targetTabId);
+        if (targetPane) targetPane.classList.remove('hidden');
       });
     });
 
@@ -1513,14 +1972,14 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: getHeaders(true, false),
             body: JSON.stringify({
-              reportName: `Scam Audit: ${domain}`,
+              reportName: `Domain Dossier: ${domain}`,
               target: domain,
               riskLevel: riskLevel,
-              contentJson: { scraped, analysis }
+              contentJson: data
             })
           });
           if (saveRes.ok) {
-            showToast('Report saved to your repository.');
+            showToast('Dossier saved to your repository.');
             btnSaveReport.textContent = 'Report Saved';
             btnSaveReport.disabled = true;
           }
@@ -1535,36 +1994,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExportJson = document.getElementById('btn-export-scam-json');
 
     if (btnExportMd) {
-      btnExportMd.addEventListener('click', async () => {
-        try {
-          const res = await fetch('/api/export-advisory', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'scam', format: 'markdown', scraped, analysis })
-          });
-          const exp = await res.json();
-          downloadTextFile(exp.filename, exp.content, 'text/markdown');
-          showToast('Markdown advisory downloaded.');
-        } catch (e) {
-          showToast('Export failed: ' + e.message);
-        }
+      btnExportMd.addEventListener('click', () => {
+        const mdContent = `# DOMAIN SECURITY INTELLIGENCE DOSSIER
+Target Domain: ${domain}
+Risk Score: ${riskScore}/100 (${riskLevel})
+Threat Classification: ${threatClass}
+
+## Executive Summary
+${aiReport.executiveSummary || 'Audit concluded.'}
+
+## Technical Verdict
+${aiReport.technicalVerdict || 'N/A'}
+
+## Domain Intelligence
+- Registrar: ${domainInfo.registrar || 'Unknown'}
+- Domain Age: ${domainInfo.ageDays || 'Unknown'} days
+- Created: ${domainInfo.createdDate || 'N/A'}
+- Primary IP: ${geoInfo.ip || 'N/A'} (${geoInfo.country || 'Global'})
+
+## SSL/TLS Certificate
+- Issuer: ${sslInfo.issuer?.organization || 'N/A'}
+- Valid: ${sslInfo.validFrom} to ${sslInfo.validTo}
+- Status: ${sslInfo.health}
+
+## DNS & Email Protections
+- SPF Policy: ${emailSec.spf?.policy || 'Missing'}
+- DMARC Policy: ${emailSec.dmarc?.policy || 'Missing'}
+- Nameservers: ${(dnsInfo.NS || []).join(', ')}
+
+## Recommendations
+${(aiReport.recommendedActions || []).map(r => '- ' + r).join('\n')}
+`;
+        downloadTextFile(`domain_dossier_${domain}.md`, mdContent, 'text/markdown');
+        showToast('Markdown dossier downloaded.');
       });
     }
 
     if (btnExportJson) {
-      btnExportJson.addEventListener('click', async () => {
-        try {
-          const res = await fetch('/api/export-advisory', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'scam', format: 'json', scraped, analysis })
-          });
-          const exp = await res.json();
-          downloadTextFile(exp.filename, JSON.stringify(exp.content, null, 2), 'application/json');
-          showToast('JSON telemetry downloaded.');
-        } catch (e) {
-          showToast('Export failed: ' + e.message);
-        }
+      btnExportJson.addEventListener('click', () => {
+        downloadTextFile(`domain_dossier_${domain}.json`, JSON.stringify(data, null, 2), 'application/json');
+        showToast('JSON telemetry downloaded.');
       });
     }
   }
@@ -1719,36 +2188,50 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHomeThreatGrid(filtered);
   }
 
-  async function loadThreatFeeds() {
-    if (feedItemsList) {
-      feedItemsList.innerHTML = `
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p style="font-size: 0.82rem; color: var(--text-muted);">Querying official security bulletins...</p>
-        </div>
-      `;
+  async function loadThreatFeeds(forceRefresh = false) {
+    // 1. Instant Cache Hydration if previously loaded from live sources
+    if (!forceRefresh && threatFeeds.length === 0) {
+      try {
+        const cached = localStorage.getItem('secintel_cached_threat_feeds');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            threatFeeds = parsed;
+            if (feedItemsCount) feedItemsCount.textContent = threatFeeds.length;
+            if (homeFeedCounter) homeFeedCounter.textContent = `${threatFeeds.length} Feeds Monitored`;
+            renderThreatItems(threatFeeds);
+            renderHomeThreatGrid(threatFeeds);
+          }
+        }
+      } catch (e) {}
     }
-    if (feedItemsCount) feedItemsCount.textContent = 'Loading...';
 
+    // 2. Fetch fresh live feeds directly from real security sources
     try {
-      const res = await fetch('/api/feeds');
-      if (!res.ok) throw new Error('Failed to retrieve feeds.');
+      const url = `/api/feeds${forceRefresh ? '?refresh=true' : ''}`;
+      const res = await fetch(url);
 
-      threatFeeds = await res.json();
-      if (feedItemsCount) feedItemsCount.textContent = threatFeeds.length;
-      if (homeFeedCounter) homeFeedCounter.textContent = `${threatFeeds.length} Feeds Monitored`;
-      
-      renderThreatItems(threatFeeds);
-      renderHomeThreatGrid(threatFeeds);
-    } catch (err) {
-      if (feedItemsList) {
-        feedItemsList.innerHTML = `
-          <div style="padding: 16px; color: var(--severity-critical-text); font-size: 0.85rem;">
-            Could not load feeds: ${err.message}
-          </div>
-        `;
+      if (res.ok) {
+        const freshFeeds = await res.json();
+        if (Array.isArray(freshFeeds) && freshFeeds.length > 0) {
+          threatFeeds = freshFeeds;
+          try {
+            localStorage.setItem('secintel_cached_threat_feeds', JSON.stringify(freshFeeds));
+          } catch (e) {}
+
+          if (feedItemsCount) feedItemsCount.textContent = threatFeeds.length;
+          if (homeFeedCounter) homeFeedCounter.textContent = `${threatFeeds.length} Feeds Monitored`;
+          
+          renderThreatItems(threatFeeds);
+          renderHomeThreatGrid(threatFeeds);
+        }
       }
-      if (feedItemsCount) feedItemsCount.textContent = 'ERROR';
+    } catch (err) {
+      if (threatFeeds.length === 0) {
+        if (feedItemsList) {
+          feedItemsList.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Connecting to live security sources...</div>`;
+        }
+      }
     }
   }
 
@@ -1806,12 +2289,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (btnRefreshFeeds) btnRefreshFeeds.addEventListener('click', loadThreatFeeds);
+  if (btnRefreshFeeds) btnRefreshFeeds.addEventListener('click', () => loadThreatFeeds(true));
 
   // Home controls setup
   if (btnHomeRefreshFeeds) {
     btnHomeRefreshFeeds.addEventListener('click', () => {
-      loadThreatFeeds();
+      loadThreatFeeds(true);
       showToast('Live threat feeds synchronized!');
     });
   }
@@ -2305,15 +2788,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const sbomResultsContainer = document.getElementById('sbom-results-container');
   const btnSbomSamplePy = document.getElementById('btn-sbom-sample-py');
   const btnSbomSampleNode = document.getElementById('btn-sbom-sample-node');
+  const btnSbomSampleCycloneDx = document.getElementById('btn-sbom-sample-cyclonedx');
+  const btnSbomSampleSpring = document.getElementById('btn-sbom-sample-spring');
 
   const samplePy = `fastapi>=0.110.0\nuvicorn>=0.28.0\nlog4j==2.14.1\nrequests==2.25.1\nurllib3==1.26.4\naiohttp==3.8.1\nparamiko==2.7.2`;
   const sampleNode = `{\n  "dependencies": {\n    "express": "^4.17.1",\n    "axios": "^1.4.0",\n    "jsonwebtoken": "^8.5.1",\n    "lodash": "^4.17.19"\n  }\n}`;
+  const sampleCycloneDx = `{\n  "bomFormat": "CycloneDX",\n  "specVersion": "1.4",\n  "components": [\n    { "name": "log4j-core", "version": "2.14.1", "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1" },\n    { "name": "lodash", "version": "4.17.19", "purl": "pkg:npm/lodash@4.17.19" },\n    { "name": "fastapi", "version": "0.110.0", "purl": "pkg:pypi/fastapi@0.110.0" }\n  ]\n}`;
+  const sampleSpring = `spring-beans==5.3.17\nspring-webmvc==5.3.17\njackson-databind==2.12.0\nlog4j-core==2.14.1`;
 
   if (btnSbomSamplePy && inputSbomManifest) {
     btnSbomSamplePy.addEventListener('click', () => { inputSbomManifest.value = samplePy; showToast('Python requirements loaded'); });
   }
   if (btnSbomSampleNode && inputSbomManifest) {
     btnSbomSampleNode.addEventListener('click', () => { inputSbomManifest.value = sampleNode; showToast('Node.js package.json loaded'); });
+  }
+  if (btnSbomSampleCycloneDx && inputSbomManifest) {
+    btnSbomSampleCycloneDx.addEventListener('click', () => { inputSbomManifest.value = sampleCycloneDx; showToast('CycloneDX SBOM loaded'); });
+  }
+  if (btnSbomSampleSpring && inputSbomManifest) {
+    btnSbomSampleSpring.addEventListener('click', () => { inputSbomManifest.value = sampleSpring; showToast('Java Spring manifest loaded'); });
   }
 
   const btnCaseStudyLog4j = document.getElementById('btn-case-study-log4j');
@@ -2354,7 +2847,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const res = await fetch('/api/sbom/audit', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(true, true),
           body: JSON.stringify({ manifest })
         });
         if (!res.ok) throw new Error('SBOM audit server error.');
@@ -2376,15 +2869,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderSbomResults(data) {
     if (!sbomResultsContainer) return;
+    const ecoBadge = data.ecosystem ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-default); color: var(--text-secondary); margin-left: 8px;">${data.ecosystem}</span>` : '';
+    
     sbomResultsContainer.innerHTML = `
       <div class="results-card">
         <div class="results-header-banner">
           <div>
-            <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">DEPENDENCY MANIFEST AUDIT</span>
-            <h3>SBOM Security Evaluation</h3>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">DEPENDENCY MANIFEST AUDIT</span>
+              ${ecoBadge}
+            </div>
+            <h3>AI-Powered SBOM Security Evaluation</h3>
           </div>
           <div>${getRiskBadge(data.riskLevel)}</div>
         </div>
+
+        ${data.summary ? `
+          <div style="margin: 12px 0 16px; padding: 12px 14px; background: var(--bg-tertiary); border-left: 3px solid var(--primary-600); border-radius: 4px; font-size: 0.88rem; color: var(--text-primary); line-height: 1.5;">
+            <strong>AI Security Intelligence:</strong> ${data.summary}
+          </div>
+        ` : ''}
 
         <div class="results-summary-grid">
           <div class="summary-metric-box">
@@ -2392,7 +2896,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="value">${data.totalDependencies || 0}</div>
           </div>
           <div class="summary-metric-box">
-            <div class="label">Vulnerable Dependencies</div>
+            <div class="label">Vulnerable / Malicious</div>
             <div class="value" style="color: ${data.vulnerableCount > 0 ? 'var(--severity-critical-text)' : 'var(--severity-low-text)'};">${data.vulnerableCount || 0}</div>
           </div>
           <div class="summary-metric-box">
@@ -2401,7 +2905,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 600; color: var(--primary-900); margin: 20px 0 10px;">Matched Vulnerabilities</h4>
+        <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 600; color: var(--primary-900); margin: 20px 0 10px;">Matched Vulnerabilities & Supply Chain Threats</h4>
         ${data.matchedVulnerabilities && data.matchedVulnerabilities.length > 0
           ? `
             <div class="table-wrapper">
@@ -2411,18 +2915,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     <th>Package</th>
                     <th>Installed</th>
                     <th>Severity</th>
-                    <th>CVE</th>
+                    <th>Threat / CVE</th>
                     <th>CISA KEV</th>
-                    <th>Remediation</th>
+                    <th>Remediation Guidance</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${data.matchedVulnerabilities.map(v => `
                     <tr>
-                      <td><strong>${v.package}</strong></td>
+                      <td>
+                        <strong>${v.package}</strong>
+                        ${v.threatCategory ? `<div style="font-size: 0.72rem; color: var(--severity-critical-text); font-weight: 600;">${v.threatCategory}</div>` : ''}
+                      </td>
                       <td><code>${v.version}</code></td>
                       <td>${getRiskBadge(v.severity)}</td>
-                      <td style="font-family: var(--font-mono); font-size: 0.8rem;">${v.cveId}</td>
+                      <td>
+                        <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600;">${v.cveId}</span>
+                        ${v.title ? `<div style="font-size: 0.75rem; color: var(--text-secondary); max-width: 200px;">${v.title}</div>` : ''}
+                      </td>
                       <td>${v.cisaKev ? '<strong style="color: var(--severity-critical-text);">YES</strong>' : 'No'}</td>
                       <td style="font-size: 0.82rem; color: var(--primary-700);">${v.remediation}</td>
                     </tr>
@@ -2431,7 +2941,10 @@ document.addEventListener('DOMContentLoaded', () => {
               </table>
             </div>
           `
-          : `<div style="padding: 16px; background-color: var(--severity-low-bg); border: 1px solid var(--severity-low-border); border-radius: var(--radius-md); color: var(--severity-low-text); font-size: 0.88rem;">All parsed dependencies are verified clean against active CVE databases.</div>`
+          : (data.riskLevel === 'SAFE' 
+              ? `<div style="padding: 16px; background-color: var(--severity-low-bg); border: 1px solid var(--severity-low-border); border-radius: var(--radius-md); color: var(--severity-low-text); font-size: 0.88rem;">All parsed dependencies are verified clean by live AI threat intelligence.</div>`
+              : `<div style="padding: 16px; background-color: var(--severity-critical-bg); border: 1px solid var(--severity-critical-border); border-radius: var(--radius-md); color: var(--severity-critical-text); font-size: 0.88rem;">${data.summary || 'AI Model could not complete analysis. Check connection and API key.'}</div>`
+            )
         }
 
         <div style="margin-top: 20px;">
