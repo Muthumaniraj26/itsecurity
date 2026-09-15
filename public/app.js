@@ -1023,17 +1023,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
         advanceUrlStages(5);
 
-        // Map severity
-        const prob = data.analysis.phishingProbability || 0;
-        let riskLevel = 'Low';
-        let uncertaintyLabel = 'No significant indicators detected';
-        if (prob >= 70 || data.analysis.dangerLevel === 'Dangerous') {
-          riskLevel = 'High';
-          uncertaintyLabel = 'Potential Phishing (High probability)';
-        } else if (prob >= 35 || data.analysis.dangerLevel === 'Suspicious') {
-          riskLevel = 'Medium';
-          uncertaintyLabel = 'Suspicious Link (Inconclusive indicators)';
-        }
+        // Map severity from riskScoring
+        const risk = data.riskScoring || {};
+        const totalScore = risk.totalScore !== undefined ? risk.totalScore : (data.analysis?.phishingProbability || 0);
+        const classification = risk.classification || (totalScore >= 70 ? 'CRITICAL' : (totalScore >= 40 ? 'HIGH' : (totalScore >= 20 ? 'MEDIUM' : 'LOW')));
+        const confidence = risk.confidence || 90;
+        const aiSummary = data.aiAnalystVerdict?.executiveVerdict || risk.verdictTitle || 'Deep URL sandbox investigation completed.';
 
         // Auto-record analysis in user store history
         try {
@@ -1043,16 +1038,16 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({
               tool: 'URL Phishing & Threat Analysis',
               target: url,
-              riskLevel: riskLevel,
-              confidence: Math.max(70, Math.min(99, prob + 15)),
-              summary: data.analysis.verdictReasoning || 'URL phishing scan completed.',
+              riskLevel: classification,
+              confidence: confidence,
+              summary: aiSummary,
               resultJson: data
             })
           });
         } catch (saveErr) {}
 
         // Render Results
-        renderUrlResults(data, url, riskLevel, uncertaintyLabel);
+        renderUrlResults(data, url, classification, `${classification} Risk (${totalScore}/100)`);
         if (urlScanStages) urlScanStages.classList.add('hidden');
         if (urlResultsContainer) urlResultsContainer.classList.remove('hidden');
 
@@ -1073,49 +1068,81 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderUrlResults(data, targetUrl, riskLevel, uncertaintyLabel) {
-    const scraped = data.scraped || {};
-    const meta = scraped.pageMetadata || {};
-    const domainInfo = scraped.domainInfo || {};
-    const analysis = data.analysis || {};
-    const mlVector = analysis.mlFeatureVector || {};
+    const norm = data.normalizer || {};
+    const shortener = data.shortener || {};
+    const rep = data.reputationIntelligence || {};
+    const dom = data.domainAnalysis || {};
+    const phish = data.phishingDetection || {};
+    const brand = data.brandImpersonation || {};
+    const content = data.contentAnalysis || {};
+    const redirect = data.redirectAnalysis || {};
+    const js = data.javascriptAnalysis || {};
+    const download = data.downloadMalwareAnalysis || {};
+    const ssl = data.sslTlsAnalysis || {};
+    const auth = data.authHarvestVectors || {};
+    const risk = data.riskScoring || {};
+    const ai = data.aiAnalystVerdict || {};
 
-    const prob = analysis.phishingProbability || 0;
-    const confidence = Math.max(70, Math.min(98, prob + 12));
-    const dangerLevel = analysis.dangerLevel || (prob >= 70 ? 'Dangerous' : (prob >= 35 ? 'Suspicious' : 'Safe'));
-    const meterClass = prob >= 60 ? 'critical' : (prob >= 25 ? 'medium' : 'low');
+    const totalScore = risk.totalScore !== undefined ? risk.totalScore : 0;
+    const classification = risk.classification || 'LOW';
+    const confidence = risk.confidence || 90;
+    const breakdown = risk.breakdown || {};
+
+    let meterColor = 'var(--severity-low-text)';
+    let meterBg = 'var(--severity-low-bg)';
+    let meterBorder = 'var(--severity-low-border)';
+    let fillClass = 'low';
+
+    if (totalScore >= 75) {
+      meterColor = 'var(--severity-critical-text)';
+      meterBg = 'var(--severity-critical-bg)';
+      meterBorder = 'var(--severity-critical-border)';
+      fillClass = 'critical';
+    } else if (totalScore >= 50) {
+      meterColor = 'var(--severity-high-text)';
+      meterBg = 'var(--severity-high-bg)';
+      meterBorder = 'var(--severity-high-border)';
+      fillClass = 'high';
+    } else if (totalScore >= 25) {
+      meterColor = 'var(--severity-medium-text)';
+      meterBg = 'var(--severity-medium-bg)';
+      meterBorder = 'var(--severity-medium-border)';
+      fillClass = 'medium';
+    }
 
     urlResultsContainer.innerHTML = `
       <div class="results-card">
         <!-- Header Banner -->
         <div class="results-header-banner">
           <div class="target-info">
-            <div class="report-badge-pill">URL Phishing &amp; Threat Analysis Report</div>
+            <div class="report-badge-pill">URL Phishing &amp; Deep Sandbox Inspection Report</div>
             <div class="target-url-box">
-              <span class="target-url-text" id="url-target-display" title="${targetUrl}">${targetUrl}</span>
-              <button type="button" class="btn-copy-target" data-copy-target="${targetUrl}">
+              <span class="target-url-text" id="url-target-display" title="${escapeHtml(targetUrl)}">${escapeHtml(targetUrl)}</span>
+              <button type="button" class="btn-copy-target" data-copy-target="${escapeHtml(targetUrl)}">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 Copy URL
               </button>
             </div>
             <div class="results-meta-row">
-              <span class="results-meta-item">Classification: <strong>${uncertaintyLabel}</strong></span>
-              <span class="results-meta-item">Analyzed: <strong>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
+              <span class="results-meta-item">Classification: <strong style="color: ${meterColor};">${classification} (${totalScore}/100)</strong></span>
+              <span class="results-meta-item">Confidence: <strong>${confidence}%</strong></span>
+              <span class="results-meta-item">Audit Time: <strong>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
             </div>
           </div>
           <div>
-            ${getRiskBadge(riskLevel)}
+            ${getRiskBadge(classification)}
           </div>
         </div>
 
-        <!-- Threat Score Meter Bar -->
+        <!-- 7-Pillar Threat Gauge Bar -->
         <div class="threat-meter-container">
           <div class="threat-meter-bar-wrap">
             <div class="threat-meter-labels">
-              <span>PHISHING PROBABILITY GAUGE</span>
-              <span><strong>${prob}%</strong> &bull; ${dangerLevel}</span>
+              <span>SANDBOX RISK SCORE GAUGE</span>
+              <span><strong>${totalScore}/100</strong> &bull; ${classification}</span>
             </div>
             <div class="threat-meter-track">
-              <div class="threat-meter-fill ${meterClass}" style="width: ${Math.max(5, prob)}%;"></div>
+              <div class="threat-meter-fill ${fillClass}" style="width: ${Math.max(5, totalScore)}%;"></div>
             </div>
           </div>
           <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
@@ -1124,108 +1151,344 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <!-- Metric Cards -->
-        <div class="results-summary-grid">
-          <div class="summary-metric-box">
-            <div class="label">Phishing Probability</div>
-            <div class="value" style="color: ${prob >= 60 ? 'var(--severity-critical-text)' : (prob >= 25 ? 'var(--severity-high-text)' : 'var(--severity-low-text)')};">
-              ${prob}%
+        <!-- Brand Impersonation Alert if detected -->
+        ${brand.isBrandImpersonationDetected ? `
+          <div style="margin-top: 18px; padding: 14px 18px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: var(--radius-md); display: flex; align-items: flex-start; gap: 12px;">
+            <div style="color: #dc2626; margin-top: 2px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+              <strong style="color: #991b1b; font-size: 0.92rem;">Active Brand Impersonation Detected: ${escapeHtml(brand.targetedBrand)}</strong>
+              <p style="color: #b91c1c; font-size: 0.84rem; margin: 4px 0 0;">This URL mimics official ${escapeHtml(brand.targetedBrand)} login/service endpoints but resolves to an unauthorized domain (${escapeHtml(norm.domain)}).</p>
             </div>
           </div>
-          <div class="summary-metric-box">
-            <div class="label">Danger Rating</div>
-            <div class="value">${dangerLevel}</div>
-          </div>
-          <div class="summary-metric-box">
-            <div class="label">Domain Age</div>
-            <div class="value">${domainInfo.ageDays !== null ? `${domainInfo.ageDays} days` : 'Unknown'}</div>
-          </div>
-          <div class="summary-metric-box">
-            <div class="label">SSL Certificate</div>
-            <div class="value" style="font-size: 1.05rem;">${scraped.isHttps ? 'Valid HTTPS' : 'Insecure (HTTP)'}</div>
-          </div>
+        ` : ''}
+
+        <!-- 6 Interactive Investigation Tabs -->
+        <div class="scam-tabs-bar" style="margin-top: 22px;">
+          <button type="button" class="scam-tab-btn active" data-url-tab="overview">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            1. Overview &amp; AI Verdict
+          </button>
+          <button type="button" class="scam-tab-btn" data-url-tab="normalizer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            2. URL Normalization
+          </button>
+          <button type="button" class="scam-tab-btn" data-url-tab="phishing">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+            3. Phishing &amp; Brands
+          </button>
+          <button type="button" class="scam-tab-btn" data-url-tab="content">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            4. Content &amp; Forms
+          </button>
+          <button type="button" class="scam-tab-btn" data-url-tab="redirects">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+            5. Redirect Tracer
+          </button>
+          <button type="button" class="scam-tab-btn" data-url-tab="javascript">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            6. JS &amp; Malware Signals
+          </button>
         </div>
 
-        <!-- Strict Separation: Observed Evidence vs AI Assessment -->
-        <div class="analysis-dual-panel">
+        <!-- TAB CONTENT 1: OVERVIEW & AI VERDICT -->
+        <div id="url-tab-overview" class="scam-tab-content active">
           
-          <!-- LEFT: Observed Evidence -->
-          <div class="panel-evidence">
-            <div class="panel-heading">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
-              <span>Observed Evidence</span>
+          <!-- Summary Metric Cards -->
+          <div class="results-summary-grid" style="margin-top: 14px;">
+            <div class="summary-metric-box">
+              <div class="label">Total Risk Score</div>
+              <div class="value" style="color: ${meterColor}; font-size: 1.4rem;">${totalScore}/100</div>
             </div>
+            <div class="summary-metric-box">
+              <div class="label">Classification</div>
+              <div class="value">${classification}</div>
+            </div>
+            <div class="summary-metric-box">
+              <div class="label">Domain Age</div>
+              <div class="value">${dom.ageDays !== null && dom.ageDays !== undefined ? `${dom.ageDays} days` : 'Unknown'}</div>
+            </div>
+            <div class="summary-metric-box">
+              <div class="label">SSL Certificate</div>
+              <div class="value" style="font-size: 1.05rem;">${ssl.hasSsl ? (ssl.isValid ? 'Valid TLS' : 'Untrusted / Expired') : 'Insecure (HTTP)'}</div>
+            </div>
+          </div>
+
+          <!-- 7-Pillar Evidence Score Breakdown Table -->
+          <div style="margin-top: 20px;">
+            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: var(--primary-900); margin-bottom: 12px;">7-Pillar Empirical Score Breakdown</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px;">
+              ${Object.entries(breakdown).map(([key, item]) => {
+                const labels = {
+                  domainReputation: "1. Domain & Threat Reputation",
+                  phishingSimilarity: "2. Phishing & Brand Similarity",
+                  domainAge: "3. Domain Age & Registration",
+                  redirectBehavior: "4. Redirect Chains & Shortener",
+                  websiteContent: "5. Content, Forms & Password Inputs",
+                  threatIntelligence: "6. Threat Intelligence Feeds",
+                  tlsSecurity: "7. SSL / TLS Security"
+                };
+                return `
+                  <div style="background: #f8fafc; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                      <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary-900);">${labels[key] || key}</span>
+                      <span class="badge ${item.score > 0 ? (item.score >= item.max * 0.7 ? 'badge-critical' : 'badge-medium') : 'badge-low'}">${item.score}/${item.max} pts</span>
+                    </div>
+                    ${item.evidence && item.evidence.length > 0 ? `
+                      <ul style="margin: 6px 0 0; padding-left: 18px; font-size: 0.78rem; color: var(--text-muted);">
+                        ${item.evidence.map(ev => `<li style="margin-bottom: 3px;">${escapeHtml(ev)}</li>`).join('')}
+                      </ul>
+                    ` : `<span style="font-size: 0.76rem; color: #16a34a;">No threat deductions. Clean telemetry.</span>`}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- AI Threat Analyst Verdict & MITRE ATT&CK -->
+          <div style="margin-top: 24px; padding: 20px; background: #0f172a; border-radius: var(--radius-lg); color: #f8fafc;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              <strong style="font-size: 0.95rem; color: #ffffff; letter-spacing: 0.03em;">AI THREAT ANALYST INVESTIGATION VERDICT</strong>
+            </div>
+            <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 14px;">
+              ${escapeHtml(ai.executiveVerdict || 'URL sandbox audit completed.')}
+            </p>
+
+            ${ai.mitreAttackMapping && ai.mitreAttackMapping.length > 0 ? `
+              <div style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+                <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 700;">MITRE ATT&amp;CK Technique Mapping</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                  ${ai.mitreAttackMapping.map(m => `
+                    <span style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(96, 165, 250, 0.4); color: #93c5fd; padding: 4px 9px; border-radius: 4px; font-size: 0.78rem; font-family: var(--font-mono);">
+                      <strong>${escapeHtml(m.techniqueId)}</strong>: ${escapeHtml(m.techniqueName)} (${escapeHtml(m.tactic || 'Phishing')})
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            ${ai.socRemediationSteps && ai.socRemediationSteps.length > 0 ? `
+              <div style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+                <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 700;">SOC Incident Response Steps</span>
+                <ol style="margin: 8px 0 0; padding-left: 20px; font-size: 0.82rem; color: #e2e8f0; line-height: 1.55;">
+                  ${ai.socRemediationSteps.map(s => `<li style="margin-bottom: 4px;">${escapeHtml(s)}</li>`).join('')}
+                </ol>
+              </div>
+            ` : ''}
+          </div>
+
+        </div>
+
+        <!-- TAB CONTENT 2: URL NORMALIZATION -->
+        <div id="url-tab-normalizer" class="scam-tab-content">
+          <div style="margin-top: 14px;">
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: var(--primary-900); margin-bottom: 12px;">URL Component Dissection &amp; Sanitization</h4>
             <table class="evidence-table">
               <tbody>
                 <tr>
-                  <td class="prop-name">Target Domain</td>
-                  <td class="prop-val">${scraped.domain || 'N/A'}</td>
+                  <td class="prop-name">Clean Canonical URL</td>
+                  <td class="prop-val" style="font-family: var(--font-mono); word-break: break-all;">${escapeHtml(norm.cleanUrl || targetUrl)}</td>
                 </tr>
                 <tr>
-                  <td class="prop-name">Registrar</td>
-                  <td class="prop-val">${domainInfo.registrar || 'Unknown'}</td>
+                  <td class="prop-name">Protocol Scheme</td>
+                  <td class="prop-val"><span class="badge badge-info">${escapeHtml(norm.scheme || 'http').toUpperCase()}</span> (Port: ${norm.port || 80})</td>
                 </tr>
                 <tr>
-                  <td class="prop-name">Password Input Detected</td>
-                  <td class="prop-val">${meta.hasPasswordFields ? '<span style="color: var(--severity-critical-text); font-weight:600;">Yes (Credential Trap)</span>' : 'No'}</td>
+                  <td class="prop-name">Domain Host</td>
+                  <td class="prop-val"><strong>${escapeHtml(norm.domain || 'N/A')}</strong></td>
                 </tr>
                 <tr>
-                  <td class="prop-name">Outbound Links Ratio</td>
-                  <td class="prop-val">${meta.externalLinks || 0} / ${meta.totalLinks || 0}</td>
+                  <td class="prop-name">Base Domain / Subdomains</td>
+                  <td class="prop-val">${escapeHtml(norm.baseDomain || 'N/A')} &bull; Subdomains: [${escapeHtml((norm.subdomains || []).join(', ') || 'None')}]</td>
                 </tr>
                 <tr>
-                  <td class="prop-name">Short URL Service</td>
-                  <td class="prop-val">${meta.isShortUrl ? '<span style="color: var(--severity-high-text);">Yes (Redirector)</span>' : 'Clean'}</td>
+                  <td class="prop-name">URL Path</td>
+                  <td class="prop-val" style="font-family: var(--font-mono);">${escapeHtml(norm.path || '/')}</td>
                 </tr>
                 <tr>
-                  <td class="prop-name">Abnormal Form Action</td>
-                  <td class="prop-val">${meta.emptyOrExternalForm ? '<span style="color: var(--severity-critical-text); font-weight:600;">Yes (External Target)</span>' : 'Clean'}</td>
+                  <td class="prop-name">Query Parameters</td>
+                  <td class="prop-val" style="font-family: var(--font-mono);">${escapeHtml(norm.query || 'None')}</td>
                 </tr>
                 <tr>
-                  <td class="prop-name">Hidden Iframe</td>
-                  <td class="prop-val">${meta.hasIframe ? '<span style="color: var(--severity-high-text);">Yes (Overlay)</span>' : 'Clean'}</td>
+                  <td class="prop-name">Stripped Tracking Tags</td>
+                  <td class="prop-val">${norm.strippedTrackingParams && norm.strippedTrackingParams.length > 0 ? norm.strippedTrackingParams.map(t => `<span class="badge badge-medium" style="margin-right: 4px;">${escapeHtml(t)}</span>`).join('') : '<span style="color: #16a34a;">None</span>'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Punycode / IDN Encoded</td>
+                  <td class="prop-val">${norm.hasPunycode ? '<span class="badge badge-critical">Punycode Detected (xn--)</span>' : 'Standard Latin'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">URL Shortener Expansion</td>
+                  <td class="prop-val">${norm.isShortUrl ? `<span class="badge badge-high">Shortener Detected</span> &rarr; Expanded to: <span style="font-family: var(--font-mono);">${escapeHtml(shortener.finalUrl || 'Expanded')}</span>` : 'Direct Link'}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-
-          <!-- RIGHT: AI Interpretation -->
-          <div class="panel-ai">
-            <div class="panel-heading">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-              <span>AI Assessment &amp; Explanation</span>
-            </div>
-            <p class="ai-reasoning-text"><strong>Verdict Reasoning:</strong> ${analysis.verdictReasoning || 'Analysis evaluated site characteristics against phishing telemetry.'}</p>
-            <p class="ai-reasoning-text"><strong>Layout &amp; DOM Check:</strong> ${analysis.visualLayoutCheck || 'No layout anomalies reported.'}</p>
-            
-            <div style="margin-top: 14px;">
-              <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Identified Risk Factors</strong>
-              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
-                ${analysis.riskFactors && analysis.riskFactors.length > 0
-                  ? analysis.riskFactors.map(f => `<div style="font-size: 0.84rem; color: var(--severity-critical-text); background: var(--severity-critical-bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--severity-critical-border);">${f}</div>`).join('')
-                  : `<div style="font-size: 0.84rem; color: var(--severity-low-text); background: var(--severity-low-bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--severity-low-border);">No critical threat indicators detected.</div>`
-                }
-              </div>
-            </div>
-          </div>
-
         </div>
 
-        <!-- Recommended Actions -->
-        <div style="margin-top: 24px;">
-          <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: var(--primary-900);">Recommended Mitigation Actions</h4>
-          <div class="action-plan-list">
-            ${riskLevel === 'High' || prob >= 60
-              ? `
-                <div class="action-plan-item"><span class="action-plan-num">01</span><span>Block destination domain on corporate perimeter firewall and DNS resolvers.</span></div>
-                <div class="action-plan-item"><span class="action-plan-num">02</span><span>Initiate password reset &amp; MFA session revocation for users who interacted with this destination.</span></div>
-                <div class="action-plan-item"><span class="action-plan-num">03</span><span>Export structured advisory and attach to SIEM / Incident Response ticket.</span></div>
-              `
-              : `
-                <div class="action-plan-item"><span class="action-plan-num">01</span><span>No perimeter block required. Standard telemetry logging and monitoring active.</span></div>
-                <div class="action-plan-item"><span class="action-plan-num">02</span><span>Re-audit endpoint if domain WHOIS or DNS infrastructure changes.</span></div>
-              `
-            }
+        <!-- TAB CONTENT 3: PHISHING & BRANDS -->
+        <div id="url-tab-phishing" class="scam-tab-content">
+          <div style="margin-top: 14px;">
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: var(--primary-900); margin-bottom: 12px;">Brand Impersonation &amp; Typo-Squatting Metrics</h4>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 16px;">
+              <div style="background: #f8fafc; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px;">
+                <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Targeted Brand Recognition</span>
+                <div style="font-size: 1.1rem; font-weight: 700; color: ${brand.isBrandImpersonationDetected ? '#dc2626' : 'var(--primary-900)'}; margin-top: 4px;">
+                  ${brand.targetedBrand ? escapeHtml(brand.targetedBrand) : 'No Specific Brand Target'}
+                </div>
+              </div>
+
+              <div style="background: #f8fafc; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px;">
+                <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Unicode Homoglyphs</span>
+                <div style="font-size: 1.1rem; font-weight: 700; color: ${phish.homoglyphs && phish.homoglyphs.hasHomoglyphs ? '#dc2626' : 'var(--primary-900)'}; margin-top: 4px;">
+                  ${phish.homoglyphs && phish.homoglyphs.hasHomoglyphs ? 'Homoglyph Confusable Detected' : 'No Mixed Scripts'}
+                </div>
+              </div>
+            </div>
+
+            ${phish.matchedBrands && phish.matchedBrands.length > 0 ? `
+              <table class="evidence-table">
+                <thead>
+                  <tr style="background: #f1f5f9;">
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">Brand Target</th>
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">Levenshtein Distance</th>
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">Jaro-Winkler Similarity</th>
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">Mutation Pattern</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${phish.matchedBrands.map(b => `
+                    <tr>
+                      <td style="font-weight: 700;">${escapeHtml(b.brand)}</td>
+                      <td>${b.levenshteinDistance} edit(s)</td>
+                      <td>${(b.jaroWinklerSimilarity * 100).toFixed(1)}%</td>
+                      <td><span class="badge badge-high">${escapeHtml(b.mutationType)}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : `<p style="font-size: 0.85rem; color: var(--text-muted);">No fuzzy brand similarity mutations identified.</p>`}
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 4: CONTENT & FORMS -->
+        <div id="url-tab-content" class="scam-tab-content">
+          <div style="margin-top: 14px;">
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: var(--primary-900); margin-bottom: 12px;">Webpage DOM, Form &amp; Credential Collection Audit</h4>
+            
+            <table class="evidence-table" style="margin-bottom: 16px;">
+              <tbody>
+                <tr>
+                  <td class="prop-name">HTML Page Title</td>
+                  <td class="prop-val"><strong>${escapeHtml(content.title || 'Untitled / No Title')}</strong></td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Password Input Fields</td>
+                  <td class="prop-val">${content.hasPasswordFields ? '<span class="badge badge-critical">Yes &bull; Password Harvesting</span>' : 'None'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Payment / Credit Card Forms</td>
+                  <td class="prop-val">${content.hasPaymentForm ? '<span class="badge badge-critical">Yes &bull; Financial Data Entry</span>' : 'None'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">OTP / 2FA Verification Inputs</td>
+                  <td class="prop-val">${content.hasOtpField ? '<span class="badge badge-high">Yes &bull; 2FA Interception</span>' : 'None'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Hidden Form Elements</td>
+                  <td class="prop-val">${content.hiddenForms > 0 ? `<span class="badge badge-medium">${content.hiddenForms} Hidden Form(s)</span>` : 'None'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">External Iframes / Scripts</td>
+                  <td class="prop-val">${content.externalIframes || 0} Iframes &bull; ${content.externalScripts || 0} External Scripts</td>
+                </tr>
+              </tbody>
+            </table>
+
+            ${auth.evidence && auth.evidence.length > 0 ? `
+              <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 14px;">
+                <strong style="color: #92400e; font-size: 0.85rem;">Observed Credential Harvesting Signals</strong>
+                <ul style="margin: 6px 0 0; padding-left: 18px; font-size: 0.8rem; color: #78350f;">
+                  ${auth.evidence.map(ev => `<li>${escapeHtml(ev)}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 5: REDIRECTS -->
+        <div id="url-tab-redirects" class="scam-tab-content">
+          <div style="margin-top: 14px;">
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: var(--primary-900); margin-bottom: 12px;">Multi-Hop Redirect Chain Trace</h4>
+            
+            <div style="margin-bottom: 12px; font-size: 0.85rem; color: var(--text-muted);">
+              Total Hops: <strong>${redirect.totalHops || 1}</strong> &bull; Cross-Domain Jumps: <strong>${redirect.crossDomainJumps || 0}</strong>
+              ${redirect.isSuspiciousRedirectChain ? ' &bull; <span class="badge badge-critical">Suspicious Chain Pattern</span>' : ''}
+            </div>
+
+            ${redirect.redirectChain && redirect.redirectChain.length > 0 ? `
+              <table class="evidence-table">
+                <thead>
+                  <tr style="background: #f1f5f9;">
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">Hop</th>
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">URL</th>
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">Status</th>
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">Domain / Resolved IP</th>
+                    <th style="padding: 8px 12px; font-size: 0.76rem;">Redirect Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${redirect.redirectChain.map(hop => `
+                    <tr>
+                      <td style="font-weight: 700; text-align: center;">${hop.hop}</td>
+                      <td style="font-family: var(--font-mono); font-size: 0.78rem; word-break: break-all;">${escapeHtml(hop.url)}</td>
+                      <td><span class="badge ${hop.status == 200 ? 'badge-low' : (hop.status >= 300 && hop.status < 400 ? 'badge-info' : 'badge-high')}">${hop.status}</span></td>
+                      <td style="font-size: 0.8rem;">${escapeHtml(hop.domain)}<br><span style="color: var(--text-muted); font-size: 0.74rem;">${escapeHtml(hop.ip)}</span></td>
+                      <td style="font-size: 0.8rem;">${escapeHtml(hop.redirectType)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : `<p style="font-size: 0.85rem; color: var(--text-muted);">Direct single-hop URL. No redirects detected.</p>`}
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 6: JAVASCRIPT & MALWARE -->
+        <div id="url-tab-javascript" class="scam-tab-content">
+          <div style="margin-top: 14px;">
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: var(--primary-900); margin-bottom: 12px;">JavaScript Behavior &amp; Payload Inspection</h4>
+            
+            <table class="evidence-table" style="margin-bottom: 16px;">
+              <tbody>
+                <tr>
+                  <td class="prop-name">JavaScript Risk Rating</td>
+                  <td class="prop-val"><span class="badge ${js.jsRiskScore > 30 ? 'badge-critical' : 'badge-low'}">${js.jsRiskScore || 0}/100</span></td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Code Obfuscation / eval()</td>
+                  <td class="prop-val">${js.hasObfuscatedCode ? '<span class="badge badge-high">Obfuscated / Packed Code</span>' : '<span style="color: #16a34a;">Clean</span>'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Keylogger / Input Listeners</td>
+                  <td class="prop-val">${js.hasKeyloggingHooks ? '<span class="badge badge-critical">Keylogger Listeners Detected</span>' : '<span style="color: #16a34a;">Clean</span>'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Cryptocurrency Miners</td>
+                  <td class="prop-val">${js.hasCryptoMiningSignatures ? '<span class="badge badge-critical">Miner Detected</span>' : 'None'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">Executable Download Trigger</td>
+                  <td class="prop-val">${download.isDownloadTriggered ? `<span class="badge badge-critical">Auto-Download (${escapeHtml(download.detectedExtension || 'File')})</span>` : 'None'}</td>
+                </tr>
+                <tr>
+                  <td class="prop-name">URL Target SHA-256 Hash</td>
+                  <td class="prop-val" style="font-family: var(--font-mono); font-size: 0.76rem; word-break: break-all;">${escapeHtml(download.urlSha256 || 'N/A')}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -1237,6 +1500,22 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `;
+
+    // Bind sub-tabs for URL investigation
+    const urlTabButtons = urlResultsContainer.querySelectorAll('.scam-tab-btn[data-url-tab]');
+    urlTabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-url-tab');
+        urlTabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        urlResultsContainer.querySelectorAll('.scam-tab-content').forEach(pane => {
+          pane.classList.remove('active');
+        });
+        const activePane = document.getElementById(`url-tab-${targetTab}`);
+        if (activePane) activePane.classList.add('active');
+      });
+    });
 
     // Bind copy button
     urlResultsContainer.querySelectorAll('[data-copy-target]').forEach(btn => {
@@ -1255,10 +1534,10 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: getHeaders(true, false),
             body: JSON.stringify({
-              reportName: `URL Analysis: ${scraped.domain || targetUrl}`,
+              reportName: `URL Sandbox: ${norm.domain || targetUrl}`,
               target: targetUrl,
-              riskLevel: riskLevel,
-              contentJson: { scraped, analysis }
+              riskLevel: classification,
+              contentJson: data
             })
           });
           if (saveRes.ok) {
@@ -1272,41 +1551,53 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Bind export buttons
+    // Bind Export Markdown
     const btnExportMd = document.getElementById('btn-export-url-md');
-    const btnExportJson = document.getElementById('btn-export-url-json');
-
     if (btnExportMd) {
-      btnExportMd.addEventListener('click', async () => {
-        try {
-          const res = await fetch('/api/export-advisory', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'phishing', format: 'markdown', scraped, analysis })
-          });
-          const exp = await res.json();
-          downloadTextFile(exp.filename, exp.content, 'text/markdown');
-          showToast('Markdown advisory downloaded.');
-        } catch (e) {
-          showToast('Export failed: ' + e.message);
-        }
+      btnExportMd.addEventListener('click', () => {
+        const md = `# URL Phishing & Sandbox Inspection Report
+**Target URL**: ${targetUrl}
+**Risk Score**: ${totalScore}/100 (${classification})
+**Confidence**: ${confidence}%
+**Targeted Brand**: ${brand.targetedBrand || 'None detected'}
+
+## Executive Verdict
+${ai.executiveVerdict || 'No executive summary provided.'}
+
+## 7-Pillar Breakdown
+- Domain Reputation: ${breakdown.domainReputation?.score || 0}/${breakdown.domainReputation?.max || 20}
+- Phishing & Brand Similarity: ${breakdown.phishingSimilarity?.score || 0}/${breakdown.phishingSimilarity?.max || 20}
+- Domain Age: ${breakdown.domainAge?.score || 0}/${breakdown.domainAge?.max || 15}
+- Redirect Behavior: ${breakdown.redirectBehavior?.score || 0}/${breakdown.redirectBehavior?.max || 15}
+- Content & Forms: ${breakdown.websiteContent?.score || 0}/${breakdown.websiteContent?.max || 15}
+- Threat Intelligence: ${breakdown.threatIntelligence?.score || 0}/${breakdown.threatIntelligence?.max || 10}
+- TLS Security: ${breakdown.tlsSecurity?.score || 0}/${breakdown.tlsSecurity?.max || 5}
+
+## URL Normalization
+- Scheme: ${norm.scheme} (Port: ${norm.port})
+- Host: ${norm.domain}
+- Path: ${norm.path}
+- Punycode: ${norm.hasPunycode ? 'Yes' : 'No'}
+`;
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `url_phishing_report_${(norm.domain || 'target').replace(/[^a-zA-Z0-9]/g, '_')}.md`;
+        a.click();
+        showToast('Exported Markdown report.');
       });
     }
 
+    // Bind Export JSON
+    const btnExportJson = document.getElementById('btn-export-url-json');
     if (btnExportJson) {
-      btnExportJson.addEventListener('click', async () => {
-        try {
-          const res = await fetch('/api/export-advisory', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'phishing', format: 'json', scraped, analysis })
-          });
-          const exp = await res.json();
-          downloadTextFile(exp.filename, JSON.stringify(exp.content, null, 2), 'application/json');
-          showToast('JSON telemetry downloaded.');
-        } catch (e) {
-          showToast('Export failed: ' + e.message);
-        }
+      btnExportJson.addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `url_phishing_report_${(norm.domain || 'target').replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+        a.click();
+        showToast('Exported JSON report.');
       });
     }
   }

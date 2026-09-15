@@ -778,7 +778,7 @@
                 </div>
                 <div>
                   <h3 class="sec-tool-hero-title">URL Phishing &amp; Deep Sandbox Inspection</h3>
-                  <p class="sec-tool-hero-desc">Executes non-rendering DOM inspection, SSL certificate verification, RDAP registration age auditing, and extracts the 11-dimensional UCI Machine Learning Phishing feature vector.</p>
+                  <p class="sec-tool-hero-desc">16-Module Deep Inspection: URL Normalization &amp; Shortener Expansion, Threat Feeds Reputation, Domain Age &amp; Infrastructure, Levenshtein &amp; Homoglyphs, Brand Impersonation, Sandboxed Form Audits, Safe Redirect Chains, JavaScript &amp; Malware Payload Analysis, and AI Threat Analyst.</p>
                 </div>
               </div>
             </div>
@@ -789,9 +789,9 @@
                   <label for="input-scan-url" class="form-label" style="font-weight: 700; color: var(--primary-900);">Target URL or Phishing Lure</label>
                   <div class="input-with-affix">
                     <span class="input-affix" style="font-weight: 700; background: #1e293b; color: #93c5fd;">AUDIT TARGET</span>
-                    <input type="url" id="input-scan-url" class="form-input" placeholder="https://example.com/login" style="font-size: 0.92rem; padding: 10px 14px;" required>
+                    <input type="text" id="input-scan-url" class="form-input" placeholder="https://login.example.com:443/account?id=123&utm_source=x" style="font-size: 0.92rem; padding: 10px 14px;" required>
                   </div>
-                  <p class="form-helper">Enter any suspicious web address to audit across DNS, SSL, content traits, and ML vector parameters.</p>
+                  <p class="form-helper">Enter any URL to dissect normalization components, brand targets, redirect hops, and compute the 0-100 risk score.</p>
                 </div>
 
                 <div class="sec-preset-bar">
@@ -799,21 +799,27 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     Quick Lure Presets:
                   </span>
-                  <button type="button" class="sec-preset-btn" data-preset-url="https://secure-login-portal.paypal-verification-update.net/auth">
-                    PayPal Credential Lure <span class="preset-tag">UCI High-Risk</span>
+                  <button type="button" class="sec-preset-btn" data-preset-url="https://secure-login-portal.paypal-verification-update.net/auth?id=8923&utm_source=phish">
+                    PayPal Credential Lure <span class="preset-tag">High-Risk Impersonation</span>
+                  </button>
+                  <button type="button" class="sec-preset-btn" data-preset-url="https://login.microsoft-verify-security.com:443/account?session=locked">
+                    Microsoft M365 Lure <span class="preset-tag">Credential Trap</span>
                   </button>
                   <button type="button" class="sec-preset-btn" data-preset-url="http://192.168.1.100/chase-online-login/verify.php?token=928471">
                     Raw IP Banking Lure <span class="preset-tag">IP Phish</span>
                   </button>
-                  <button type="button" class="sec-preset-btn" data-preset-url="https://play.google.com/store/account/subscriptions/fix?utm_source=gmail&utm_medium=web&utm_campaign=workflow_assist_card_fix_payment&docId=subs:com.google.android.apps.subscriptions.red:g1.2tb.ai.3months_ip_75p.ac">
-                    Google Play Subscriptions <span class="preset-tag">Legitimate</span>
+                  <button type="button" class="sec-preset-btn" data-preset-url="http://арple.com/id-verification">
+                    Apple Homoglyph <span class="preset-tag">Cyrillic Spoof</span>
+                  </button>
+                  <button type="button" class="sec-preset-btn" data-preset-url="https://play.google.com/store/account/subscriptions">
+                    Google Play <span class="preset-tag">Verified Clean</span>
                   </button>
                 </div>
 
                 <div style="display: flex; gap: 12px; align-items: center; margin-top: 18px;">
                   <button type="submit" class="btn btn-primary" id="btn-run-url-scan">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    Run Sandbox Analysis
+                    Run Deep Sandbox Analysis
                   </button>
                   <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-url">Clear Input</button>
                 </div>
@@ -824,16 +830,16 @@
                 <div class="sec-stepper-header">
                   <span style="font-weight: 700; font-size: 0.9rem; color: var(--primary-900); display: flex; align-items: center; gap: 8px;">
                     <span class="telemetry-dot-pulse"></span>
-                    Live Sandbox Telemetry in Progress
+                    Live 16-Module URL Sandbox Telemetry in Progress
                   </span>
                   <span class="spinner" style="width: 18px; height: 18px; margin: 0; border-width: 2px;"></span>
                 </div>
                 <div class="sec-stepper-list">
-                  <div class="sec-step-row in-progress" id="url-stage-1"><span class="sec-step-indicator">1</span> Sanitizing and validating target URL parameters</div>
-                  <div class="sec-step-row" id="url-stage-2"><span class="sec-step-indicator">2</span> Inspecting SSL/TLS certificates and WHOIS registration age</div>
-                  <div class="sec-step-row" id="url-stage-3"><span class="sec-step-indicator">3</span> Extracting 11-parameter UCI Phishing ML feature vector</div>
-                  <div class="sec-step-row" id="url-stage-4"><span class="sec-step-indicator">4</span> Synthesizing AI Cybersecurity risk reasoning</div>
-                  <div class="sec-step-row" id="url-stage-5"><span class="sec-step-indicator">5</span> Compiling exportable security advisory report</div>
+                  <div class="sec-step-row in-progress" id="url-stage-1"><span class="sec-step-indicator">1</span> Normalizing URL components, stripping tracking tags &amp; expanding shorteners</div>
+                  <div class="sec-step-row" id="url-stage-2"><span class="sec-step-indicator">2</span> Checking threat intelligence feeds, domain age RDAP &amp; DNS infrastructure</div>
+                  <div class="sec-step-row" id="url-stage-3"><span class="sec-step-indicator">3</span> Executing Levenshtein similarity, Unicode homoglyph &amp; brand impersonation audit</div>
+                  <div class="sec-step-row" id="url-stage-4"><span class="sec-step-indicator">4</span> Sandboxing HTML DOM, tracing redirect hops, and analyzing JavaScript behaviors</div>
+                  <div class="sec-step-row" id="url-stage-5"><span class="sec-step-indicator">5</span> Computing 7-pillar 0-100 risk score and synthesizing Multi-LLM AI Threat report</div>
                 </div>
               </div>
             </div>

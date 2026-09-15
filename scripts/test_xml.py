@@ -1,7 +1,9 @@
 import httpx
 import re
 import xml.etree.ElementTree as ET
+import pytest
 
+@pytest.mark.anyio
 async def test_xml():
     import json
     with open("config/feeds.json", "r") as f:
