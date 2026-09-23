@@ -238,6 +238,21 @@ ECOSYSTEM_OSV_MAP = {
     "Generic": "PyPI"
 }
 
+async def get_latest_package_version(client: httpx.AsyncClient, name: str, eco: str) -> Optional[str]:
+    """Dynamically resolves the current stable latest release from the ecosystem registry."""
+    try:
+        if "python" in eco.lower() or eco == "PyPI":
+            res = await client.get(f"https://pypi.org/pypi/{name}/json", timeout=2.0)
+            if res.status_code == 200:
+                return res.json().get("info", {}).get("version")
+        elif "node" in eco.lower() or eco == "npm":
+            res = await client.get(f"https://registry.npmjs.org/{name}/latest", timeout=2.0)
+            if res.status_code == 200:
+                return res.json().get("version")
+    except Exception:
+        pass
+    return None
+
 async def query_live_osv_vulnerabilities(dependencies: list) -> List[Dict[str, Any]]:
     """Queries live OSV.dev open vulnerability catalog in real time without any hardcoded dictionary."""
     if not dependencies:
@@ -252,6 +267,12 @@ async def query_live_osv_vulnerabilities(dependencies: list) -> List[Dict[str, A
             ver = dep["version"]
             eco = dep.get("ecosystem", "Python (PyPI)")
             osv_eco = ECOSYSTEM_OSV_MAP.get(eco, "PyPI")
+
+            # If version is 'latest' or unspecified, resolve current stable release from PyPI/npm
+            if not ver or ver == "latest":
+                resolved_ver = await get_latest_package_version(client, name, eco)
+                if resolved_ver:
+                    ver = resolved_ver
 
             payload = {"package": {"name": name, "ecosystem": osv_eco}}
             if ver and ver != "latest":

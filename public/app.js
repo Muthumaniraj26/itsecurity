@@ -282,7 +282,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileToggleBtn = document.getElementById('mobile-toggle-btn');
   const mainNav = document.getElementById('main-nav');
 
-  function navigateTo(viewId) {
+  // Pending post-authentication target action
+  let pendingAuthTarget = null;
+
+  function requireAuth(options = {}) {
+    if (currentUser && authToken) {
+      return true;
+    }
+
+    const targetView = options.view || 'tools';
+    const targetPane = options.pane || null;
+    const reason = options.message || 'Please sign in to access Security Tools & Sandbox and run threat analysis.';
+
+    pendingAuthTarget = {
+      view: targetView,
+      pane: targetPane,
+      message: reason
+    };
+
+    navigateTo('login', false);
+
+    const loginAlert = document.getElementById('login-alert');
+    const loginAlertText = document.getElementById('login-alert-text');
+    if (loginAlert && loginAlertText) {
+      loginAlertText.innerHTML = `<strong>Sign In Required:</strong> ${escapeHtml(reason)}`;
+      loginAlert.classList.remove('hidden');
+    }
+
+    const emailInput = document.getElementById('login-email');
+    if (emailInput) emailInput.focus();
+
+    showToast('Please sign in to access security tools', 'info');
+    return false;
+  }
+
+  function navigateTo(viewId, checkGuards = true) {
+    // Auth Guard: If not signed in, prompt sign in when accessing protected views
+    const protectedViews = ['tools', 'dashboard', 'history', 'reports', 'settings'];
+    if (checkGuards && protectedViews.includes(viewId) && (!currentUser || !authToken)) {
+      return requireAuth({
+        view: viewId,
+        pane: null,
+        message: viewId === 'tools'
+          ? 'Please sign in to explore security tools and run live threat analysis.'
+          : `Please sign in to access your ${viewId.charAt(0).toUpperCase() + viewId.slice(1)}.`
+      });
+    }
+
     activeView = viewId;
 
     // Toggle active view instantaneously
@@ -332,6 +378,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Universal helper for button actions (handles both views and tool shortcuts)
   function switchView(target) {
+    if (!currentUser || !authToken) {
+      let pane = null;
+      if (target === 'threats' || target === 'threat_digest') pane = 'pane-threat';
+      else if (target === 'phishing' || target === 'url') pane = 'pane-url';
+      else if (target === 'scam' || target === 'scam_detector') pane = 'pane-scam';
+      else if (target === 'sbom' || target === 'dependencies') pane = 'pane-sbom';
+      else if (target === 'llm' || target === 'gateway') pane = 'pane-llm';
+      
+      return requireAuth({
+        view: 'tools',
+        pane: pane,
+        message: 'Please sign in to explore and use Security Tools & Sandbox.'
+      });
+    }
+
     if (target === 'threats' || target === 'threat_digest') {
       navigateTo('tools');
       activateToolPane('pane-threat');
@@ -386,13 +447,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnDashboardNewAnalysis = document.getElementById('btn-dashboard-new-analysis');
   const btnViewAllHistory = document.getElementById('btn-view-all-history');
 
-  if (btnGotoLogin) btnGotoLogin.addEventListener('click', () => navigateTo('login'));
-  if (btnGotoRegister) btnGotoRegister.addEventListener('click', () => navigateTo('register'));
-  if (linkToRegister) linkToRegister.addEventListener('click', (e) => { e.preventDefault(); navigateTo('register'); });
-  if (linkToLogin) linkToLogin.addEventListener('click', (e) => { e.preventDefault(); navigateTo('login'); });
+  if (btnGotoLogin) btnGotoLogin.addEventListener('click', () => navigateTo('login', false));
+  if (btnGotoRegister) btnGotoRegister.addEventListener('click', () => navigateTo('register', false));
+  if (linkToRegister) linkToRegister.addEventListener('click', (e) => { e.preventDefault(); navigateTo('register', false); });
+  if (linkToLogin) linkToLogin.addEventListener('click', (e) => { e.preventDefault(); navigateTo('login', false); });
   if (btnGotoSettings) btnGotoSettings.addEventListener('click', () => navigateTo('settings'));
-  if (heroGetStartedBtn) heroGetStartedBtn.addEventListener('click', () => navigateTo(currentUser ? 'dashboard' : 'register'));
-  if (heroExploreToolsBtn) heroExploreToolsBtn.addEventListener('click', () => navigateTo('tools'));
+  if (heroGetStartedBtn) heroGetStartedBtn.addEventListener('click', () => navigateTo(currentUser ? 'dashboard' : 'register', false));
+  if (heroExploreToolsBtn) {
+    heroExploreToolsBtn.addEventListener('click', () => {
+      if (!currentUser) {
+        requireAuth({ view: 'tools', pane: 'pane-threat', message: 'Please sign in to explore Security Tools & Sandbox.' });
+      } else {
+        navigateTo('tools');
+      }
+    });
+  }
   if (btnDashboardNewAnalysis) btnDashboardNewAnalysis.addEventListener('click', () => navigateTo('tools'));
   if (btnViewAllHistory) btnViewAllHistory.addEventListener('click', () => navigateTo('history'));
 
@@ -411,6 +480,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const toolPane = card.getAttribute('data-action-tool');
       const targetView = card.getAttribute('data-action-view');
       if (toolPane) {
+        if (!requireAuth({ view: 'tools', pane: toolPane, message: 'Please sign in to access and run this security tool.' })) {
+          return;
+        }
         navigateTo('tools');
         activateToolPane(toolPane);
       } else if (targetView) {
@@ -423,10 +495,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-switch-tool]').forEach(btn => {
     btn.addEventListener('click', () => {
       const tool = btn.getAttribute('data-switch-tool');
+      let pane = 'pane-threat';
+      if (tool === 'phishing') pane = 'pane-url';
+      else if (tool === 'scam') pane = 'pane-scam';
+      else if (tool === 'threats') pane = 'pane-threat';
+
+      if (!requireAuth({ view: 'tools', pane: pane, message: 'Please sign in to explore and use Security Tools.' })) {
+        return;
+      }
       navigateTo('tools');
-      if (tool === 'phishing') activateToolPane('pane-url');
-      else if (tool === 'scam') activateToolPane('pane-scam');
-      else if (tool === 'threats') activateToolPane('pane-threat');
+      activateToolPane(pane);
     });
   });
 
@@ -455,8 +533,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function checkSession() {
     if (!authToken) {
       updateAuthStateUI();
-      if (['dashboard', 'history', 'reports', 'settings'].includes(activeView)) {
-        navigateTo('home');
+      if (['dashboard', 'history', 'reports', 'settings', 'tools'].includes(activeView)) {
+        navigateTo('home', false);
       }
       return;
     }
@@ -470,7 +548,14 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUser = data.user;
         updateAuthStateUI();
         if (activeView === 'login' || activeView === 'register') {
-          navigateTo('dashboard');
+          if (pendingAuthTarget) {
+            const target = pendingAuthTarget;
+            pendingAuthTarget = null;
+            navigateTo(target.view, false);
+            if (target.pane) activateToolPane(target.pane);
+          } else {
+            navigateTo('dashboard', false);
+          }
         }
 
         // Check if onboarding is needed
@@ -483,14 +568,14 @@ document.addEventListener('DOMContentLoaded', () => {
         authToken = null;
         currentUser = null;
         updateAuthStateUI();
-        if (['dashboard', 'history', 'reports', 'settings'].includes(activeView)) {
-          navigateTo('home');
+        if (['dashboard', 'history', 'reports', 'settings', 'tools'].includes(activeView)) {
+          navigateTo('home', false);
         }
       }
     } catch (e) {
       updateAuthStateUI();
-      if (['dashboard', 'history', 'reports', 'settings'].includes(activeView)) {
-        navigateTo('home');
+      if (['dashboard', 'history', 'reports', 'settings', 'tools'].includes(activeView)) {
+        navigateTo('home', false);
       }
     }
   }
@@ -526,7 +611,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         formLogin.reset();
         updateAuthStateUI();
-        navigateTo('dashboard');
+
+        if (pendingAuthTarget) {
+          const target = pendingAuthTarget;
+          pendingAuthTarget = null;
+          navigateTo(target.view, false);
+          if (target.pane) {
+            activateToolPane(target.pane);
+          }
+          showToast(`Welcome back, ${currentUser.name || 'User'}!`, 'success');
+        } else {
+          navigateTo('dashboard', false);
+        }
 
         if (!currentUser.onboardingCompleted) {
           startOnboarding();
@@ -581,7 +677,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         formRegister.reset();
         updateAuthStateUI();
-        navigateTo('dashboard');
+
+        if (pendingAuthTarget) {
+          const target = pendingAuthTarget;
+          pendingAuthTarget = null;
+          navigateTo(target.view, false);
+          if (target.pane) {
+            activateToolPane(target.pane);
+          }
+          showToast(`Account created! Welcome, ${currentUser.name || 'User'}!`, 'success');
+        } else {
+          navigateTo('dashboard', false);
+        }
         startOnboarding();
       } catch (err) {
         if (registerAlert && registerAlertText) {
@@ -909,6 +1016,11 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   function activateToolPane(targetPaneId) {
+    if (!currentUser || !authToken) {
+      requireAuth({ view: 'tools', pane: targetPaneId, message: 'Please sign in to access and use Security Tools & Sandbox.' });
+      return;
+    }
+
     toolPaneButtons.forEach(({ btnId, paneId }) => {
       const btn = document.getElementById(btnId);
       const pane = document.getElementById(paneId);
@@ -951,6 +1063,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Preset sample chips for URL Phishing
   document.querySelectorAll('[data-preset-url]').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (!requireAuth({ view: 'tools', pane: 'pane-url', message: 'Please sign in to test sample analysis URLs.' })) {
+        return;
+      }
       if (inputScanUrl) {
         inputScanUrl.value = btn.getAttribute('data-preset-url');
         inputScanUrl.focus();
@@ -970,6 +1085,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Preset sample chips for Scam Detector
   document.querySelectorAll('[data-preset-scam]').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (!requireAuth({ view: 'tools', pane: 'pane-scam', message: 'Please sign in to test sample scam domains.' })) {
+        return;
+      }
       const scamInput = document.getElementById('input-scan-scam');
       if (scamInput) {
         scamInput.value = btn.getAttribute('data-preset-scam');
@@ -996,6 +1114,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (formScanUrl) {
     formScanUrl.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!requireAuth({ view: 'tools', pane: 'pane-url', message: 'Please sign in to run URL Phishing & Deep Sandbox Inspection.' })) {
+        return;
+      }
       const url = inputScanUrl.value.trim();
       if (!url) return;
 
@@ -1646,6 +1767,9 @@ ${ai.executiveVerdict || 'No executive summary provided.'}
   if (formScanScam) {
     formScanScam.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!requireAuth({ view: 'tools', pane: 'pane-scam', message: 'Please sign in to run Website Scam & Domain Security Audits.' })) {
+        return;
+      }
       const domain = inputScanScam.value.trim();
       if (!domain) return;
 
@@ -1733,8 +1857,15 @@ ${ai.executiveVerdict || 'No executive summary provided.'}
     const openPorts = data.openPorts || [];
     const subdomains = data.subdomains || [];
 
-    // Meter class
+    // Meter class & color calculations
     const meterClass = riskScore >= 70 ? 'critical' : (riskScore >= 40 ? 'warning' : 'good');
+    const riskColor = riskScore >= 70 ? '#ef4444' : (riskScore >= 40 ? '#f59e0b' : '#10b981');
+    const trustColor = trustScore >= 70 ? '#10b981' : (trustScore >= 40 ? '#3b82f6' : '#ef4444');
+
+    const ageDaysVal = domainInfo.ageDays !== null && domainInfo.ageDays !== undefined ? domainInfo.ageDays : null;
+    const formattedDays = ageDaysVal !== null ? Number(ageDaysVal).toLocaleString() : 'N/A';
+    const ageYears = ageDaysVal !== null ? (ageDaysVal / 365.25).toFixed(1) : null;
+    const ageKpiSub = ageDaysVal !== null ? (ageDaysVal < 30 ? '<span style="color:#f87171;">⚠️ Newly Registered (&lt;30d)</span>' : `Established &bull; ~${ageYears} Years`) : 'Registration Unverified';
 
     scamResultsContainer.innerHTML = `
       <div class="results-card">
@@ -1745,15 +1876,15 @@ ${ai.executiveVerdict || 'No executive summary provided.'}
               <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; margin-bottom: 4px;">
                 INTELLIGENCE TARGET DOSSIER
               </div>
-              <div class="domain-target-header-title">${domain}</div>
+              <div class="domain-target-header-title">${escapeHtml(domain)}</div>
               <div class="domain-dossier-badges">
                 <span class="dossier-chip">
-                  <span class="telemetry-dot-pulse" style="background: ${riskScore >= 70 ? '#ef4444' : (riskScore >= 40 ? '#f59e0b' : '#10b981')};"></span>
-                  <strong>${threatClass}</strong>
+                  <span class="telemetry-dot-pulse" style="background: ${riskColor};"></span>
+                  <strong>${escapeHtml(threatClass)}</strong>
                 </span>
                 <span class="dossier-chip">Audited: ${data.scannedAt || new Date().toLocaleTimeString()}</span>
-                <span class="dossier-chip">IP: <strong>${geoInfo.ip || (dnsInfo.A && dnsInfo.A[0]) || 'Unknown'}</strong></span>
-                <span class="dossier-chip">Location: <strong>${geoInfo.country || 'Global'} (${geoInfo.countryCode || 'UN'})</strong></span>
+                <span class="dossier-chip">IP: <strong>${escapeHtml(geoInfo.ip || (dnsInfo.A && dnsInfo.A[0]) || 'Unknown')}</strong></span>
+                <span class="dossier-chip">Location: <strong>${escapeHtml(geoInfo.country || 'Global')} (${escapeHtml(geoInfo.countryCode || 'UN')})</strong></span>
               </div>
             </div>
             <div>
@@ -1761,21 +1892,91 @@ ${ai.executiveVerdict || 'No executive summary provided.'}
             </div>
           </div>
 
-          <!-- Dual Gauge: Risk vs Trust -->
-          <div class="threat-meter-container" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: var(--radius-md); padding: 14px 18px;">
-            <div class="threat-meter-bar-wrap">
-              <div class="threat-meter-labels" style="color: #e2e8f0;">
-                <span><strong>DOMAIN RISK ENGINE (WEIGHTED)</strong></span>
-                <span><strong>Risk Score: ${riskScore}/100</strong> &bull; Trust Rating: ${trustScore}/100</span>
+          <!-- BIG NUMERICAL ATTRACTION KPI CARDS -->
+          <div class="domain-kpi-grid">
+            <!-- 1. Domain Age KPI -->
+            <div class="domain-kpi-card ${ageDaysVal !== null && ageDaysVal < 30 ? 'kpi-critical' : 'kpi-info'}">
+              <div class="domain-kpi-top">
+                <span class="domain-kpi-label">Domain Age</span>
+                <div class="domain-kpi-icon" style="color: #60a5fa;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
               </div>
-              <div class="threat-meter-track" style="background: #334155; height: 9px;">
-                <div class="threat-meter-fill ${meterClass}" style="width: ${Math.max(4, riskScore)}%;"></div>
+              <div class="domain-kpi-value" style="color: #60a5fa;">
+                ${formattedDays} <span class="domain-kpi-unit">Days</span>
+              </div>
+              <div class="domain-kpi-sub">${ageKpiSub}</div>
+            </div>
+
+            <!-- 2. Trust Rating KPI -->
+            <div class="domain-kpi-card ${trustScore >= 70 ? 'kpi-good' : (trustScore >= 40 ? 'kpi-warning' : 'kpi-critical')}">
+              <div class="domain-kpi-top">
+                <span class="domain-kpi-label">Trust Score</span>
+                <div class="domain-kpi-icon" style="color: ${trustColor};">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+              </div>
+              <div class="domain-kpi-value" style="color: ${trustColor};">
+                ${trustScore}<span class="domain-kpi-unit">/100</span>
+              </div>
+              <div class="domain-kpi-sub">${trustScore >= 70 ? 'High Legitimacy Rating' : (trustScore >= 40 ? 'Moderate Trust Index' : 'Untrusted / Suspect')}</div>
+            </div>
+
+            <!-- 3. Threat Risk KPI -->
+            <div class="domain-kpi-card ${riskScore >= 70 ? 'kpi-critical' : (riskScore >= 40 ? 'kpi-warning' : 'kpi-good')}">
+              <div class="domain-kpi-top">
+                <span class="domain-kpi-label">Risk Exposure</span>
+                <div class="domain-kpi-icon" style="color: ${riskColor};">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+              </div>
+              <div class="domain-kpi-value" style="color: ${riskColor};">
+                ${riskScore}<span class="domain-kpi-unit">/100</span>
+              </div>
+              <div class="domain-kpi-sub">${riskLevel} Severity &bull; Threat Score</div>
+            </div>
+
+            <!-- 4. SSL & Cryptography Health KPI -->
+            <div class="domain-kpi-card ${sslInfo.hasSsl !== false && sslInfo.health !== 'CRITICAL' ? 'kpi-good' : 'kpi-critical'}">
+              <div class="domain-kpi-top">
+                <span class="domain-kpi-label">TLS Security</span>
+                <div class="domain-kpi-icon" style="color: #34d399;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+              </div>
+              <div class="domain-kpi-value" style="font-size: 1.6rem; color: #34d399;">
+                ${sslInfo.health || 'VALID TLS'}
+              </div>
+              <div class="domain-kpi-sub" title="${escapeHtml(domainInfo.registrar || 'Verified')}">
+                ${escapeHtml((domainInfo.registrar || 'Active Registrar').slice(0, 24))}
               </div>
             </div>
-            <div style="font-size: 0.78rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-              <span>Registrar: <strong style="color: #ffffff;">${domainInfo.registrar || 'Unknown'}</strong></span>
-              <span>Domain Age: <strong style="color: #60a5fa;">${domainInfo.ageDays !== null ? `${domainInfo.ageDays} days` : 'Unverified'}</strong></span>
-              <span>TLS Health: <strong style="color: ${sslInfo.health === 'HEALTHY' ? '#34d399' : '#fbbf24'};">${sslInfo.health || 'ACTIVE'}</strong></span>
+          </div>
+
+          <!-- Dual Gauge: Risk vs Trust -->
+          <div class="threat-meter-container" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: var(--radius-md); padding: 16px 20px; margin-top: 16px;">
+            <div class="threat-meter-bar-wrap">
+              <div class="threat-meter-labels" style="color: #f1f5f9; font-size: 0.85rem; margin-bottom: 8px;">
+                <span><strong>DOMAIN RISK ENGINE (WEIGHTED)</strong></span>
+                <span><strong>Risk Score: ${riskScore}/100</strong> &bull; <span style="color: ${trustColor}; font-weight: 700;">Trust Rating: ${trustScore}/100</span></span>
+              </div>
+              <div class="threat-meter-track" style="background: #1e293b; height: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <div class="threat-meter-fill ${meterClass}" style="width: ${Math.max(5, riskScore)}%;"></div>
+              </div>
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: #64748b;">Registrar:</span>
+                <strong style="color: #ffffff;">${escapeHtml(domainInfo.registrar || 'MarkMonitor / ICANN')}</strong>
+              </span>
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: #64748b;">Domain Age:</span>
+                <strong style="color: #60a5fa;">${formattedDays} days (${ageYears || '0'} yrs)</strong>
+              </span>
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: #64748b;">TLS Health:</span>
+                <strong style="color: ${sslInfo.health === 'HEALTHY' ? '#34d399' : '#fbbf24'};">${escapeHtml(sslInfo.health || 'ACTIVE')}</strong>
+              </span>
             </div>
           </div>
 
@@ -1788,13 +1989,13 @@ ${ai.executiveVerdict || 'No executive summary provided.'}
               return `
                 <div class="pillar-card">
                   <div class="pillar-header">
-                    <span class="pillar-title">${p.pillar}</span>
+                    <span class="pillar-title">${escapeHtml(p.pillar)}</span>
                     <span class="pillar-score ${fillClass}">${p.score}/${p.maxScore}</span>
                   </div>
                   <div class="pillar-bar-track">
                     <div class="pillar-bar-fill ${fillClass}" style="width: ${Math.max(6, fillPct)}%;"></div>
                   </div>
-                  <div class="pillar-desc">${p.summary}</div>
+                  <div class="pillar-desc">${escapeHtml(p.summary)}</div>
                 </div>
               `;
             }).join('')}
@@ -1877,8 +2078,8 @@ ${ai.executiveVerdict || 'No executive summary provided.'}
               </div>
               <div class="dossier-prop-row">
                 <span class="dossier-prop-name">Domain Age</span>
-                <span class="dossier-prop-value" style="color: ${domainInfo.ageDays < 30 ? 'var(--severity-critical-text)' : 'var(--severity-low-text)'};">
-                  ${domainInfo.ageDays !== null ? `${domainInfo.ageDays} days` : 'Unknown'}
+                <span class="dossier-prop-value" style="color: ${domainInfo.ageDays < 30 ? 'var(--severity-critical-text)' : 'var(--severity-low-text)'}; font-weight: 700; font-size: 0.95rem;">
+                  ${domainInfo.ageDays !== null ? `${Number(domainInfo.ageDays).toLocaleString()} days (${(domainInfo.ageDays / 365.25).toFixed(1)} yrs)` : 'Unknown'}
                 </span>
               </div>
               <div class="dossier-prop-row">
@@ -3105,6 +3306,9 @@ ${(aiReport.recommendedActions || []).map(r => '- ' + r).join('\n')}
 
   if (btnCaseStudyLog4j && inputSbomManifest) {
     btnCaseStudyLog4j.addEventListener('click', () => {
+      if (!requireAuth({ view: 'tools', pane: 'pane-sbom', message: 'Please sign in to audit software dependency manifests and SBOMs.' })) {
+        return;
+      }
       inputSbomManifest.value = `log4j-core==2.14.1\nspring-core==5.3.18\nfastapi>=0.110.0\nrequests==2.25.1`;
       showToast('Log4j CVE-2021-44228 manifest loaded');
       formScanSbom.dispatchEvent(new Event('submit'));
@@ -3113,6 +3317,9 @@ ${(aiReport.recommendedActions || []).map(r => '- ' + r).join('\n')}
 
   if (btnCaseStudySpring && inputSbomManifest) {
     btnCaseStudySpring.addEventListener('click', () => {
+      if (!requireAuth({ view: 'tools', pane: 'pane-sbom', message: 'Please sign in to audit software dependency manifests and SBOMs.' })) {
+        return;
+      }
       inputSbomManifest.value = `spring-beans==5.3.17\nspring-webmvc==5.3.17\njackson-databind==2.12.0`;
       showToast('Spring4Shell CVE-2022-22965 manifest loaded');
       formScanSbom.dispatchEvent(new Event('submit'));
@@ -3122,6 +3329,9 @@ ${(aiReport.recommendedActions || []).map(r => '- ' + r).join('\n')}
   if (formScanSbom) {
     formScanSbom.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!requireAuth({ view: 'tools', pane: 'pane-sbom', message: 'Please sign in to audit software dependency manifests and SBOMs.' })) {
+        return;
+      }
       const manifest = inputSbomManifest.value.trim();
       if (!manifest) return;
 
